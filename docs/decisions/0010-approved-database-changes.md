@@ -1,6 +1,6 @@
 # 0010 — Approved database changes
 
-**Status:** Accepted, except #7 (expense category values), which is pending (C4).
+**Status:** Accepted (includes resolution C4).
 
 Each change is applied **when its module is implemented** — not as one up-front
 migration — after re-checking the exact schema against the latest PRD, System Design,
@@ -15,7 +15,7 @@ listed here or in those documents.
 | 4   | Task notes and task attachments                                                     | Tasks         |           |
 | 5   | Expense `eventId`                                                                   | Expenses      |           |
 | 6   | Optional expense `vendorId`                                                         | Expenses      |           |
-| 7   | Fixed expense category list — **values pending (C4)**                               | Expenses      | below     |
+| 7   | Fixed expense category list: `category: ExpenseCategory` (C4)                       | Expenses      | below     |
 | 8   | Remove expense `visibility`                                                         | Expenses      | 0009      |
 | 9   | Wedding fields such as `brideName`, `groomName`, `coverImage`, `theme`              | Weddings      |           |
 | 10  | Event fields such as `dressCode`, `instructions`, `notes`, `coverImage`, `publicId` | Events        |           |
@@ -36,22 +36,29 @@ listed here or in those documents.
 | 3   | Database Design v1.0 §13.1             | `status // TODO, IN_PROGRESS, COMPLETED, CANCELLED`         | `BLOCKED` added.                           |
 | 17  | System Design v1.2 §7.1                | "Register → … → create User → create one Wedding/workspace" | Registration creates only the user (0012). |
 
-## #7 — Expense categories (C4): pending
+## #7 — Expense categories (C4)
 
-The documents do not define an unambiguous category list, and none documents an `OTHER`
-expense category. No list is chosen until one is approved.
+The expense category is a fixed value, `category: ExpenseCategory`, not a `categoryId`
+referencing a category collection — V1 defines no expense-category collection.
 
-| Source                              | Text                                                                                                                                                                                                                       |
-| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| PRD v1.1 §15 (latest)               | "Title, amount, category, date, optional event, paid by, …" — a category field, no values.                                                                                                                                 |
-| System Design v1.2 §12.1            | "amount, category, date, …" — no values.                                                                                                                                                                                   |
-| Database Design v1.0 §12.1          | `categoryId?: ObjectId` — a reference to a category record, but no category collection is defined anywhere in the document.                                                                                                |
-| Database Design v1.0 §20            | Index `(weddingId, categoryId)` for category filtering.                                                                                                                                                                    |
-| API Design v1.0 §24                 | Expense list filter `?categoryId=…`.                                                                                                                                                                                       |
-| PRD v1.0 §15 (older — context only) | "Categories **can include** venue, catering, decoration, photography, clothing, jewellery, makeup, entertainment, invitations, gifts, and miscellaneous." — an open-ended example list; uses "miscellaneous", not `OTHER`. |
+```text
+ExpenseCategory =
+  VENUE | CATERING | DECORATION | PHOTOGRAPHY | CLOTHING | JEWELLERY |
+  MAKEUP | ENTERTAINMENT | INVITATIONS | GIFTS | MISCELLANEOUS
+```
 
-`OTHER` appears in the documents only as an expense **payment method**
-(Database Design §12.2), not as a category.
+- `MISCELLANEOUS` is used, not `OTHER`: the source list (PRD v1.0 §15) says
+  "miscellaneous", and `OTHER` is documented only as a payment method (Database Design
+  §12.2).
+- No other categories (for example transportation, accommodation, videography or music)
+  are added unless the list is explicitly expanded later.
 
-If a fixed list is approved, it also replaces `categoryId` with a category value in the
-schema (Database Design §12.1, §20) and the list filter (API Design §24).
+### Sources and superseded statements
+
+| Source                                 | Statement                                                                                                                                             | Resolution                                                   |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| PRD v1.0 §15 (older)                   | "Categories can include venue, catering, decoration, photography, clothing, jewellery, makeup, entertainment, invitations, gifts, and miscellaneous." | Adopted as the fixed V1 list.                                |
+| PRD v1.1 §15; System Design v1.2 §12.1 | Expense has a "category" — no values                                                                                                                  | Values defined by this record.                               |
+| Database Design v1.0 §12.1             | `categoryId?: ObjectId`                                                                                                                               | Replaced by `category: ExpenseCategory`.                     |
+| Database Design v1.0 §20               | Index `(weddingId, categoryId)`                                                                                                                       | Indexes the `category` value instead.                        |
+| API Design v1.0 §24                    | Expense list filter `?categoryId=…`                                                                                                                   | Filters by `category` value instead; the route is unchanged. |

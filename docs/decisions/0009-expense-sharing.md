@@ -12,8 +12,8 @@ user-selectable expense visibility:
 - no `visibility` field in the Expense schema,
 - no private/shared expense toggle.
 
-Expenses support the previously agreed fields: `eventId`, optional `vendorId`, category
-(values pending — C4 in 0010), amount, payments, receipts, and the other documented
+Expenses support the previously agreed fields: `eventId`, optional `vendorId`, `category`
+(fixed `ExpenseCategory` value — 0010 #7), amount, payments, receipts, and the other documented
 fields such as notes. No other expense behaviour is added.
 
 This is an explicitly approved product decision, so it takes precedence over the

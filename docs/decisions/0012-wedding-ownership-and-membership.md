@@ -1,6 +1,6 @@
 # 0012 — Wedding ownership and membership
 
-**Status:** Accepted (resolutions C1 and C2).
+**Status:** Accepted (resolutions C1, C2 and N1).
 
 ## Ownership (C1)
 
@@ -25,6 +25,28 @@ User B  OWNER → Wedding 1             OWNER → Wedding 2
 - A wedding is created through `POST /api/v1/weddings`.
 - Once created, the user is the `OWNER` of that wedding and cannot own another.
 - Wedding creation is never forced into signup.
+
+## Partner connection when the invitee already owns a wedding (N1)
+
+V1 rule: a partner connection cannot be accepted while the invitee owns an active
+wedding.
+
+```text
+User A  OWNER → Wedding A
+User B  OWNER → Wedding B
+
+A invites B as partner → B cannot accept while B owns Wedding B.
+```
+
+- The accept endpoint (`POST /api/v1/partner/invitations/{token}/accept`, API Design §7)
+  returns a clear domain error stating that the invitee already owns an active wedding
+  and must resolve that wedding before accepting.
+- The system never merges the two weddings, automatically archives or deletes the
+  invitee's wedding, or silently transfers ownership.
+- The UX for resolving the situation is designed with the Partner Connection module.
+- This is a resolved decision, independent of the pending A4/A5 decisions (0011). It
+  closes the API Design v1.0 §35 open item "Exact invitation acceptance rules when invitee
+  already owns a wedding".
 
 ## Interpretation of earlier statements
 
