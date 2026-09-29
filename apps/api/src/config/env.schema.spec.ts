@@ -54,4 +54,10 @@ describe('AppConfig', () => {
       false,
     );
   });
+
+  it('pretty-prints logs only in local development', () => {
+    expect(new AppConfig(parseEnv(validEnv)).log.pretty).toBe(true);
+    expect(new AppConfig(parseEnv({ ...validEnv, NODE_ENV: 'production' })).log.pretty).toBe(false);
+    expect(new AppConfig(parseEnv({ ...validEnv, APP_ENV: 'staging' })).log.pretty).toBe(false);
+  });
 });

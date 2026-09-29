@@ -26,7 +26,12 @@ export class AppConfig {
       autoIndex: env.APP_ENV === 'local' || env.APP_ENV === 'test',
     };
     this.redis = { url: env.REDIS_URL };
-    this.log = { level: env.LOG_LEVEL, pretty: env.APP_ENV === 'local' };
+    // pino-pretty is a dev dependency, so production images (even run locally via
+    // docker compose) always log JSON.
+    this.log = {
+      level: env.LOG_LEVEL,
+      pretty: env.APP_ENV === 'local' && env.NODE_ENV === 'development',
+    };
     this.openApi = { docsEnabled: env.OPENAPI_DOCS_ENABLED };
   }
 
