@@ -7,16 +7,16 @@
 `apps/api` is a single NestJS modular monolith with two entry points:
 
 - `src/main.ts` — HTTP API.
-- `src/worker.ts` — BullMQ worker. Runs continuously as its own process, never as a
-  Vercel request function (System Design §5).
+- `src/worker.ts` — BullMQ worker. Runs continuously in its own container, never as a
+  Vercel request function (System Design §5, API Design §27).
 
 Both are shipped in one Docker image (`apps/api/Dockerfile`) and differ only by start
-command:
+command. In production each runs as its own container (see 0005).
 
-| Runtime  | Command                                    | Health port |
-| -------- | ------------------------------------------ | ----------- |
-| HTTP API | `node --enable-source-maps dist/main.js`   | 3001        |
-| Worker   | `node --enable-source-maps dist/worker.js` | 3002        |
+| Runtime  | Command                                    | Port                 |
+| -------- | ------------------------------------------ | -------------------- |
+| HTTP API | `node --enable-source-maps dist/main.js`   | 3001                 |
+| Worker   | `node --enable-source-maps dist/worker.js` | 3002 (health probes) |
 
 ## Consequences
 

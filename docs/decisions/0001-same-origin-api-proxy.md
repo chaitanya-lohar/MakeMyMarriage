@@ -7,6 +7,14 @@
 Browsers only ever call the web origin. The Next.js server forwards `/api/v1/*` to the
 NestJS API; nothing else is forwarded.
 
+```text
+Browser
+  ↓  https://makemymarriage.com/api/v1/*
+Vercel (Next.js)
+  ↓  /api/v1 proxy → API_INTERNAL_URL
+NestJS API container (ECS/Fargate — see 0005)
+```
+
 ## Consequences
 
 - Authentication cookies (Secure, HttpOnly, SameSite — System Design §21, API Design
