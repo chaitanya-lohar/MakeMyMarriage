@@ -1,0 +1,11 @@
+node_modules
+dist
+.next
+.turbo
+coverage
+pnpm-lock.yaml
+docs/specs
+
+# Generated API contract
+packages/api-client/openapi.json
+packages/api-client/src/schema.d.ts
