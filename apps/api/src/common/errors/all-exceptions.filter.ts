@@ -33,7 +33,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const { status, code, message, details } = this.describe(exception);
 
     if (status >= 500) {
-      this.logger.error({ err: exception, status, code }, 'Unhandled error while processing request');
+      this.logger.error(
+        { err: exception, status, code },
+        'Unhandled error while processing request',
+      );
     }
 
     const body: ErrorBody = {

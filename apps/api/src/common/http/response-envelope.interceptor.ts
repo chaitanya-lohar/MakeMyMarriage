@@ -34,12 +34,10 @@ export class ResponseEnvelopeInterceptor implements NestInterceptor {
 
     const request = context.switchToHttp().getRequest<Request>();
     return next.handle().pipe(
-      map(
-        (data: unknown): SuccessEnvelope<unknown> => ({
-          data: data ?? null,
-          meta: { requestId: requestIdOf(request), timestamp: new Date().toISOString() },
-        }),
-      ),
+      map((data: unknown): SuccessEnvelope<unknown> => ({
+        data: data ?? null,
+        meta: { requestId: requestIdOf(request), timestamp: new Date().toISOString() },
+      })),
     );
   }
 }

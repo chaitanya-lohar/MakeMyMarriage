@@ -45,7 +45,12 @@ export default [
             },
             {
               // Inside a module, any of its own files may be imported.
-              from: { element: { type: 'domain-module', captured: { moduleName: '{{ to.captured.moduleName }}' } } },
+              from: {
+                element: {
+                  type: 'domain-module',
+                  captured: { moduleName: '{{ to.captured.moduleName }}' },
+                },
+              },
               allow: { to: { element: { type: 'domain-module' } } },
             },
           ],
