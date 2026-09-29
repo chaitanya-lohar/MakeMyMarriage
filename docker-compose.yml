@@ -1,0 +1,79 @@
+# Local development infrastructure.
+#
+#   docker compose up -d mongo redis     # dependencies only (default workflow)
+#   docker compose --profile app up -d   # also run the API + worker from the production image
+#
+# Not used in staging/production: those use MongoDB Atlas and managed Redis.
+name: makemymarriage
+
+services:
+  mongo:
+    image: mongo:8.0
+    # Single-node replica set so multi-document transactions work locally,
+    # matching Atlas (Database Design §24).
+    command: ['--replSet', 'rs0', '--bind_ip_all']
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      # Initiates the replica set on first start, then reports its health.
+      test:
+        - CMD
+        - mongosh
+        - --quiet
+        - --eval
+        - "try { rs.status().ok } catch (e) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'localhost:27017' }] }).ok }"
+      interval: 5s
+      timeout: 10s
+      retries: 20
+      start_period: 10s
+
+  redis:
+    image: redis:8-alpine
+    # BullMQ requires keys never to be evicted.
+    command: ['redis-server', '--appendonly', 'yes', '--maxmemory-policy', 'noeviction']
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    profiles: ['app']
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    image: makemymarriage-api:local
+    environment: &app-env
+      NODE_ENV: production
+      APP_ENV: local
+      MONGODB_URI: mongodb://mongo:27017/makemymarriage?directConnection=true
+      REDIS_URL: redis://redis:6379
+      LOG_LEVEL: info
+      OPENAPI_DOCS_ENABLED: 'true'
+    ports:
+      - '3001:3001'
+    depends_on:
+      mongo: { condition: service_healthy }
+      redis: { condition: service_healthy }
+
+  worker:
+    profiles: ['app']
+    image: makemymarriage-api:local
+    command: ['node', '--enable-source-maps', 'dist/worker.js']
+    environment: *app-env
+    ports:
+      - '3002:3002'
+    depends_on:
+      api: { condition: service_started }
+      mongo: { condition: service_healthy }
+      redis: { condition: service_healthy }
+
+volumes:
+  mongo-data:
+  redis-data:
