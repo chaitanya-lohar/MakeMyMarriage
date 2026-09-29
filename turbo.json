@@ -1,0 +1,38 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "ui": "stream",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "env": ["API_INTERNAL_URL"],
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "lint": {
+      "dependsOn": ["^build"]
+    },
+    "typecheck": {
+      "dependsOn": ["^build"]
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "test:integration": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "passThroughEnv": ["REDIS_URL", "MONGOMS_*"]
+    },
+    "openapi:export": {
+      "dependsOn": ["build"],
+      "outputs": ["../../packages/api-client/openapi.json"]
+    },
+    "generate": {
+      "dependsOn": ["@makemymarriage/api#openapi:export"],
+      "outputs": ["src/schema.d.ts"]
+    }
+  }
+}

@@ -1,0 +1,16 @@
+packages:
+  - apps/*
+  - packages/*
+
+# Dependency install scripts are denied unless explicitly allowed here.
+allowBuilds:
+  # Native binary verification for the SWC compiler used by Vitest.
+  '@swc/core': true
+  # Optional native accelerator for BullMQ's msgpack serialisation.
+  msgpackr-extract: true
+  # Downloads mongod eagerly; not needed — tests download the binary on first use.
+  mongodb-memory-server: false
+  # Install-time telemetry (pulled in by swagger-ui-dist). Denied.
+  '@scarf/scarf': false
+  # Native binding check for the Rust resolver behind eslint-import-resolver-typescript.
+  unrs-resolver: true
