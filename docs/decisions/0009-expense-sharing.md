@@ -25,6 +25,6 @@ documented fields such as notes. No other expense behaviour is added.
 | Database Design v1.0 §12.1 | `visibility: string // PRIVATE, SHARED`                                                         | Field removed.                                 |
 | Database Design v1.0 §12.1 | "Bride and groom can maintain their own private expenses; an expense can be explicitly shared." | Superseded: expenses are automatically shared. |
 
-System Design v1.2 §12 already matches this decision ("expense information is shared
+System Design v1.2 §12.1 already matches this decision ("expense information is shared
 with the connected partner"). API Design route authority (0004) does not carry stale
 fields over.
