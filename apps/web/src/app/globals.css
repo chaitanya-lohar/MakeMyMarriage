@@ -1,1 +1,120 @@
 @import 'tailwindcss';
+
+/*
+ * "Regal Modernity" design system (decision 0014), taken from the approved Google Stitch
+ * project. Brand colours are the four approved key colours; the role colours are the
+ * palette Stitch derives from them and renders the approved screens with, so pages match
+ * the designs exactly. Use role colours in components, brand colours only where a
+ * design names them.
+ */
+@theme {
+  /* Brand key colours */
+  --color-navy: #0a1128;
+  --color-champagne: #c5a880;
+  --color-sage: #76877d;
+  --color-ivory: #faf8f5;
+
+  /* Role colours */
+  --color-primary: #000000;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #141a32;
+  --color-primary-fixed: #dce1ff;
+  --color-on-primary-fixed: #141a32;
+  --color-on-primary-fixed-variant: #3f465f;
+
+  --color-secondary: #725b38;
+  --color-secondary-fixed: #fedeb2;
+  --color-secondary-fixed-dim: #e0c298;
+  --color-on-secondary-fixed: #281800;
+
+  --color-tertiary-fixed: #d5e7db;
+  --color-tertiary-fixed-dim: #b9cbbf;
+  --color-on-tertiary-fixed: #0f1f17;
+  --color-on-tertiary-container: #77887e;
+
+  --color-surface: #fbf9f6;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f5f3f0;
+  --color-surface-container: #efeeeb;
+  --color-surface-container-high: #eae8e5;
+  --color-surface-container-highest: #e4e2df;
+  --color-on-surface: #1b1c1a;
+  --color-on-surface-variant: #46464d;
+  --color-outline-variant: #c6c6ce;
+
+  --color-error: #ba1a1a;
+
+  /* Typography: Playfair Display for headings, Plus Jakarta Sans for body and UI */
+  --font-sans: var(--font-plus-jakarta-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-playfair-display), ui-serif, Georgia, serif;
+
+  --text-display-hero: 3.5rem;
+  --text-display-hero--line-height: 4rem;
+  --text-display-hero--letter-spacing: -0.02em;
+  --text-display-hero--font-weight: 600;
+
+  --text-display-hero-mobile: 2.25rem;
+  --text-display-hero-mobile--line-height: 2.75rem;
+  --text-display-hero-mobile--letter-spacing: -0.01em;
+  --text-display-hero-mobile--font-weight: 600;
+
+  --text-headline-lg: 2.5rem;
+  --text-headline-lg--line-height: 3rem;
+  --text-headline-lg--letter-spacing: -0.015em;
+  --text-headline-lg--font-weight: 600;
+
+  --text-headline-lg-mobile: 1.875rem;
+  --text-headline-lg-mobile--line-height: 2.25rem;
+  --text-headline-lg-mobile--font-weight: 600;
+
+  --text-headline-md: 1.75rem;
+  --text-headline-md--line-height: 2.25rem;
+  --text-headline-md--font-weight: 500;
+
+  --text-headline-sm: 1.25rem;
+  --text-headline-sm--line-height: 1.75rem;
+  --text-headline-sm--font-weight: 500;
+
+  --text-title-lg: 1.125rem;
+  --text-title-lg--line-height: 1.625rem;
+  --text-title-lg--font-weight: 600;
+
+  --text-title-md: 1rem;
+  --text-title-md--line-height: 1.5rem;
+  --text-title-md--font-weight: 600;
+
+  --text-body-lg: 1.125rem;
+  --text-body-lg--line-height: 1.75rem;
+
+  --text-body-md: 0.9375rem;
+  --text-body-md--line-height: 1.5rem;
+
+  --text-body-sm: 0.8125rem;
+  --text-body-sm--line-height: 1.25rem;
+
+  --text-label-md: 0.875rem;
+  --text-label-md--line-height: 1.25rem;
+  --text-label-md--letter-spacing: 0.01em;
+  --text-label-md--font-weight: 600;
+
+  --text-label-sm: 0.75rem;
+  --text-label-sm--line-height: 1rem;
+  --text-label-sm--letter-spacing: 0.05em;
+  --text-label-sm--font-weight: 600;
+
+  /* Elevation */
+  --shadow-gold-glow: 0 10px 30px -5px rgb(114 91 56 / 0.12);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    /* Keeps in-page anchor targets clear of the sticky header. */
+    scroll-padding-top: 5rem;
+  }
+
+  ::selection {
+    background-color: var(--color-secondary-fixed);
+    color: var(--color-on-secondary-fixed);
+  }
+}
