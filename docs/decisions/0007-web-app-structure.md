@@ -14,12 +14,23 @@ apps/web/src/app/
 └── memories/[token]/         guest QR photo uploads (account-free)
 ```
 
-Only `(marketing)/` exists in the scaffold. Each other route is created with its feature.
+`(marketing)/` holds the home page and the legal placeholders; `(auth)/` holds only the
+`/signup` and `/login` placeholders until the Auth phase (0014). Each other route is created
+with its feature.
 
 ## Code organisation
 
-When UI features are implemented, routes, reusable components, feature-specific UI,
-API-client/lib utilities and shared design-system components are kept separate. Folders
-are added when they get their first real file, not in advance.
+Routes, reusable components, feature-specific UI, API-client/lib utilities and shared
+design-system components are kept separate:
+
+| Folder                    | Holds                                               |
+| ------------------------- | --------------------------------------------------- |
+| `src/app/`                | Routes and layouts only                             |
+| `src/components/ui/`      | Design-system components (button, chip, icon, logo) |
+| `src/components/layout/`  | Site-wide layout (header, mobile menu, footer)      |
+| `src/features/<feature>/` | UI and content that belong to one feature           |
+| `src/lib/`                | API-client and utility code, when first needed      |
+
+Folders are added when they get their first real file, not in advance.
 
 API calls use `@makemymarriage/api-client` through the same-origin proxy (0001).
