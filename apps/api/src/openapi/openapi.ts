@@ -3,13 +3,15 @@ import { DocumentBuilder, SwaggerModule, type OpenAPIObject } from '@nestjs/swag
 
 /**
  * OpenAPI contract generated from controllers and DTOs (API Design §37).
- * Security schemes and tags are added as the Auth and domain modules land.
+ * Protected endpoints use the `session` scheme: the HttpOnly access-token cookie
+ * (decision 0015). Tags are added as domain modules land.
  */
 export function buildOpenApiDocument(app: INestApplication): OpenAPIObject {
   const config = new DocumentBuilder()
     .setTitle('MakeMyMarriage API')
     .setDescription('REST API for the MakeMyMarriage wedding planning platform.')
     .setVersion('v1')
+    .addCookieAuth('mmm_at', { type: 'apiKey', in: 'cookie', name: 'mmm_at' }, 'session')
     .build();
   return SwaggerModule.createDocument(app, config);
 }
