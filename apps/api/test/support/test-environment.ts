@@ -25,6 +25,7 @@ export async function startTestEnvironment(
     REDIS_URL: TEST_REDIS_URL,
     LOG_LEVEL: 'silent',
     OPENAPI_DOCS_ENABLED: 'false',
+    JWT_ACCESS_SECRET: 'integration-test-secret-at-least-32-characters',
     ...overrides,
   });
 

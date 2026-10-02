@@ -1,9 +1,9 @@
 # Local development infrastructure.
 #
-#   docker compose up -d mongo redis     # dependencies only (default workflow)
+#   docker compose up -d mongo redis mailpit   # dependencies only (default workflow)
 #   docker compose --profile app up -d   # also run the API + worker from the production image
 #
-# Not used in staging/production: those use MongoDB Atlas and managed Redis.
+# Not used in staging/production: those use MongoDB Atlas, managed Redis and Resend.
 name: makemymarriage
 
 services:
@@ -43,6 +43,14 @@ services:
       timeout: 3s
       retries: 20
 
+  mailpit:
+    # Local email inbox: the API sends via SMTP on 1025; read mail at http://localhost:8025.
+    # Nothing is delivered to real addresses (decision 0015).
+    image: axllent/mailpit:v1
+    ports:
+      - '1025:1025'
+      - '8025:8025'
+
   api:
     profiles: ['app']
     build:
@@ -56,11 +64,18 @@ services:
       REDIS_URL: redis://redis:6379
       LOG_LEVEL: info
       OPENAPI_DOCS_ENABLED: 'true'
+      # Local-only values; never reuse outside this compose file.
+      JWT_ACCESS_SECRET: local-compose-secret-not-for-real-use-0000000000
+      WEB_APP_URL: http://localhost:3000
+      EMAIL_TRANSPORT: smtp
+      SMTP_HOST: mailpit
+      SMTP_PORT: '1025'
     ports:
       - '3001:3001'
     depends_on:
       mongo: { condition: service_healthy }
       redis: { condition: service_healthy }
+      mailpit: { condition: service_started }
 
   worker:
     profiles: ['app']
@@ -73,6 +88,7 @@ services:
       api: { condition: service_started }
       mongo: { condition: service_healthy }
       redis: { condition: service_healthy }
+      mailpit: { condition: service_started }
 
 volumes:
   mongo-data:

@@ -6,6 +6,7 @@ const validEnv = {
   APP_ENV: 'local',
   MONGODB_URI: 'mongodb://localhost:27017/makemymarriage',
   REDIS_URL: 'redis://localhost:6379',
+  JWT_ACCESS_SECRET: 'test-secret-that-is-at-least-32-characters-long',
 };
 
 describe('parseEnv', () => {
@@ -24,6 +25,20 @@ describe('parseEnv', () => {
     const env = parseEnv({ ...validEnv, PORT: '8080', OPENAPI_DOCS_ENABLED: 'true' });
     expect(env.PORT).toBe(8080);
     expect(env.OPENAPI_DOCS_ENABLED).toBe(true);
+  });
+
+  it('requires a sufficiently long access-token secret', () => {
+    expect(() => parseEnv({ ...validEnv, JWT_ACCESS_SECRET: 'short' })).toThrow(
+      /JWT_ACCESS_SECRET/,
+    );
+  });
+
+  it('requires a Resend API key only when Resend is the transport', () => {
+    expect(parseEnv(validEnv).EMAIL_TRANSPORT).toBe('smtp');
+    expect(() => parseEnv({ ...validEnv, EMAIL_TRANSPORT: 'resend' })).toThrow(/RESEND_API_KEY/);
+    expect(
+      parseEnv({ ...validEnv, EMAIL_TRANSPORT: 'resend', RESEND_API_KEY: 're_x' }).RESEND_API_KEY,
+    ).toBe('re_x');
   });
 
   it('rejects missing required variables', () => {
@@ -59,5 +74,15 @@ describe('AppConfig', () => {
     expect(new AppConfig(parseEnv(validEnv)).log.pretty).toBe(true);
     expect(new AppConfig(parseEnv({ ...validEnv, NODE_ENV: 'production' })).log.pretty).toBe(false);
     expect(new AppConfig(parseEnv({ ...validEnv, APP_ENV: 'staging' })).log.pretty).toBe(false);
+  });
+
+  it('uses secure cookies only in staging and production', () => {
+    expect(new AppConfig(parseEnv(validEnv)).auth.secureCookies).toBe(false);
+    expect(new AppConfig(parseEnv({ ...validEnv, APP_ENV: 'staging' })).auth.secureCookies).toBe(
+      true,
+    );
+    expect(new AppConfig(parseEnv({ ...validEnv, APP_ENV: 'production' })).auth.secureCookies).toBe(
+      true,
+    );
   });
 });

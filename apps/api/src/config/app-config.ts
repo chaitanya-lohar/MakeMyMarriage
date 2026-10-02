@@ -13,6 +13,18 @@ export class AppConfig {
   readonly redis: { readonly url: string };
   readonly log: { readonly level: Env['LOG_LEVEL']; readonly pretty: boolean };
   readonly openApi: { readonly docsEnabled: boolean };
+  readonly auth: {
+    readonly accessTokenSecret: string;
+    /** Secure cookies everywhere except plain-HTTP local development and tests. */
+    readonly secureCookies: boolean;
+  };
+  readonly web: { readonly appUrl: string };
+  readonly email: {
+    readonly transport: Env['EMAIL_TRANSPORT'];
+    readonly from: string;
+    readonly smtp: { readonly host: string; readonly port: number };
+    readonly resendApiKey: string | undefined;
+  };
 
   constructor(env: Env) {
     this.nodeEnv = env.NODE_ENV;
@@ -33,6 +45,17 @@ export class AppConfig {
       pretty: env.APP_ENV === 'local' && env.NODE_ENV === 'development',
     };
     this.openApi = { docsEnabled: env.OPENAPI_DOCS_ENABLED };
+    this.auth = {
+      accessTokenSecret: env.JWT_ACCESS_SECRET,
+      secureCookies: env.APP_ENV === 'staging' || env.APP_ENV === 'production',
+    };
+    this.web = { appUrl: env.WEB_APP_URL.replace(/\/+$/, '') };
+    this.email = {
+      transport: env.EMAIL_TRANSPORT,
+      from: env.EMAIL_FROM,
+      smtp: { host: env.SMTP_HOST, port: env.SMTP_PORT },
+      resendApiKey: env.RESEND_API_KEY,
+    };
   }
 
   get isProduction(): boolean {
