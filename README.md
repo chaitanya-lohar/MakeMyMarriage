@@ -24,11 +24,13 @@ Wedding planning and management platform for Indian weddings.
 pnpm install
 cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env.local
-pnpm infra:up        # MongoDB (single-node replica set) + Redis
+pnpm infra:up        # MongoDB (single-node replica set), Redis and the Mailpit inbox
 pnpm dev             # web :3000, API :3001, worker health :3002
 ```
 
-- Web: http://localhost:3000
+- Web: http://localhost:3000 — sign up at /signup, sign in at /login
+- Email inbox (Mailpit): http://localhost:8025 — password-reset emails land here; nothing is
+  sent to real addresses
 - API through the web proxy: http://localhost:3000/api/v1/…
 - API docs (when `OPENAPI_DOCS_ENABLED=true`): http://localhost:3001/api/v1/docs
 - Health: http://localhost:3001/health/ready and http://localhost:3002/health/ready

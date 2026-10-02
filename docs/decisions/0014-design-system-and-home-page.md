@@ -46,12 +46,12 @@ do not define their own visual language.
 
 ## Placeholder routes
 
-| Route      | Until                  | Content                                     |
-| ---------- | ---------------------- | ------------------------------------------- |
-| `/signup`  | Auth phase             | Heading only; no authentication             |
-| `/login`   | Auth phase             | Heading only; no authentication             |
-| `/privacy` | Legal text is provided | Title and a note that the policy is pending |
-| `/terms`   | Legal text is provided | Title and a note that the terms are pending |
+| Route      | Until                                         | Content                                     |
+| ---------- | --------------------------------------------- | ------------------------------------------- |
+| `/signup`  | Auth phase — replaced by the real page (0015) | Heading only; no authentication             |
+| `/login`   | Auth phase — replaced by the real page (0015) | Heading only; no authentication             |
+| `/privacy` | Legal text is provided                        | Title and a note that the policy is pending |
+| `/terms`   | Legal text is provided                        | Title and a note that the terms are pending |
 
 All four are excluded from search indexing. No legal wording is invented.
 
