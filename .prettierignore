@@ -9,3 +9,6 @@ docs/specs
 # Generated API contract
 packages/api-client/openapi.json
 packages/api-client/src/schema.d.ts
+
+# Generated icon data
+apps/web/src/components/ui/icon-paths.ts

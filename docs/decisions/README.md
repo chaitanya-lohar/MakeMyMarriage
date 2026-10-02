@@ -19,6 +19,7 @@ in a specification, the record names that statement.
 | [0011](0011-pending-partner-sharing-decisions.md) | Partner/Sharing decisions A4 and A5                         | Pending  |
 | [0012](0012-wedding-ownership-and-membership.md)  | Wedding ownership and membership (C1, C2, N1)               | Accepted |
 | [0013](0013-task-status-reporting.md)             | Task status reporting (C5, N2)                              | Accepted |
+| [0014](0014-design-system-and-home-page.md)       | Design system and marketing home page                       | Accepted |
 
 Conflicts between specifications or decision records are handled with the protocol in
 [0004](0004-specification-authority.md) — never resolved silently in code.

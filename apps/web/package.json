@@ -10,7 +10,8 @@
     "start": "next start --port 3000",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "icons": "node scripts/generate-icons.mjs"
   },
   "dependencies": {
     "@makemymarriage/api-client": "workspace:*",
@@ -21,6 +22,7 @@
   "devDependencies": {
     "@makemymarriage/eslint-config": "workspace:*",
     "@makemymarriage/tsconfig": "workspace:*",
+    "@material-symbols/svg-400": "0.47.5",
     "@tailwindcss/postcss": "4.3.3",
     "@types/node": "24.19.0",
     "@types/react": "19.3.0",

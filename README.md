@@ -43,6 +43,7 @@ pnpm test               # unit tests
 pnpm test:integration   # needs Redis (pnpm infra:up); MongoDB runs in memory
 pnpm build
 pnpm api:contract       # regenerate the OpenAPI contract and client types
+pnpm --filter @makemymarriage/web icons   # regenerate the icon set after adding a name
 ```
 
 CI (`.github/workflows/ci.yml`) runs all of the above, fails on OpenAPI contract drift and
