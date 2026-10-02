@@ -5,10 +5,16 @@
 export const QueueName = {
   /** Infrastructure-only queue used to verify the worker pipeline end to end. */
   System: 'system',
+  /** Outgoing transactional email, sent by the worker (infrastructure/email). */
+  Email: 'email',
 } as const;
 
 export type QueueName = (typeof QueueName)[keyof typeof QueueName];
 
 export const SystemJob = {
   Ping: 'ping',
+} as const;
+
+export const EmailJob = {
+  Send: 'send',
 } as const;
