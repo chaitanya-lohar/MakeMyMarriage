@@ -14,9 +14,9 @@ apps/web/src/app/
 └── memories/[token]/         guest QR photo uploads (account-free)
 ```
 
-`(marketing)/` holds the home page and the legal placeholders; `(auth)/` holds only the
-`/signup` and `/login` placeholders until the Auth phase (0014). Each other route is created
-with its feature.
+`(marketing)/` holds the home page and the legal placeholders. `(auth)/` holds sign-up,
+sign-in, forgot password and reset password; `(workspace)/dashboard` is the minimal signed-in
+page until the Weddings phase (0015). Each other route is created with its feature.
 
 ## Code organisation
 

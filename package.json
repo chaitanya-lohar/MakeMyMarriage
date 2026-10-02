@@ -16,7 +16,7 @@
     "api:contract": "turbo run generate --filter=@makemymarriage/api-client",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "infra:up": "docker compose up -d mongo redis",
+    "infra:up": "docker compose up -d mongo redis mailpit",
     "infra:down": "docker compose down"
   },
   "devDependencies": {

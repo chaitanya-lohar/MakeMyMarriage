@@ -29,7 +29,7 @@ import { QueueName } from './queue-names.js';
         },
       }),
     }),
-    BullModule.registerQueue({ name: QueueName.System }),
+    BullModule.registerQueue({ name: QueueName.System }, { name: QueueName.Email }),
   ],
   exports: [BullModule],
 })

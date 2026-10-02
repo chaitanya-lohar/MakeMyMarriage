@@ -1,12 +1,15 @@
 import type { Metadata } from 'next';
-import { PlaceholderPage } from '@/components/layout/placeholder-page';
+import { AuthHeading } from '@/features/auth/components/auth-shell';
+import { SignUpForm } from '@/features/auth/components/sign-up-form';
+import { signUp } from '@/features/auth/content';
 
-export const metadata: Metadata = {
-  title: 'Create your wedding',
-  robots: { index: false },
-};
+export const metadata: Metadata = { title: 'Create your account' };
 
-// Route placeholder so marketing links resolve; sign-up is implemented in the Auth phase.
 export default function SignUpPage() {
-  return <PlaceholderPage title="Create your wedding" />;
+  return (
+    <>
+      <AuthHeading title={signUp.title} subtitle={signUp.subtitle} />
+      <SignUpForm />
+    </>
+  );
 }

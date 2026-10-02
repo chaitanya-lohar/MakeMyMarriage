@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { CoreModule } from '../core.module.js';
+import { EmailWorkerModule } from '../infrastructure/email/email-worker.module.js';
 import { HealthModule } from '../platform/health/health.module.js';
 import { SystemProcessor } from './system.processor.js';
 import { WorkerHealthServer } from './worker-health.server.js';
@@ -9,7 +10,7 @@ import { WorkerHealthServer } from './worker-health.server.js';
  * modules exported by domain modules) so the HTTP API never consumes jobs.
  */
 @Module({
-  imports: [CoreModule.forRoot('worker'), HealthModule],
+  imports: [CoreModule.forRoot('worker'), HealthModule, EmailWorkerModule],
   providers: [SystemProcessor, WorkerHealthServer],
 })
 export class WorkerModule {}
