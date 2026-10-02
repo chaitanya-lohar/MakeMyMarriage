@@ -4,6 +4,7 @@ import { IsEmail, IsInt, Min } from 'class-validator';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { AppModule } from '../src/app.module.js';
+import { Public } from '../src/common/auth/request-auth.js';
 import { configureHttpApp } from '../src/bootstrap/configure-http-app.js';
 import { AppException } from '../src/common/errors/app.exception.js';
 import { startTestEnvironment, type TestEnvironment } from './support/test-environment.js';
@@ -19,6 +20,7 @@ class ProbeDto {
   count!: number;
 }
 
+@Public()
 @Controller('__probe__')
 class ProbeController {
   @Post('echo')

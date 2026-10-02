@@ -1,6 +1,7 @@
 import { Controller, Get, HttpStatus, Res } from '@nestjs/common';
 import { ApiExcludeController } from '@nestjs/swagger';
 import type { Response } from 'express';
+import { Public } from '../../common/auth/request-auth.js';
 import { SkipEnvelope } from '../../common/http/skip-envelope.decorator.js';
 import { HealthService, type ReadinessReport } from './health.service.js';
 
@@ -9,6 +10,7 @@ import { HealthService, type ReadinessReport } from './health.service.js';
  * the public OpenAPI contract; the web proxy does not forward them.
  */
 @ApiExcludeController()
+@Public()
 @SkipEnvelope()
 @Controller('health')
 export class HealthController {
