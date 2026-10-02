@@ -9,7 +9,8 @@ export interface ApiClientOptions {
    * requests stay same-origin and reach the API through the web proxy (decision A1).
    */
   baseUrl?: string;
-  fetch?: typeof globalThis.fetch;
+  /** Custom fetch; openapi-fetch calls it with a single prepared Request. */
+  fetch?: (input: Request) => Promise<Response>;
 }
 
 export type ApiClient = Client<paths>;
