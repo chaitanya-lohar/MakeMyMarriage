@@ -56,6 +56,27 @@ export class EnvValidationError extends Error {
   }
 }
 
+/**
+ * Variables whose defaults only suit local development. Staging and production must set
+ * them explicitly, so a forgotten value cannot silently send reset links to localhost or
+ * email to a local inbox.
+ */
+const REQUIRED_WHEN_DEPLOYED = ['WEB_APP_URL', 'EMAIL_TRANSPORT'] as const;
+
+function deployedIssues(env: Env, source: NodeJS.ProcessEnv): string[] {
+  if (env.APP_ENV !== 'staging' && env.APP_ENV !== 'production') return [];
+  const issues = REQUIRED_WHEN_DEPLOYED.filter((name) => !source[name]).map(
+    (name) => `${name}: is required in ${env.APP_ENV}`,
+  );
+  if (source.EMAIL_TRANSPORT === 'smtp' && !source.SMTP_HOST) {
+    issues.push(`SMTP_HOST: is required in ${env.APP_ENV} when EMAIL_TRANSPORT is smtp`);
+  }
+  if (source.WEB_APP_URL && !env.WEB_APP_URL.startsWith('https://')) {
+    issues.push(`WEB_APP_URL: must use https in ${env.APP_ENV}`);
+  }
+  return issues;
+}
+
 export function parseEnv(source: NodeJS.ProcessEnv): Env {
   const result = envSchema.safeParse(source);
   if (!result.success) {
@@ -64,5 +85,7 @@ export function parseEnv(source: NodeJS.ProcessEnv): Env {
       result.error.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`),
     );
   }
+  const issues = deployedIssues(result.data, source);
+  if (issues.length > 0) throw new EnvValidationError(issues);
   return result.data;
 }

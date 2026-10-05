@@ -9,6 +9,14 @@ const validEnv = {
   JWT_ACCESS_SECRET: 'test-secret-that-is-at-least-32-characters-long',
 };
 
+/** The minimum a staging or production deployment must set on top of validEnv. */
+const deployedEnv = {
+  ...validEnv,
+  WEB_APP_URL: 'https://makemymarriage.com',
+  EMAIL_TRANSPORT: 'resend',
+  RESEND_API_KEY: 're_x',
+};
+
 describe('parseEnv', () => {
   it('applies defaults for optional variables', () => {
     const env = parseEnv(validEnv);
@@ -41,6 +49,40 @@ describe('parseEnv', () => {
     ).toBe('re_x');
   });
 
+  it('requires the web origin and email transport to be set explicitly when deployed', () => {
+    for (const APP_ENV of ['staging', 'production']) {
+      let error: unknown;
+      try {
+        parseEnv({ ...validEnv, APP_ENV });
+      } catch (caught) {
+        error = caught;
+      }
+      expect(error).toBeInstanceOf(EnvValidationError);
+      expect((error as EnvValidationError).issues).toEqual([
+        `WEB_APP_URL: is required in ${APP_ENV}`,
+        `EMAIL_TRANSPORT: is required in ${APP_ENV}`,
+      ]);
+      expect(parseEnv({ ...deployedEnv, APP_ENV }).WEB_APP_URL).toBe('https://makemymarriage.com');
+    }
+  });
+
+  it('requires https and an explicit SMTP host when deployed', () => {
+    expect(() =>
+      parseEnv({ ...deployedEnv, APP_ENV: 'production', WEB_APP_URL: 'http://example.com' }),
+    ).toThrow(/WEB_APP_URL: must use https/);
+    expect(() =>
+      parseEnv({ ...deployedEnv, APP_ENV: 'production', EMAIL_TRANSPORT: 'smtp' }),
+    ).toThrow(/SMTP_HOST/);
+    expect(
+      parseEnv({
+        ...deployedEnv,
+        APP_ENV: 'production',
+        EMAIL_TRANSPORT: 'smtp',
+        SMTP_HOST: 'smtp.example.com',
+      }).SMTP_HOST,
+    ).toBe('smtp.example.com');
+  });
+
   it('rejects missing required variables', () => {
     expect(() => parseEnv({})).toThrow(EnvValidationError);
   });
@@ -62,10 +104,10 @@ describe('parseEnv', () => {
 describe('AppConfig', () => {
   it('auto-builds indexes only for local and test environments', () => {
     expect(new AppConfig(parseEnv(validEnv)).mongo.autoIndex).toBe(true);
-    expect(new AppConfig(parseEnv({ ...validEnv, APP_ENV: 'staging' })).mongo.autoIndex).toBe(
+    expect(new AppConfig(parseEnv({ ...deployedEnv, APP_ENV: 'staging' })).mongo.autoIndex).toBe(
       false,
     );
-    expect(new AppConfig(parseEnv({ ...validEnv, APP_ENV: 'production' })).mongo.autoIndex).toBe(
+    expect(new AppConfig(parseEnv({ ...deployedEnv, APP_ENV: 'production' })).mongo.autoIndex).toBe(
       false,
     );
   });
@@ -73,16 +115,16 @@ describe('AppConfig', () => {
   it('pretty-prints logs only in local development', () => {
     expect(new AppConfig(parseEnv(validEnv)).log.pretty).toBe(true);
     expect(new AppConfig(parseEnv({ ...validEnv, NODE_ENV: 'production' })).log.pretty).toBe(false);
-    expect(new AppConfig(parseEnv({ ...validEnv, APP_ENV: 'staging' })).log.pretty).toBe(false);
+    expect(new AppConfig(parseEnv({ ...deployedEnv, APP_ENV: 'staging' })).log.pretty).toBe(false);
   });
 
   it('uses secure cookies only in staging and production', () => {
     expect(new AppConfig(parseEnv(validEnv)).auth.secureCookies).toBe(false);
-    expect(new AppConfig(parseEnv({ ...validEnv, APP_ENV: 'staging' })).auth.secureCookies).toBe(
+    expect(new AppConfig(parseEnv({ ...deployedEnv, APP_ENV: 'staging' })).auth.secureCookies).toBe(
       true,
     );
-    expect(new AppConfig(parseEnv({ ...validEnv, APP_ENV: 'production' })).auth.secureCookies).toBe(
-      true,
-    );
+    expect(
+      new AppConfig(parseEnv({ ...deployedEnv, APP_ENV: 'production' })).auth.secureCookies,
+    ).toBe(true);
   });
 });
