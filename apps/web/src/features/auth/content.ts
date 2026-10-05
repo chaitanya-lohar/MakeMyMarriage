@@ -107,6 +107,9 @@ export const signedIn = {
   signingOut: 'Signing out...',
 };
 
+/** Shown under an email field whose value is not an email address (approved 2026-10-05). */
+export const invalidEmail = 'Please enter a valid email address.';
+
 /** Shown when the request could not reach the server at all. */
 export const networkError =
   'We couldn’t reach MakeMyMarriage. Check your connection and try again.';
