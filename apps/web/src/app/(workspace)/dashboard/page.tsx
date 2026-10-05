@@ -1,9 +1,8 @@
 import type { Metadata } from 'next';
-import { SignedInView } from '@/features/auth/components/signed-in-view';
+import { DashboardPageContent } from '@/features/weddings/components/wedding-pages';
 
-export const metadata: Metadata = { title: 'Your wedding', robots: { index: false } };
+export const metadata: Metadata = { title: 'Dashboard' };
 
-// Phase 2 landing page; replaced by the wedding dashboard in the Weddings phase.
 export default function DashboardPage() {
-  return <SignedInView />;
+  return <DashboardPageContent />;
 }

@@ -98,15 +98,6 @@ export const resetLinkExpired = {
   back: 'Back to Sign In',
 };
 
-export const signedIn = {
-  eyebrow: 'Your account is ready',
-  greeting: 'Welcome',
-  body: 'You’re signed in. Next, you’ll set up your wedding — your ceremonies, guests and plans will live here.',
-  signedInAs: 'Signed in as',
-  signOut: 'Sign Out',
-  signingOut: 'Signing out...',
-};
-
 /** Shown under an email field whose value is not an email address (approved 2026-10-05). */
 export const invalidEmail = 'Please enter a valid email address.';
 
