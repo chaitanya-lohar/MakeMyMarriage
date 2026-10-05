@@ -10,23 +10,23 @@ The single place to see where MakeMyMarriage stands. Read this first.
 
 ## Snapshot
 
-| Item             | State                                                                    |
-| ---------------- | ------------------------------------------------------------------------ |
-| Current phase    | Phase 2 (Authentication) — built and verified; pushed, PR not yet opened |
-| Next phase       | Phase 3 (Wedding setup) — **not started; waits for explicit approval**   |
-| `main`           | Scaffold only (PR #1, merged 2026-09-29)                                 |
-| Pushed to GitHub | all branches below                                                       |
-| Live deployment  | None yet                                                                 |
+| Item            | State                                                                  |
+| --------------- | ---------------------------------------------------------------------- |
+| Current phase   | Phase 2 (Authentication) — done and merged to `main`                   |
+| Next phase      | Phase 3 (Wedding setup) — **not started; waits for explicit approval** |
+| `main`          | Scaffold, Phase 1 and Phase 2 (PRs #1, #2, #3)                         |
+| Open PRs        | None                                                                   |
+| Live deployment | None yet                                                               |
 
 ### Branches
 
-| Branch           | Contains                                         | Based on         | State                 |
-| ---------------- | ------------------------------------------------ | ---------------- | --------------------- |
-| `main`           | Scaffold                                         | —                | Merged, pushed        |
-| `feat/home-page` | Phase 1: design system and home page (5 commits) | `main`           | Pushed, PR not opened |
-| `feat/auth`      | Phase 2: authentication (13 commits)             | `feat/home-page` | Pushed, PR not opened |
+| Branch           | Contains                                         | Based on         | State                  |
+| ---------------- | ------------------------------------------------ | ---------------- | ---------------------- |
+| `main`           | Scaffold, Phase 1, Phase 2                       | —                | Up to date with GitHub |
+| `feat/home-page` | Phase 1: design system and home page (5 commits) | `main`           | Merged (PR #2)         |
+| `feat/auth`      | Phase 2: authentication (13 commits)             | `feat/home-page` | Merged (PR #3)         |
 
-`feat/auth` is stacked on `feat/home-page`: merge Phase 1's PR before Phase 2's.
+Both phase branches are merged and can be deleted on GitHub. New work starts from `main`.
 
 ## Phases
 
@@ -37,8 +37,8 @@ for it are raised then (0004).
 | #   | Phase                               | State        | Records                           |
 | --- | ----------------------------------- | ------------ | --------------------------------- |
 | 0   | Scaffold (monorepo, API/worker, CI) | Done, merged | 0001–0013                         |
-| 1   | Design system and home page         | Done, pushed | 0014                              |
-| 2   | Authentication                      | Done, pushed | 0015                              |
+| 1   | Design system and home page         | Done, merged | 0014                              |
+| 2   | Authentication                      | Done, merged | 0015                              |
 | 3   | Wedding setup and dashboard shell   | Not started  | 0010, 0012                        |
 | 4   | Events                              | Not started  | 0010                              |
 | 5   | Guests and RSVP                     | Not started  | 0008, 0010                        |
@@ -58,7 +58,7 @@ A staging deployment (Vercel for the web app, containers for the API and worker 
 recommended after Phase 2. It is not scheduled yet and needs Vercel, AWS and MongoDB Atlas
 accounts.
 
-## What exists today (on `feat/auth`)
+## What exists today (on `main`)
 
 ### Web pages
 
@@ -140,13 +140,14 @@ pnpm dev           # web :3000, API :3001, worker :3002
 ```
 
 Checks: `pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm test:integration && pnpm build`.
-Last full run (clean clone of `feat/auth`, 2026-10-03): all green — 57 web unit, 19 API unit,
+Last full run (clean clone of `feat/auth`, identical to `main` after the merge, 2026-10-03): all green — 57 web unit, 19 API unit,
 29 integration tests.
 
 ## Change log
 
 | Date       | Change                                                                    |
 | ---------- | ------------------------------------------------------------------------- |
+| 2026-10-03 | Phase 1 (PR #2) and Phase 2 (PR #3) merged to `main`.                     |
 | 2026-10-03 | `feat/home-page` and `feat/auth` pushed to GitHub; PRs not yet opened.    |
 | 2026-10-03 | Page created. Phase 2 (Authentication) built and verified on `feat/auth`. |
 | 2026-10-01 | Phase 1 (design system and home page) built on `feat/home-page`.          |
