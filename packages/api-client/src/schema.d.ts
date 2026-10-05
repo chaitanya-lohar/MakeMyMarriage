@@ -126,6 +126,42 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/weddings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Weddings the user is an active member of */
+        get: operations["WeddingsController_list"];
+        put?: never;
+        /** Create the user's wedding; the user becomes its owner */
+        post: operations["WeddingsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a wedding */
+        get: operations["WeddingsController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update a wedding's details */
+        patch: operations["WeddingsController_update"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -189,6 +225,65 @@ export interface components {
             token: string;
             /** @description Must be 8–128 characters. */
             password: string;
+        };
+        WeddingDto: {
+            /** @example 6650f0c2a1b2c3d4e5f60718 */
+            id: string;
+            /**
+             * @description Always "{brideName} & {groomName}"; generated, never set directly.
+             * @example Meera Sharma & Arjun Patel
+             */
+            displayName: string;
+            /** @example Meera Sharma */
+            brideName: string;
+            /** @example Arjun Patel */
+            groomName: string;
+            /**
+             * Format: date
+             * @description Calendar date (YYYY-MM-DD) in the wedding timezone. Past dates are allowed.
+             * @example 2027-02-18
+             */
+            startDate: string | null;
+            /** @example Lakeside Garden */
+            venueName: string | null;
+            /** @example Jaipur */
+            primaryCity: string | null;
+            description: string | null;
+            /** @example Asia/Kolkata */
+            timezone: string;
+        };
+        CreateWeddingDto: {
+            /** @example Meera Sharma */
+            brideName: string;
+            /** @example Arjun Patel */
+            groomName: string;
+            /**
+             * Format: date
+             * @description Calendar date (YYYY-MM-DD) in the wedding timezone. Past dates are allowed.
+             * @example 2027-02-18
+             */
+            startDate?: string | null;
+            /** @example Lakeside Garden */
+            venueName?: Record<string, never> | null;
+            /** @example Jaipur */
+            primaryCity?: Record<string, never> | null;
+            /** @example Two families, one celebration. We can't wait to share it with you. */
+            description?: Record<string, never> | null;
+        };
+        UpdateWeddingDto: {
+            /** @example Meera Sharma */
+            brideName?: string;
+            /** @example Arjun Patel */
+            groomName?: string;
+            /**
+             * Format: date
+             * @description Calendar date (YYYY-MM-DD) in the wedding timezone. Past dates are allowed.
+             * @example 2027-02-18
+             */
+            startDate?: string | null;
+            venueName?: Record<string, never> | null;
+            primaryCity?: Record<string, never> | null;
+            description?: Record<string, never> | null;
         };
     };
     responses: never;
@@ -444,6 +539,187 @@ export interface operations {
             };
             /** @description Invalid input, or the link expired or was used */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    WeddingsController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WeddingDto"][];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    WeddingsController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateWeddingDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WeddingDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Invalid details */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_ALREADY_OWNED — the user already owns a wedding */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    WeddingsController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WeddingDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND — missing, or not a member */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    WeddingsController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateWeddingDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["WeddingDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Invalid details */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND — missing, or not a member */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
