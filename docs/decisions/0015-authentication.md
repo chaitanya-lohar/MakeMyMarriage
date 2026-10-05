@@ -46,6 +46,9 @@ Source of truth: Stitch project `11709379677369700007`.
   Sign Out, until the Weddings phase replaces it.
 - A session that can no longer be refreshed sends the user to `/login` with "Your session
   has ended. Please sign in again."
+- A signed-in user who opens `/login`, `/signup` or `/forgot-password` is sent to
+  `/dashboard`. `/reset-password` stays reachable because it opens from an email link.
+  (Approved 2026-10-05 after manual testing.)
 
 ## Sessions and tokens
 
@@ -113,6 +116,11 @@ Message: "Too many attempts. Please wait a few minutes and try again." (HTTP 429
 | Reset link invalid            | `RESET_TOKEN_INVALID`      | 400  | This link has expired or has already been used.                            |
 | Too many attempts             | `RATE_LIMITED`             | 429  | Too many attempts. Please wait a few minutes and try again.                |
 | Not signed in / session ended | `UNAUTHENTICATED`          | 401  | Authentication is required.                                                |
+
+An email that is not an email address (for example `priya@`) shows "Please enter a valid
+email address." under the email field on sign-up, sign-in and forgot password, instead of
+the generic `VALIDATION_FAILED` message. The browser checks the shape before sending, and
+the API's own check remains the authority. (Approved 2026-10-05 after manual testing.)
 
 Revealing that an email is already registered (sign-up only) was accepted for usability;
 sign-in and reset messages never reveal whether an account exists.
