@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import { Icon } from '@/components/ui/icon';
 import { api, call } from '@/lib/api';
-import { networkError, signIn } from '../content';
+import { invalidEmail, networkError, signIn } from '../content';
+import { isInvalidEmailError, isValidEmail } from '../validation';
 import { FormFeedback, formText, SubmitButton, TextField } from './form-controls';
 
 export type SignInNotice = 'password-updated' | 'session-ended';
@@ -15,6 +16,7 @@ export function SignInForm({ notice }: { notice?: SignInNotice }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string>();
+  const [emailError, setEmailError] = useState<string>();
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -22,12 +24,19 @@ export function SignInForm({ notice }: { notice?: SignInNotice }) {
     const email = formText(form, 'email').trim();
     const password = formText(form, 'password');
     if (!email || !password) {
+      setEmailError(undefined);
       setError(signIn.missingFields);
+      return;
+    }
+    if (!isValidEmail(email)) {
+      setError(undefined);
+      setEmailError(invalidEmail);
       return;
     }
 
     setPending(true);
     setError(undefined);
+    setEmailError(undefined);
     const result = await call(() =>
       api.POST('/api/v1/auth/login', {
         body: { email, password, rememberMe: form.get('rememberMe') === 'on' },
@@ -35,6 +44,10 @@ export function SignInForm({ notice }: { notice?: SignInNotice }) {
     );
     if (result.error) {
       setPending(false);
+      if (isInvalidEmailError(result.error)) {
+        setEmailError(invalidEmail);
+        return;
+      }
       setError(result.error.status === 0 ? networkError : result.error.message);
       return;
     }
@@ -61,6 +74,7 @@ export function SignInForm({ notice }: { notice?: SignInNotice }) {
           autoComplete="email"
           placeholder={signIn.emailPlaceholder}
           icon="mail"
+          error={emailError}
           required
         />
         <TextField

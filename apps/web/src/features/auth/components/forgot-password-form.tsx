@@ -4,28 +4,42 @@ import Link from 'next/link';
 import { useState, type FormEvent } from 'react';
 import { Icon } from '@/components/ui/icon';
 import { api, call } from '@/lib/api';
-import { forgotPassword, networkError } from '../content';
+import { forgotPassword, invalidEmail, networkError } from '../content';
+import { isInvalidEmailError, isValidEmail } from '../validation';
 import { backLinkClasses, FormFeedback, formText, SubmitButton, TextField } from './form-controls';
 
 /** Forgot Password view of Stitch "Sign In (V1)". */
 export function ForgotPasswordForm() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string>();
+  const [emailError, setEmailError] = useState<string>();
   const [sent, setSent] = useState(false);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const email = formText(new FormData(event.currentTarget), 'email').trim();
     if (!email) {
+      setEmailError(undefined);
       setError(forgotPassword.missingEmail);
+      return;
+    }
+    if (!isValidEmail(email)) {
+      setError(undefined);
+      setSent(false);
+      setEmailError(invalidEmail);
       return;
     }
 
     setPending(true);
     setError(undefined);
+    setEmailError(undefined);
     const result = await call(() => api.POST('/api/v1/auth/forgot-password', { body: { email } }));
     setPending(false);
     if (result.error) {
+      if (isInvalidEmailError(result.error)) {
+        setEmailError(invalidEmail);
+        return;
+      }
       setError(result.error.status === 0 ? networkError : result.error.message);
       return;
     }
@@ -45,6 +59,7 @@ export function ForgotPasswordForm() {
           autoComplete="email"
           placeholder={forgotPassword.emailPlaceholder}
           icon="mail"
+          error={emailError}
           required
         />
         <div className="space-y-3 pt-2">

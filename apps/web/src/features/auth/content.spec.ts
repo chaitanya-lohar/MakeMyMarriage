@@ -25,5 +25,6 @@ describe('auth copy', () => {
     expect(content.signIn.sessionEnded).toBe('Your session has ended. Please sign in again.');
     expect(content.forgotPassword.sent).toMatch(/^Check your inbox — if an account exists/);
     expect(content.authFooter.copyright).toBe('© 2026 MakeMyMarriage. All rights reserved.');
+    expect(content.invalidEmail).toBe('Please enter a valid email address.');
   });
 });
