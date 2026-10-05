@@ -90,6 +90,7 @@ export class CreateWeddingDto {
   startDate?: string | null;
 
   @ApiPropertyOptional({
+    type: String,
     example: 'Lakeside Garden',
     maxLength: WeddingLimits.venueNameMaxLength,
     nullable: true,
@@ -101,6 +102,7 @@ export class CreateWeddingDto {
   venueName?: string | null;
 
   @ApiPropertyOptional({
+    type: String,
     example: 'Jaipur',
     maxLength: WeddingLimits.primaryCityMaxLength,
     nullable: true,
@@ -112,6 +114,7 @@ export class CreateWeddingDto {
   primaryCity?: string | null;
 
   @ApiPropertyOptional({
+    type: String,
     example: "Two families, one celebration. We can't wait to share it with you.",
     maxLength: WeddingLimits.descriptionMaxLength,
     nullable: true,
@@ -143,21 +146,33 @@ export class UpdateWeddingDto {
   @IsCalendarDate()
   startDate?: string | null;
 
-  @ApiPropertyOptional({ maxLength: WeddingLimits.venueNameMaxLength, nullable: true })
+  @ApiPropertyOptional({
+    type: String,
+    maxLength: WeddingLimits.venueNameMaxLength,
+    nullable: true,
+  })
   @Transform(trimToNull)
   @IsOptional()
   @IsString()
   @MaxLength(WeddingLimits.venueNameMaxLength, { message: Messages.place })
   venueName?: string | null;
 
-  @ApiPropertyOptional({ maxLength: WeddingLimits.primaryCityMaxLength, nullable: true })
+  @ApiPropertyOptional({
+    type: String,
+    maxLength: WeddingLimits.primaryCityMaxLength,
+    nullable: true,
+  })
   @Transform(trimToNull)
   @IsOptional()
   @IsString()
   @MaxLength(WeddingLimits.primaryCityMaxLength, { message: Messages.place })
   primaryCity?: string | null;
 
-  @ApiPropertyOptional({ maxLength: WeddingLimits.descriptionMaxLength, nullable: true })
+  @ApiPropertyOptional({
+    type: String,
+    maxLength: WeddingLimits.descriptionMaxLength,
+    nullable: true,
+  })
   @Transform(trimToNull)
   @IsOptional()
   @IsString()

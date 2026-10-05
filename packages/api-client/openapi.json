@@ -926,19 +926,19 @@
             "description": "Calendar date (YYYY-MM-DD) in the wedding timezone. Past dates are allowed."
           },
           "venueName": {
-            "type": "object",
+            "type": "string",
             "example": "Lakeside Garden",
             "maxLength": 120,
             "nullable": true
           },
           "primaryCity": {
-            "type": "object",
+            "type": "string",
             "example": "Jaipur",
             "maxLength": 120,
             "nullable": true
           },
           "description": {
-            "type": "object",
+            "type": "string",
             "example": "Two families, one celebration. We can't wait to share it with you.",
             "maxLength": 1000,
             "nullable": true
@@ -970,17 +970,17 @@
             "description": "Calendar date (YYYY-MM-DD) in the wedding timezone. Past dates are allowed."
           },
           "venueName": {
-            "type": "object",
+            "type": "string",
             "maxLength": 120,
             "nullable": true
           },
           "primaryCity": {
-            "type": "object",
+            "type": "string",
             "maxLength": 120,
             "nullable": true
           },
           "description": {
-            "type": "object",
+            "type": "string",
             "maxLength": 1000,
             "nullable": true
           }

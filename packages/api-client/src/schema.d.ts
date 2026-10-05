@@ -264,11 +264,11 @@ export interface components {
              */
             startDate?: string | null;
             /** @example Lakeside Garden */
-            venueName?: Record<string, never> | null;
+            venueName?: string | null;
             /** @example Jaipur */
-            primaryCity?: Record<string, never> | null;
+            primaryCity?: string | null;
             /** @example Two families, one celebration. We can't wait to share it with you. */
-            description?: Record<string, never> | null;
+            description?: string | null;
         };
         UpdateWeddingDto: {
             /** @example Meera Sharma */
@@ -281,9 +281,9 @@ export interface components {
              * @example 2027-02-18
              */
             startDate?: string | null;
-            venueName?: Record<string, never> | null;
-            primaryCity?: Record<string, never> | null;
-            description?: Record<string, never> | null;
+            venueName?: string | null;
+            primaryCity?: string | null;
+            description?: string | null;
         };
     };
     responses: never;
