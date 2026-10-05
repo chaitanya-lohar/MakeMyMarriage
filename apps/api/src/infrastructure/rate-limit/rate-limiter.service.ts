@@ -18,13 +18,11 @@ export interface RateLimitRule {
 export class RateLimiter {
   constructor(@Inject(REDIS_CLIENT) private readonly redis: Redis) {}
 
-  /** True when the subject has already used up its allowance in the current window. */
-  async isLimited(rule: RateLimitRule, subject: string): Promise<boolean> {
-    const count = Number((await this.redis.get(this.key(rule, subject))) ?? 0);
-    return count >= rule.limit;
-  }
-
-  /** Counts one use; the window starts with the first use. */
+  /**
+   * Counts one use and returns the count so far; the window starts with the first use.
+   * Callers reject when the count exceeds the limit. Counting first is atomic, so
+   * concurrent requests cannot all pass the check.
+   */
   async hit(rule: RateLimitRule, subject: string): Promise<number> {
     const key = this.key(rule, subject);
     const [[, count]] = (await this.redis

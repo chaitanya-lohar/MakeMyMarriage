@@ -38,6 +38,12 @@ function cookie(response: request.Response, name: string): ParsedCookie | undefi
   return cookiesOf(response).find((c) => c.name === name);
 }
 
+/** Max-Age of the refresh cookie, in seconds. */
+function maxAgeOf(response: request.Response): number {
+  const attribute = cookie(response, 'mmm_rt')?.attributes.find((a) => a.startsWith('max-age='));
+  return Number(attribute?.slice('max-age='.length));
+}
+
 describe('Authentication', () => {
   let env: TestEnvironment;
   let app: INestApplication;
@@ -181,7 +187,19 @@ describe('Authentication', () => {
         .post('/api/v1/auth/login')
         .send({ email: email.toUpperCase(), password: PASSWORD, rememberMe: true })
         .expect(200);
-      expect(cookie(response, 'mmm_rt')?.attributes).toContain(`max-age=${30 * 24 * 60 * 60}`);
+      expect(maxAgeOf(response)).toBeGreaterThan(30 * 24 * 60 * 60 - 5);
+      expect(maxAgeOf(response)).toBeLessThanOrEqual(30 * 24 * 60 * 60);
+    });
+
+    it('counts parallel failed attempts atomically', async () => {
+      const { email } = await register();
+      const statuses = await Promise.all(
+        Array.from({ length: 12 }, () =>
+          request(server()).post('/api/v1/auth/login').send({ email, password: 'wrong password' }),
+        ),
+      ).then((responses) => responses.map((response) => response.status));
+      expect(statuses.filter((status) => status === 401)).toHaveLength(5);
+      expect(statuses.filter((status) => status === 429)).toHaveLength(7);
     });
 
     it('blocks an email after 5 failed attempts in 15 minutes, even with the right password', async () => {
@@ -215,10 +233,55 @@ describe('Authentication', () => {
       expect(refreshed.body.data.user.displayName).toBe('Priya Sharma');
       expect(cookie(refreshed, 'mmm_rt')?.value).not.toBe(firstRefresh);
 
-      await request(server())
+      // The session is still active (another tab may hold the new token), so this
+      // response must not clear the browser's cookies.
+      const stale = await request(server())
         .post('/api/v1/auth/refresh')
         .set('cookie', `mmm_rt=${firstRefresh}`)
         .expect(401);
+      expect(cookiesOf(stale)).toEqual([]);
+    });
+
+    it('lets only one of two parallel refreshes rotate, without signing the browser out', async () => {
+      const { response } = await register();
+      const token = cookie(response, 'mmm_rt')?.value ?? '';
+
+      const [first, second] = await Promise.all(
+        [0, 1].map(() =>
+          request(server()).post('/api/v1/auth/refresh').set('cookie', `mmm_rt=${token}`),
+        ),
+      );
+      const statuses = [first?.status, second?.status].sort();
+      expect(statuses).toEqual([200, 401]);
+      const loser = first?.status === 401 ? first : second;
+      expect(cookiesOf(loser as request.Response)).toEqual([]);
+    });
+
+    it('never extends a remembered session when refreshing', async () => {
+      const { email } = await register();
+      const login = await request(server())
+        .post('/api/v1/auth/login')
+        .send({ email, password: PASSWORD, rememberMe: true })
+        .expect(200);
+
+      // Move the session to its last day.
+      const oneDayMs = 24 * 60 * 60 * 1000;
+      await connection.collection('auth_sessions').updateMany(
+        {},
+        {
+          $set: {
+            createdAt: new Date(Date.now() - 29 * oneDayMs),
+            expiresAt: new Date(Date.now() + oneDayMs),
+          },
+        },
+      );
+
+      const refreshed = await request(server())
+        .post('/api/v1/auth/refresh')
+        .set('cookie', `mmm_rt=${cookie(login, 'mmm_rt')?.value ?? ''}`)
+        .expect(200);
+      expect(maxAgeOf(refreshed)).toBeGreaterThan(24 * 60 * 60 - 5);
+      expect(maxAgeOf(refreshed)).toBeLessThanOrEqual(24 * 60 * 60);
     });
 
     it('signs out: the session is revoked and the cookies are cleared', async () => {
@@ -229,10 +292,12 @@ describe('Authentication', () => {
       expect(cookie(logout, 'mmm_at')?.value).toBe('');
 
       await agent.get('/api/v1/me').expect(401);
-      await request(server())
+      // The session has ended, so a refresh attempt also clears the cookies.
+      const ended = await request(server())
         .post('/api/v1/auth/refresh')
         .set('cookie', `mmm_rt=${refreshToken}`)
         .expect(401);
+      expect(cookie(ended, 'mmm_rt')?.value).toBe('');
     });
   });
 
@@ -285,6 +350,27 @@ describe('Authentication', () => {
         code: 'RESET_TOKEN_INVALID',
         message: 'This link has expired or has already been used.',
       });
+    });
+
+    it('lifts a sign-in lockout once the password is reset', async () => {
+      const { email } = await register();
+      for (let attempt = 0; attempt < 5; attempt++) {
+        await request(server())
+          .post('/api/v1/auth/login')
+          .send({ email, password: 'wrong password' })
+          .expect(401);
+      }
+      await request(server()).post('/api/v1/auth/forgot-password').send({ email }).expect(202);
+      const token = tokenFrom((await resetEmailFor(email)) as EmailMessage);
+      await request(server())
+        .post('/api/v1/auth/reset-password')
+        .send({ token, password: 'a brand new password' })
+        .expect(204);
+
+      await request(server())
+        .post('/api/v1/auth/login')
+        .send({ email, password: 'a brand new password' })
+        .expect(200);
     });
 
     it('rejects an expired link', async () => {

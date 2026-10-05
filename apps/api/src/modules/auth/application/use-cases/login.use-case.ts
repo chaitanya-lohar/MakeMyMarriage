@@ -31,14 +31,15 @@ export class LoginUseCase {
     client: ClientInfo,
   ): Promise<{ user: User; session: IssuedSession }> {
     const email = normalizeEmail(input.email);
-    if (await this.rateLimiter.isLimited(AuthRateLimits.loginFailures, email)) {
-      throw AuthErrors.tooManyAttempts();
-    }
+    // Count the attempt before checking the password, atomically, so parallel requests
+    // cannot all slip under the limit. A successful sign-in resets the count, so only
+    // failures accumulate.
+    const attempts = await this.rateLimiter.hit(AuthRateLimits.loginFailures, email);
+    if (attempts > AuthRateLimits.loginFailures.limit) throw AuthErrors.tooManyAttempts();
 
     const credentials = await this.users.findCredentialsByEmail(email);
     const passwordMatches = await this.hasher.verify(credentials?.passwordHash, input.password);
     if (!credentials || !passwordMatches || credentials.user.status !== UserStatus.Active) {
-      await this.rateLimiter.hit(AuthRateLimits.loginFailures, email);
       throw AuthErrors.invalidCredentials();
     }
 
