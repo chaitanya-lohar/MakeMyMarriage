@@ -1,6 +1,5 @@
 import type { CookieOptions, Response } from 'express';
 import { API_PREFIX } from '../../../bootstrap/configure-http-app.js';
-import { SessionPolicy } from '../domain/rules/auth-policy.js';
 import type { IssuedSession } from '../application/services/session-issuer.service.js';
 
 /** Cookie carrying the 15-minute access token; sent with every API request. */
@@ -16,8 +15,8 @@ function baseOptions(secure: boolean): CookieOptions {
 
 /**
  * Sets the session cookies (decision 0015). The access cookie always ends with the
- * browser session; the refresh cookie persists for the session's lifetime only when
- * "Remember me" was ticked.
+ * browser session; the refresh cookie persists until the session's absolute expiry only
+ * when "Remember me" was ticked, so refreshing never extends it.
  */
 export function setSessionCookies(
   response: Response,
@@ -28,7 +27,7 @@ export function setSessionCookies(
   response.cookie(REFRESH_COOKIE, session.refreshToken, {
     ...baseOptions(secure),
     path: REFRESH_PATH,
-    ...(session.remembered ? { maxAge: SessionPolicy.rememberedSessionMs } : {}),
+    ...(session.remembered ? { maxAge: session.expiresAt.getTime() - Date.now() } : {}),
   });
 }
 
