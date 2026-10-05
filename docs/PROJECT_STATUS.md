@@ -2,7 +2,7 @@
 
 The single place to see where MakeMyMarriage stands. Read this first.
 
-- **Updated:** 2026-10-03, at the end of Phase 2.
+- **Updated:** 2026-10-05, with the pre-Phase 3 fixes (`chore/pre-phase-3`).
 - **Source of truth:** decisions live in [`decisions/`](decisions/README.md). This page only
   summarises and links; where they differ, the decision record wins.
 - **Keep it current:** update this page in the same commit or PR that finishes a phase or
@@ -15,18 +15,23 @@ The single place to see where MakeMyMarriage stands. Read this first.
 | Current phase   | Phase 2 (Authentication) — done and merged to `main`                   |
 | Next phase      | Phase 3 (Wedding setup) — **not started; waits for explicit approval** |
 | `main`          | Scaffold, Phase 1 and Phase 2 (PRs #1, #2, #3)                         |
-| Open PRs        | None                                                                   |
+| Open PRs        | `chore/pre-phase-3` — code-review and manual-testing fixes             |
 | Live deployment | None yet                                                               |
 
 ### Branches
 
-| Branch           | Contains                                         | Based on         | State                  |
-| ---------------- | ------------------------------------------------ | ---------------- | ---------------------- |
-| `main`           | Scaffold, Phase 1, Phase 2                       | —                | Up to date with GitHub |
-| `feat/home-page` | Phase 1: design system and home page (5 commits) | `main`           | Merged (PR #2)         |
-| `feat/auth`      | Phase 2: authentication (13 commits)             | `feat/home-page` | Merged (PR #3)         |
+| Branch                        | Contains                                         | Based on         | State                  |
+| ----------------------------- | ------------------------------------------------ | ---------------- | ---------------------- |
+| `main`                        | Scaffold, Phase 1, Phase 2                       | —                | Up to date with GitHub |
+| `feat/home-page`              | Phase 1: design system and home page (5 commits) | `main`           | Merged (PR #2)         |
+| `feat/auth`                   | Phase 2: authentication (13 commits)             | `feat/home-page` | Merged (PR #3)         |
+| `chore/pre-phase-3`           | The three branches below, `.mcp.json`, this page | `main`           | Pushed, PR open        |
+| ↳ `fix/auth-hardening`        | Code-review fixes (4 commits)                    | `main`           | Local; in the PR above |
+| ↳ `fix/auth-test-findings`    | Manual-testing fixes (3 commits)                 | `main`           | Local; in the PR above |
+| ↳ `docs/status-after-phase-2` | This page after the Phase 1/2 merges (1 commit)  | `main`           | Local; in the PR above |
 
-Both phase branches are merged and can be deleted on GitHub. New work starts from `main`.
+The merged phase branches can be deleted on GitHub. Phase 3 starts from `main` once
+`chore/pre-phase-3` is merged.
 
 ## Phases
 
@@ -107,15 +112,17 @@ Design system "Regal Modernity" (0014) applies to every screen.
 
 ## Open decisions and blockers
 
-| Item                                                      | Blocks              | Owner   |
-| --------------------------------------------------------- | ------------------- | ------- |
-| A4 — what partners share by default (0011)                | Phase 16            | Product |
-| A5 — what happens on partner disconnect (0011)            | Phase 16            | Product |
-| Usage rights for the Stitch-generated photos              | Public launch       | Product |
-| Privacy Policy and Terms of Service text                  | Public launch       | Legal   |
-| Resend account and DNS for `makemymarriage.com`           | Real email delivery | Ops     |
-| Delete the outdated first "Sign In (V1)" screen in Stitch | Housekeeping        | Product |
-| Staging deployment accounts (Vercel, AWS, Atlas)          | Staging             | Ops     |
+| Item                                                                                                                     | Blocks              | Owner       |
+| ------------------------------------------------------------------------------------------------------------------------ | ------------------- | ----------- |
+| A4 — what partners share by default (0011)                                                                               | Phase 16            | Product     |
+| A5 — what happens on partner disconnect (0011)                                                                           | Phase 16            | Product     |
+| Usage rights for the Stitch-generated photos                                                                             | Public launch       | Product     |
+| Privacy Policy and Terms of Service text                                                                                 | Public launch       | Legal       |
+| Resend account and DNS for `makemymarriage.com`                                                                          | Real email delivery | Ops         |
+| Delete the outdated first "Sign In (V1)" screen in Stitch                                                                | Housekeeping        | Product     |
+| Staging deployment accounts (Vercel, AWS, Atlas)                                                                         | Staging             | Ops         |
+| Forgot-password response time hints whether an email is registered (code review, deferred)                               | Public launch       | Engineering |
+| Reset email says "signs you out on all your devices", but access tokens live ≤15 min (0015) — reword or revoke instantly | Public launch       | Product     |
 
 ## Working rules
 
@@ -140,15 +147,16 @@ pnpm dev           # web :3000, API :3001, worker :3002
 ```
 
 Checks: `pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm test:integration && pnpm build`.
-Last full run (clean clone of `feat/auth`, identical to `main` after the merge, 2026-10-03): all green — 57 web unit, 19 API unit,
-29 integration tests.
+Last full run (fresh worktree of `chore/pre-phase-3`, 2026-10-05): all green — 76 web unit,
+21 API unit, 33 integration tests; build passes.
 
 ## Change log
 
-| Date       | Change                                                                    |
-| ---------- | ------------------------------------------------------------------------- |
-| 2026-10-03 | Phase 1 (PR #2) and Phase 2 (PR #3) merged to `main`.                     |
-| 2026-10-03 | `feat/home-page` and `feat/auth` pushed to GitHub; PRs not yet opened.    |
-| 2026-10-03 | Page created. Phase 2 (Authentication) built and verified on `feat/auth`. |
-| 2026-10-01 | Phase 1 (design system and home page) built on `feat/home-page`.          |
-| 2026-09-29 | Scaffold merged to `main` (PR #1).                                        |
+| Date       | Change                                                                                                                                                                                                                                |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-05 | Pre-Phase 3 PR (`chore/pre-phase-3`): code-review fixes (refresh cookies, atomic sign-in limit, lockout lifted on reset, deployed env settings, worker job retries) and manual-testing fixes (email field error, signed-in redirect). |
+| 2026-10-03 | Phase 1 (PR #2) and Phase 2 (PR #3) merged to `main`.                                                                                                                                                                                 |
+| 2026-10-03 | `feat/home-page` and `feat/auth` pushed to GitHub; PRs not yet opened.                                                                                                                                                                |
+| 2026-10-03 | Page created. Phase 2 (Authentication) built and verified on `feat/auth`.                                                                                                                                                             |
+| 2026-10-01 | Phase 1 (design system and home page) built on `feat/home-page`.                                                                                                                                                                      |
+| 2026-09-29 | Scaffold merged to `main` (PR #1).                                                                                                                                                                                                    |
