@@ -2,7 +2,7 @@
 
 The single place to see where MakeMyMarriage stands. Read this first.
 
-- **Updated:** 2026-10-05, with the pre-Phase 3 fixes (`chore/pre-phase-3`).
+- **Updated:** 2026-10-05, at the start of Phase 3 (`feat/weddings`).
 - **Source of truth:** decisions live in [`decisions/`](decisions/README.md). This page only
   summarises and links; where they differ, the decision record wins.
 - **Keep it current:** update this page in the same commit or PR that finishes a phase or
@@ -10,28 +10,29 @@ The single place to see where MakeMyMarriage stands. Read this first.
 
 ## Snapshot
 
-| Item            | State                                                                  |
-| --------------- | ---------------------------------------------------------------------- |
-| Current phase   | Phase 2 (Authentication) — done and merged to `main`                   |
-| Next phase      | Phase 3 (Wedding setup) — **not started; waits for explicit approval** |
-| `main`          | Scaffold, Phase 1 and Phase 2 (PRs #1, #2, #3)                         |
-| Open PRs        | `chore/pre-phase-3` — code-review and manual-testing fixes             |
-| Live deployment | None yet                                                               |
+| Item            | State                                                           |
+| --------------- | --------------------------------------------------------------- |
+| Current phase   | Phase 3 (Wedding setup) — in progress on `feat/weddings` (0016) |
+| Next phase      | Phase 4 (Events) — **not started; waits for explicit approval** |
+| `main`          | Scaffold, Phase 1 and Phase 2 (PRs #1, #2, #3)                  |
+| Open PRs        | `chore/pre-phase-3` — code-review and manual-testing fixes      |
+| Live deployment | None yet                                                        |
 
 ### Branches
 
-| Branch                        | Contains                                         | Based on         | State                  |
-| ----------------------------- | ------------------------------------------------ | ---------------- | ---------------------- |
-| `main`                        | Scaffold, Phase 1, Phase 2                       | —                | Up to date with GitHub |
-| `feat/home-page`              | Phase 1: design system and home page (5 commits) | `main`           | Merged (PR #2)         |
-| `feat/auth`                   | Phase 2: authentication (13 commits)             | `feat/home-page` | Merged (PR #3)         |
-| `chore/pre-phase-3`           | The three branches below, `.mcp.json`, this page | `main`           | Pushed, PR open        |
-| ↳ `fix/auth-hardening`        | Code-review fixes (4 commits)                    | `main`           | Local; in the PR above |
-| ↳ `fix/auth-test-findings`    | Manual-testing fixes (3 commits)                 | `main`           | Local; in the PR above |
-| ↳ `docs/status-after-phase-2` | This page after the Phase 1/2 merges (1 commit)  | `main`           | Local; in the PR above |
+| Branch                        | Contains                                         | Based on            | State                  |
+| ----------------------------- | ------------------------------------------------ | ------------------- | ---------------------- |
+| `main`                        | Scaffold, Phase 1, Phase 2                       | —                   | Up to date with GitHub |
+| `feat/home-page`              | Phase 1: design system and home page (5 commits) | `main`              | Merged (PR #2)         |
+| `feat/auth`                   | Phase 2: authentication (13 commits)             | `feat/home-page`    | Merged (PR #3)         |
+| `chore/pre-phase-3`           | The three branches below, `.mcp.json`, this page | `main`              | Pushed, PR open        |
+| ↳ `fix/auth-hardening`        | Code-review fixes (4 commits)                    | `main`              | Local; in the PR above |
+| ↳ `fix/auth-test-findings`    | Manual-testing fixes (3 commits)                 | `main`              | Local; in the PR above |
+| ↳ `docs/status-after-phase-2` | This page after the Phase 1/2 merges (1 commit)  | `main`              | Local; in the PR above |
+| `feat/weddings`               | Phase 3: wedding setup and dashboard shell       | `chore/pre-phase-3` | Local, in progress     |
 
-The merged phase branches can be deleted on GitHub. Phase 3 starts from `main` once
-`chore/pre-phase-3` is merged.
+The merged phase branches can be deleted on GitHub. `feat/weddings` is stacked on
+`chore/pre-phase-3`: merge that PR first, then Phase 3's.
 
 ## Phases
 
@@ -44,7 +45,7 @@ for it are raised then (0004).
 | 0   | Scaffold (monorepo, API/worker, CI) | Done, merged | 0001–0013                         |
 | 1   | Design system and home page         | Done, merged | 0014                              |
 | 2   | Authentication                      | Done, merged | 0015                              |
-| 3   | Wedding setup and dashboard shell   | Not started  | 0010, 0012                        |
+| 3   | Wedding setup and dashboard shell   | In progress  | 0010, 0012, 0016                  |
 | 4   | Events                              | Not started  | 0010                              |
 | 5   | Guests and RSVP                     | Not started  | 0008, 0010                        |
 | 6   | Invitations                         | Not started  | 0008                              |
