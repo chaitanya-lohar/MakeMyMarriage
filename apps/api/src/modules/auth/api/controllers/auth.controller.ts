@@ -6,11 +6,17 @@ import {
   ApiEnvelopeResponse,
   ApiErrorResponses,
 } from '../../../../common/http/api-envelope.decorator.js';
+import { AppException } from '../../../../common/errors/app.exception.js';
+import { ErrorCode } from '../../../../common/errors/error-codes.js';
 import { AppConfig } from '../../../../config/app-config.js';
 import { UserDto } from '../../../users/index.js';
+import { AuthErrors } from '../../application/auth-errors.js';
 import { LoginUseCase } from '../../application/use-cases/login.use-case.js';
 import { LogoutUseCase } from '../../application/use-cases/logout.use-case.js';
-import { RefreshSessionUseCase } from '../../application/use-cases/refresh-session.use-case.js';
+import {
+  RefreshSessionUseCase,
+  type RefreshResult,
+} from '../../application/use-cases/refresh-session.use-case.js';
 import { RegisterUseCase } from '../../application/use-cases/register.use-case.js';
 import { RequestPasswordResetUseCase } from '../../application/use-cases/request-password-reset.use-case.js';
 import { ResetPasswordUseCase } from '../../application/use-cases/reset-password.use-case.js';
@@ -93,14 +99,22 @@ export class AuthController {
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ): Promise<AuthUserDto> {
+    let result: RefreshResult;
     try {
-      const { user, session } = await this.refreshUseCase.execute(refreshTokenOf(request));
-      setSessionCookies(response, session, this.secureCookies);
-      return { user: UserDto.from(user) };
+      result = await this.refreshUseCase.execute(refreshTokenOf(request));
     } catch (error) {
-      clearSessionCookies(response, this.secureCookies);
+      // Clear the cookies only when the session has ended — never on a server error, which
+      // would sign out a still-valid session.
+      if (error instanceof AppException && error.code === ErrorCode.Unauthenticated) {
+        clearSessionCookies(response, this.secureCookies);
+      }
       throw error;
     }
+    // Another tab already rotated this token; its new cookies must survive this response.
+    if (result.outcome === 'superseded') throw AuthErrors.unauthenticated();
+
+    setSessionCookies(response, result.session, this.secureCookies);
+    return { user: UserDto.from(result.user) };
   }
 
   @Post('logout')

@@ -1,5 +1,5 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
-import type { Job } from 'bullmq';
+import { UnrecoverableError, type Job } from 'bullmq';
 import { PinoLogger } from 'nestjs-pino';
 import { QueueName, SystemJob } from '../infrastructure/queue/queue-names.js';
 
@@ -26,7 +26,9 @@ export class SystemProcessor extends WorkerHost {
         return Promise.resolve({ pong: true, processedAt: new Date().toISOString() });
       default:
         // Unknown job names fail permanently instead of being retried.
-        return Promise.reject(new Error(`Unknown job "${job.name}" on queue "${job.queueName}"`));
+        return Promise.reject(
+          new UnrecoverableError(`Unknown job "${job.name}" on queue "${job.queueName}"`),
+        );
     }
   }
 }

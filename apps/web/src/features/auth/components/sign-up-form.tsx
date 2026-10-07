@@ -5,12 +5,13 @@ import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import { Icon } from '@/components/ui/icon';
 import { api, call } from '@/lib/api';
-import { networkError, signUp } from '../content';
+import { invalidEmail, networkError, signUp } from '../content';
+import { isInvalidEmailError, isValidEmail } from '../validation';
 import { FormFeedback, formText, SubmitButton, TextField } from './form-controls';
 
 const MIN_PASSWORD_LENGTH = 8;
 
-type FieldErrors = Partial<Record<'password' | 'confirmPassword', string>>;
+type FieldErrors = Partial<Record<'email' | 'password' | 'confirmPassword', string>>;
 
 /** Stitch "Sign Up". */
 export function SignUpForm() {
@@ -33,6 +34,7 @@ export function SignUpForm() {
       return;
     }
     const nextFieldErrors: FieldErrors = {};
+    if (!isValidEmail(email)) nextFieldErrors.email = invalidEmail;
     if (password.length < MIN_PASSWORD_LENGTH) nextFieldErrors.password = signUp.passwordTooShort;
     if (password !== confirmPassword) nextFieldErrors.confirmPassword = signUp.passwordsDiffer;
     setFieldErrors(nextFieldErrors);
@@ -48,6 +50,10 @@ export function SignUpForm() {
     );
     if (result.error) {
       setPending(false);
+      if (isInvalidEmailError(result.error)) {
+        setFieldErrors({ email: invalidEmail });
+        return;
+      }
       setError(result.error.status === 0 ? networkError : result.error.message);
       return;
     }
@@ -75,6 +81,7 @@ export function SignUpForm() {
           autoComplete="email"
           placeholder={signUp.emailPlaceholder}
           icon="mail"
+          error={fieldErrors.email}
           required
         />
         <TextField

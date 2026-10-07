@@ -10,6 +10,8 @@ export interface IssuedSession {
   refreshToken: string;
   /** "Remember me": the refresh cookie persists across browser restarts. */
   remembered: boolean;
+  /** The session's absolute expiry; a remembered refresh cookie expires with it. */
+  expiresAt: Date;
 }
 
 const MAX_USER_AGENT_LENGTH = 512;
@@ -35,6 +37,7 @@ export class SessionIssuer {
       accessToken: await this.tokens.createAccessToken({ userId, sessionId: session.id }),
       refreshToken: this.tokens.composeRefreshToken(session.id, secret),
       remembered: rememberMe,
+      expiresAt: session.expiresAt,
     };
   }
 }

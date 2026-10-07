@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { AuthHeading } from '@/features/auth/components/auth-shell';
 import { SignInForm, type SignInNotice } from '@/features/auth/components/sign-in-form';
+import { SignedInRedirect } from '@/features/auth/components/signed-in-redirect';
 import { signIn } from '@/features/auth/content';
 
 export const metadata: Metadata = { title: 'Sign in' };
@@ -22,6 +23,7 @@ export default async function LoginPage({
     <>
       <AuthHeading title={signIn.title} subtitle={signIn.subtitle} />
       <SignInForm notice={notice} />
+      <SignedInRedirect />
     </>
   );
 }

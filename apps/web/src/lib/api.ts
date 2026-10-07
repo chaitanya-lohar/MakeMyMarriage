@@ -13,8 +13,8 @@ export interface ApiError {
 
 const REFRESH_PATH = '/api/v1/auth/refresh';
 
-// One refresh at a time: refresh tokens rotate, so parallel refreshes would invalidate
-// each other and end the session.
+// One refresh at a time within this tab: refresh tokens rotate, so parallel refreshes
+// would invalidate each other. Other tabs share the cookies but not this lock.
 let refreshInFlight: Promise<boolean> | null = null;
 
 function refreshSession(): Promise<boolean> {
@@ -29,14 +29,17 @@ function refreshSession(): Promise<boolean> {
 
 /**
  * Same-origin fetch (decision 0001) that, when an access token has expired, refreshes the
- * session once and retries. Auth endpoints are never retried.
+ * session once and retries. The retry also happens when this tab's refresh fails: another
+ * tab may have rotated the shared refresh token first, leaving fresh cookies behind (the
+ * API then answers 401 without clearing them). Auth endpoints are never retried.
  */
-async function fetchWithRefresh(input: Request): Promise<Response> {
+export async function fetchWithRefresh(input: Request): Promise<Response> {
   const retry = input.clone();
   const response = await fetch(input);
   const path = new URL(input.url).pathname;
   if (response.status !== 401 || path.startsWith('/api/v1/auth/')) return response;
-  return (await refreshSession()) ? fetch(retry) : response;
+  await refreshSession();
+  return fetch(retry);
 }
 
 /** Typed API client for the browser. */
