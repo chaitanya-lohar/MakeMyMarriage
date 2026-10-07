@@ -370,6 +370,289 @@
           "Auth"
         ]
       }
+    },
+    "/api/v1/weddings": {
+      "post": {
+        "operationId": "WeddingsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWeddingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/WeddingDto"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ResponseMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "WEDDING_ALREADY_OWNED — the user already owns a wedding",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Create the user's wedding; the user becomes its owner",
+        "tags": [
+          "Weddings"
+        ]
+      },
+      "get": {
+        "operationId": "WeddingsController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/WeddingDto"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ResponseMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Weddings the user is an active member of",
+        "tags": [
+          "Weddings"
+        ]
+      }
+    },
+    "/api/v1/weddings/{weddingId}": {
+      "get": {
+        "operationId": "WeddingsController_get",
+        "parameters": [
+          {
+            "name": "weddingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/WeddingDto"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ResponseMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "WEDDING_NOT_FOUND — missing, or not a member",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Get a wedding",
+        "tags": [
+          "Weddings"
+        ]
+      },
+      "patch": {
+        "operationId": "WeddingsController_update",
+        "parameters": [
+          {
+            "name": "weddingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWeddingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/WeddingDto"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ResponseMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "WEDDING_NOT_FOUND — missing, or not a member",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Update a wedding's details",
+        "tags": [
+          "Weddings"
+        ]
+      }
     }
   },
   "info": {
@@ -563,6 +846,145 @@
           "token",
           "password"
         ]
+      },
+      "WeddingDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "6650f0c2a1b2c3d4e5f60718"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "Meera Sharma & Arjun Patel",
+            "description": "Always \"{brideName} & {groomName}\"; generated, never set directly."
+          },
+          "brideName": {
+            "type": "string",
+            "example": "Meera Sharma"
+          },
+          "groomName": {
+            "type": "string",
+            "example": "Arjun Patel"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "example": "2027-02-18",
+            "description": "Calendar date (YYYY-MM-DD) in the wedding timezone. Past dates are allowed."
+          },
+          "venueName": {
+            "type": "string",
+            "example": "Lakeside Garden",
+            "nullable": true
+          },
+          "primaryCity": {
+            "type": "string",
+            "example": "Jaipur",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "timezone": {
+            "type": "string",
+            "example": "Asia/Kolkata"
+          }
+        },
+        "required": [
+          "id",
+          "displayName",
+          "brideName",
+          "groomName",
+          "startDate",
+          "venueName",
+          "primaryCity",
+          "description",
+          "timezone"
+        ]
+      },
+      "CreateWeddingDto": {
+        "type": "object",
+        "properties": {
+          "brideName": {
+            "type": "string",
+            "example": "Meera Sharma",
+            "maxLength": 100
+          },
+          "groomName": {
+            "type": "string",
+            "example": "Arjun Patel",
+            "maxLength": 100
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "example": "2027-02-18",
+            "description": "Calendar date (YYYY-MM-DD) in the wedding timezone. Past dates are allowed."
+          },
+          "venueName": {
+            "type": "string",
+            "example": "Lakeside Garden",
+            "maxLength": 120,
+            "nullable": true
+          },
+          "primaryCity": {
+            "type": "string",
+            "example": "Jaipur",
+            "maxLength": 120,
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "example": "Two families, one celebration. We can't wait to share it with you.",
+            "maxLength": 1000,
+            "nullable": true
+          }
+        },
+        "required": [
+          "brideName",
+          "groomName"
+        ]
+      },
+      "UpdateWeddingDto": {
+        "type": "object",
+        "properties": {
+          "brideName": {
+            "type": "string",
+            "example": "Meera Sharma",
+            "maxLength": 100
+          },
+          "groomName": {
+            "type": "string",
+            "example": "Arjun Patel",
+            "maxLength": 100
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "example": "2027-02-18",
+            "description": "Calendar date (YYYY-MM-DD) in the wedding timezone. Past dates are allowed."
+          },
+          "venueName": {
+            "type": "string",
+            "maxLength": 120,
+            "nullable": true
+          },
+          "primaryCity": {
+            "type": "string",
+            "maxLength": 120,
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 1000,
+            "nullable": true
+          }
+        }
       }
     }
   }

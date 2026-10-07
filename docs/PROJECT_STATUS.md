@@ -2,7 +2,7 @@
 
 The single place to see where MakeMyMarriage stands. Read this first.
 
-- **Updated:** 2026-10-05, with the pre-Phase 3 fixes (`chore/pre-phase-3`).
+- **Updated:** 2026-10-05, with Phase 3 built on `feat/weddings`.
 - **Source of truth:** decisions live in [`decisions/`](decisions/README.md). This page only
   summarises and links; where they differ, the decision record wins.
 - **Keep it current:** update this page in the same commit or PR that finishes a phase or
@@ -10,28 +10,29 @@ The single place to see where MakeMyMarriage stands. Read this first.
 
 ## Snapshot
 
-| Item            | State                                                                  |
-| --------------- | ---------------------------------------------------------------------- |
-| Current phase   | Phase 2 (Authentication) — done and merged to `main`                   |
-| Next phase      | Phase 3 (Wedding setup) — **not started; waits for explicit approval** |
-| `main`          | Scaffold, Phase 1 and Phase 2 (PRs #1, #2, #3)                         |
-| Open PRs        | `chore/pre-phase-3` — code-review and manual-testing fixes             |
-| Live deployment | None yet                                                               |
+| Item            | State                                                                              |
+| --------------- | ---------------------------------------------------------------------------------- |
+| Current phase   | Phase 3 (Wedding setup) — built and verified on `feat/weddings` (0016); not pushed |
+| Next phase      | Phase 4 (Events) — **not started; waits for explicit approval**                    |
+| `main`          | Scaffold, Phase 1 and Phase 2 (PRs #1, #2, #3)                                     |
+| Open PRs        | `chore/pre-phase-3` — code-review and manual-testing fixes                         |
+| Live deployment | None yet                                                                           |
 
 ### Branches
 
-| Branch                        | Contains                                         | Based on         | State                  |
-| ----------------------------- | ------------------------------------------------ | ---------------- | ---------------------- |
-| `main`                        | Scaffold, Phase 1, Phase 2                       | —                | Up to date with GitHub |
-| `feat/home-page`              | Phase 1: design system and home page (5 commits) | `main`           | Merged (PR #2)         |
-| `feat/auth`                   | Phase 2: authentication (13 commits)             | `feat/home-page` | Merged (PR #3)         |
-| `chore/pre-phase-3`           | The three branches below, `.mcp.json`, this page | `main`           | Pushed, PR open        |
-| ↳ `fix/auth-hardening`        | Code-review fixes (4 commits)                    | `main`           | Local; in the PR above |
-| ↳ `fix/auth-test-findings`    | Manual-testing fixes (3 commits)                 | `main`           | Local; in the PR above |
-| ↳ `docs/status-after-phase-2` | This page after the Phase 1/2 merges (1 commit)  | `main`           | Local; in the PR above |
+| Branch                        | Contains                                         | Based on            | State                    |
+| ----------------------------- | ------------------------------------------------ | ------------------- | ------------------------ |
+| `main`                        | Scaffold, Phase 1, Phase 2                       | —                   | Up to date with GitHub   |
+| `feat/home-page`              | Phase 1: design system and home page (5 commits) | `main`              | Merged (PR #2)           |
+| `feat/auth`                   | Phase 2: authentication (13 commits)             | `feat/home-page`    | Merged (PR #3)           |
+| `chore/pre-phase-3`           | The three branches below, `.mcp.json`, this page | `main`              | Pushed, PR open          |
+| ↳ `fix/auth-hardening`        | Code-review fixes (4 commits)                    | `main`              | Local; in the PR above   |
+| ↳ `fix/auth-test-findings`    | Manual-testing fixes (3 commits)                 | `main`              | Local; in the PR above   |
+| ↳ `docs/status-after-phase-2` | This page after the Phase 1/2 merges (1 commit)  | `main`              | Local; in the PR above   |
+| `feat/weddings`               | Phase 3: wedding setup and dashboard shell       | `chore/pre-phase-3` | Local, built; not pushed |
 
-The merged phase branches can be deleted on GitHub. Phase 3 starts from `main` once
-`chore/pre-phase-3` is merged.
+The merged phase branches can be deleted on GitHub. `feat/weddings` is stacked on
+`chore/pre-phase-3`: merge that PR first, then Phase 3's.
 
 ## Phases
 
@@ -39,25 +40,25 @@ This order was proposed during Phase 1 and is being followed, but the roadmap as
 not been formally approved. Each phase is approved before it starts, and any open questions
 for it are raised then (0004).
 
-| #   | Phase                               | State        | Records                           |
-| --- | ----------------------------------- | ------------ | --------------------------------- |
-| 0   | Scaffold (monorepo, API/worker, CI) | Done, merged | 0001–0013                         |
-| 1   | Design system and home page         | Done, merged | 0014                              |
-| 2   | Authentication                      | Done, merged | 0015                              |
-| 3   | Wedding setup and dashboard shell   | Not started  | 0010, 0012                        |
-| 4   | Events                              | Not started  | 0010                              |
-| 5   | Guests and RSVP                     | Not started  | 0008, 0010                        |
-| 6   | Invitations                         | Not started  | 0008                              |
-| 7   | Tasks                               | Not started  | 0010, 0013                        |
-| 8   | Expenses                            | Not started  | 0009, 0010                        |
-| 9   | Vendors                             | Not started  | 0010                              |
-| 10  | Organizers and permissions          | Not started  | 0012                              |
-| 11  | Wedding website                     | Not started  | 0007                              |
-| 12  | Gallery and QR memories             | Not started  | 0007                              |
-| 13  | Live stream                         | Not started  | —                                 |
-| 14  | Notifications                       | Not started  | —                                 |
-| 15  | Reports                             | Not started  | 0013                              |
-| 16  | Partner connection and sharing      | Not started  | 0011, 0012 — **blocked on A4/A5** |
+| #   | Phase                               | State             | Records                           |
+| --- | ----------------------------------- | ----------------- | --------------------------------- |
+| 0   | Scaffold (monorepo, API/worker, CI) | Done, merged      | 0001–0013                         |
+| 1   | Design system and home page         | Done, merged      | 0014                              |
+| 2   | Authentication                      | Done, merged      | 0015                              |
+| 3   | Wedding setup and dashboard shell   | Built, not merged | 0010, 0012, 0016                  |
+| 4   | Events                              | Not started       | 0010                              |
+| 5   | Guests and RSVP                     | Not started       | 0008, 0010                        |
+| 6   | Invitations                         | Not started       | 0008                              |
+| 7   | Tasks                               | Not started       | 0010, 0013                        |
+| 8   | Expenses                            | Not started       | 0009, 0010                        |
+| 9   | Vendors                             | Not started       | 0010                              |
+| 10  | Organizers and permissions          | Not started       | 0012                              |
+| 11  | Wedding website                     | Not started       | 0007                              |
+| 12  | Gallery and QR memories             | Not started       | 0007                              |
+| 13  | Live stream                         | Not started       | —                                 |
+| 14  | Notifications                       | Not started       | —                                 |
+| 15  | Reports                             | Not started       | 0013                              |
+| 16  | Partner connection and sharing      | Not started       | 0011, 0012 — **blocked on A4/A5** |
 
 A staging deployment (Vercel for the web app, containers for the API and worker — 0005) was
 recommended after Phase 2. It is not scheduled yet and needs Vercel, AWS and MongoDB Atlas
@@ -109,6 +110,29 @@ Resend later).
 | Wedding Command Center Dashboard                     | Not built (Phase 3+)         |
 
 Design system "Regal Modernity" (0014) applies to every screen.
+
+## Added by Phase 3 (on `feat/weddings`, not yet on `main`)
+
+Decision 0016. Built and verified locally; not pushed.
+
+| Route          | What it is                                                             |
+| -------------- | ---------------------------------------------------------------------- |
+| `/dashboard`   | "No wedding yet" (S2), or the wedding dashboard with countdown (S4)    |
+| `/wedding/new` | Create your wedding (S3)                                               |
+| `/wedding`     | Wedding details: edit and save (S5)                                    |
+| (workspace)    | Sidebar and user menu, mobile drawer, loading (S1), not available (S6) |
+
+| Endpoint                      | Purpose                                          |
+| ----------------------------- | ------------------------------------------------ |
+| `POST /weddings`              | Create the user's wedding; the user is its owner |
+| `GET /weddings`               | Weddings the user is an active member of         |
+| `GET /weddings/{weddingId}`   | One wedding (members only; otherwise 404)        |
+| `PATCH /weddings/{weddingId}` | Update the wedding's details                     |
+
+New backend modules: `weddings` (`weddings` collection) and `workspace`
+(`wedding_memberships`, the membership check for wedding routes). Creating a wedding writes
+the wedding and its owner membership in one transaction. The Phase 2 placeholder at
+`/dashboard` is removed.
 
 ## Open decisions and blockers
 

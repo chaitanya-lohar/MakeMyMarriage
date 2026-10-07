@@ -36,15 +36,23 @@ export class ErrorResponseDto {
 
 /**
  * Documents a success response wrapped in the standard `{ data, meta }` envelope
- * (API Design §20). Omit `model` for responses whose `data` is null.
+ * (API Design §20). Pass `[Model]` when `data` is a list; omit `model` for responses whose
+ * `data` is null.
  */
-export function ApiEnvelopeResponse(status: number, model?: Type<unknown>, description?: string) {
+export function ApiEnvelopeResponse(
+  status: number,
+  model?: Type<unknown> | [Type<unknown>],
+  description?: string,
+) {
+  const item = Array.isArray(model) ? model[0] : model;
   // OpenAPI 3.0 has no `null` type; an empty payload is a nullable schema that is always null.
-  const data = model
-    ? { $ref: getSchemaPath(model) }
-    : { nullable: true, example: null, description: 'Always null.' };
+  const data = !item
+    ? { nullable: true, example: null, description: 'Always null.' }
+    : Array.isArray(model)
+      ? { type: 'array', items: { $ref: getSchemaPath(item) } }
+      : { $ref: getSchemaPath(item) };
   const decorators = [
-    ApiExtraModels(ResponseMetaDto, ...(model ? [model] : [])),
+    ApiExtraModels(ResponseMetaDto, ...(item ? [item] : [])),
     ApiResponse({
       status,
       description,
