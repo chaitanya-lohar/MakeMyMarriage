@@ -79,6 +79,9 @@ corrected as listed below.
 
 - The workspace navigation has only Dashboard and Wedding details; before a wedding exists
   it shows only the logo and the user.
+- The logo in the workspace (sidebar and mobile header) opens the home page, as on the
+  sign-in pages; Dashboard in the navigation leads back. The home page header stays the
+  same for signed-in users. (Approved 2026-10-07 after manual testing.)
 - After creating, the user lands on the dashboard with the toast "Your wedding has been
   created."
 - Saving wedding details stays on the page and shows "Your changes have been saved.";
