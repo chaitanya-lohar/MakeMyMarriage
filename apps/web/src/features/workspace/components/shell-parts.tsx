@@ -27,11 +27,11 @@ export function initialsOf(name: string): string {
     .join('');
 }
 
-/** The approved logo, linking to the dashboard inside the workspace. */
+/** The approved logo, linking to the home page as elsewhere on the site (approved 2026-10-07). */
 export function WorkspaceLogo({ className = 'h-10 w-auto' }: { className?: string }) {
   return (
     <Link
-      href={DASHBOARD_PATH}
+      href="/"
       className="flex items-center rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary"
     >
       <Logo className={className} />
