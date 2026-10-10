@@ -26,7 +26,7 @@ A decision record overrides a specification only for the scope it explicitly cov
 
 | Level | Document                                                                                                                                     |
 | ----- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1     | Accepted decision records 0001–0018; [PRD v1.2](../specs/PRD_v1.2.md); feature PRDs such as [Phase 4 PRD v1.2](../specs/PHASE_4_PRD_v1.2.md) |
+| 1     | Accepted decision records 0001–0019; [PRD v1.2](../specs/PRD_v1.2.md); feature PRDs such as [Phase 4 PRD v1.2](../specs/PHASE_4_PRD_v1.2.md) |
 | 2     | [System Design v1.3](../specs/SYSTEM_DESIGN_v1.3.md)                                                                                         |
 | 3     | [Database Design v1.1](../specs/DB_DESIGN_v1.1.md)                                                                                           |
 | 4     | [API Design v1.1](../specs/API_DESIGN_v1.1.md) (authoritative for routes)                                                                    |

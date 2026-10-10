@@ -22,8 +22,9 @@ in a specification, the record names that statement.
 | [0014](0014-design-system-and-home-page.md)               | Design system and marketing home page                       | Accepted                        |
 | [0015](0015-authentication.md)                            | Authentication (Phase 2)                                    | Accepted                        |
 | [0016](0016-wedding-setup.md)                             | Wedding setup and dashboard shell (Phase 3)                 | Accepted                        |
-| [0017](0017-phase-4-guests-and-invitations.md)            | Phase 4: events, guests, RSVP and invitations               | Accepted; amended by 0018       |
-| [0018](0018-invitation-token-storage-and-guest-access.md) | Invitation token storage and guest-access rules             | Accepted                        |
+| [0017](0017-phase-4-guests-and-invitations.md)            | Phase 4: events, guests, RSVP and invitations               | Accepted; amended by 0018, 0019 |
+| [0018](0018-invitation-token-storage-and-guest-access.md) | Invitation token storage and guest-access rules             | Accepted; amended by 0019       |
+| [0019](0019-phase-4-design-decisions.md)                  | Phase 4 design decisions                                    | Accepted                        |
 
 Conflicts between specifications or decision records are handled with the protocol in
 [0004](0004-specification-authority.md) — never resolved silently in code.

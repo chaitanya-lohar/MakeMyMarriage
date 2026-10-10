@@ -16,7 +16,7 @@ Production-ready wedding planning and management platform for Indian weddings.
 ## Document control
 
 - This document carries forward every still-valid requirement of PRD v1.1 and applies the
-  approved decision records 0001–0018. Where a requirement changed, the section names the
+  approved decision records 0001–0019. Where a requirement changed, the section names the
   decision that changed it.
 - Decision records remain the history of _why_ something changed. If this document and a
   later approved decision record disagree, the decision record wins for the scope it covers
@@ -257,15 +257,16 @@ event. Delivery state, activity history and RSVP state are three separate things
 - **Tokens do not expire automatically in V1 (Phase 4).** The organizer can revoke or
   regenerate a token at any time. Trade-off accepted: a link that is not revoked remains
   usable indefinitely (0017).
-- **Open (0018):** whether an organizer can see the link again after creating it, for Copy
-  Link or WhatsApp, without regenerating it.
+- Organizers can retrieve the current link at any time; retrieving or sharing it never
+  creates a new token, and each retrieval is recorded in the audit history (0019).
 
 ## 13. Digital wedding invitation
 
 - V1 uses one invitation containing the wedding's applicable events for that guest.
 - The invitation shows the couple, the date, the guest's event schedule and venues, and
   per-event RSVP. The website link, map and countdown are added when those features exist.
-- Copy Link copies the guest's secure invitation link.
+- Copy Link copies the guest's current invitation link; sharing reuses it, and only
+  regenerating replaces it (0019).
 - The WhatsApp button opens the user's own WhatsApp sharing flow with a prefilled message
   and link; no WhatsApp API is used.
 - The platform sends email invitations itself.
@@ -330,7 +331,9 @@ Decisions 0010 (#3, #4) and 0013.
   expense totals; pending payments; task completion; overdue tasks; alerts and reminders;
   relevant shared information.
 - Each summary appears when its module is built. Phase 3 shows the countdown (days to go,
-  wedding day, celebrated, or no date set) and the wedding details (0016).
+  wedding day, celebrated, or no date set) and the wedding details (0016). Phase 4 adds
+  upcoming events, guest totals, RSVP breakdown and expected attendees, with the rules in
+  the Phase 4 PRD §10.2 (0019).
 
 ## 19. Wedding website
 
@@ -475,30 +478,31 @@ Decision 0013; product-owner answer Q8c.
 ## 29. High-level navigation
 
 Private workspace (each item appears once its module is built): Dashboard, Wedding details,
-Events, Guests & RSVP, Invitation, Tasks, Expenses, Vendors, Gallery & Memories, Wedding
+Events, Guests & RSVP, Invitation (managed on each guest's detail screen in Phase 4, with no
+separate navigation item — 0019), Tasks, Expenses, Vendors, Gallery & Memories, Wedding
 Website, Live Stream, Reports, Settings.
 
 Public website: Home, Our Story, Events, RSVP, Gallery, Live Stream, Share Your Memories.
 
 ## 30. Deferred and open product decisions
 
-| Area                                                                            | Status                                                                                                                                        |
-| ------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| A4 — partner sharing scope                                                      | **Open** (0011). Expenses already decided: automatically shared (0009).                                                                       |
-| A5 — partner disconnection                                                      | **Open** (0011).                                                                                                                              |
-| Guest fields beyond the core set                                                | Deferred until a real need is established.                                                                                                    |
-| Vendor management depth                                                         | Feature included; detailed workflow deferred.                                                                                                 |
-| Reminder cadence and channels                                                   | Engine included; schedules, channels and customization deferred.                                                                              |
-| Roles and permission templates                                                  | Granular authorization required; default matrix deferred.                                                                                     |
-| QR expiry                                                                       | Deferred. Revoke and regenerate are approved.                                                                                                 |
-| Invitation token expiry                                                         | No automatic expiry in V1 (0017); revisit only through a new decision.                                                                        |
-| Showing an invitation link again after creation (Copy Link, WhatsApp)           | **Open** (0018).                                                                                                                              |
-| Delivered status, and Failed reported after acceptance                          | Depend on provider webhooks, which are not yet approved; Sent is the highest status shown until then. Immediate rejections are Failed (0018). |
-| Expense payment status Cancelled                                                | Not in V1 (0018); needs a decision to add.                                                                                                    |
-| Audit, delivery-history and data retention periods; permanent deletion          | Deferred; to be set before production launch.                                                                                                 |
-| Website sitemap, metadata and crawler directives                                | To specify in the Wedding website phase.                                                                                                      |
-| Provider webhook, retry and backoff details                                     | To specify per integration.                                                                                                                   |
-| Overnight events (end time after midnight) and locale-specific phone formatting | Deferred (Phase 4 PRD).                                                                                                                       |
+| Area                             | Status                                                                  |
+| -------------------------------- | ----------------------------------------------------------------------- |
+| A4 — partner sharing scope       | **Open** (0011). Expenses already decided: automatically shared (0009). |
+| A5 — partner disconnection       | **Open** (0011).                                                        |
+| Guest fields beyond the core set | Deferred until a real need is established.                              |
+| Vendor management depth          | Feature included; detailed workflow deferred.                           |
+| Reminder cadence and channels    | Engine included; schedules, channels and customization deferred.        |
+| Roles and permission templates   | Granular authorization required; default matrix deferred.               |
+| QR expiry                        | Deferred. Revoke and regenerate are approved.                           |
+| Invitation token expiry          | No automatic expiry in V1 (0017); revisit only through a new decision.  |
+
+| Delivered status, and Failed reported after acceptance | Depend on provider webhooks, which are not yet approved; Sent is the highest status shown until then. Immediate rejections are Failed (0018). |
+| Expense payment status Cancelled | Not in V1 (0018); needs a decision to add. |
+| Audit, delivery-history and data retention periods; permanent deletion | Deferred; to be set before production launch. |
+| Website sitemap, metadata and crawler directives | To specify in the Wedding website phase. |
+| Provider webhook, retry and backoff details | To specify per integration. |
+| Overnight events (end time after midnight) and locale-specific phone formatting | Deferred (Phase 4 PRD). |
 
 ## 31. Product principles
 

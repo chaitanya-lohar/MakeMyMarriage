@@ -2,7 +2,10 @@
 
 **Status:** Accepted (approved by the product owner on 2026-10-10). Amends
 [0008](0008-guest-invitation-model.md) and [0017](0017-phase-4-guests-and-invitations.md)
-as listed under "Superseded statements".
+as listed under "Superseded statements". **Amended by
+[0019](0019-phase-4-design-decisions.md) (2026-10-10):** the open item below is decided (an
+organizer route returns the current link), #3 now includes that route, and the #10 limits
+are approved.
 
 ## Context
 
@@ -60,7 +63,7 @@ has spread.
     later needs its own decision, because it would change expense totals, the
     pending-payments summary, reports and payment validation.
 
-## Open — not decided by this record
+## Open — not decided by this record (decided by 0019)
 
 - **Showing the link again after creation.** Create and regenerate return the invitation link.
   Letting an organizer copy it later (Copy Link, WhatsApp) without regenerating would need a

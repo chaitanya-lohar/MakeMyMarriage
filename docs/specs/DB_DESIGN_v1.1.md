@@ -13,7 +13,7 @@
 | Version | Date       | Change                                                                                                 |
 | ------- | ---------- | ------------------------------------------------------------------------------------------------------ |
 | 1.0     | 2026-09-24 | Baseline design.                                                                                       |
-| 1.1     | 2026-10-10 | Consolidated: v1.0 plus decisions 0008–0010, 0012, 0013, 0015–0018 and the schema built in Phases 2–3. |
+| 1.1     | 2026-10-10 | Consolidated: v1.0 plus decisions 0008–0010, 0012, 0013, 0015–0019 and the schema built in Phases 2–3. |
 
 **Status of each collection** — _Built_: exists in code. _Phase 4_: designed and approved for
 Phase 4. _Planned_: carried from v1.0 with approved changes; re-checked against the PRD
@@ -303,19 +303,19 @@ The default permission matrix per role is open.
 {
   _id: ObjectId,
   weddingId: ObjectId,
-  name: string,              // 1–100 (proposed)
+  name: string,              // 1–100
   type: string,              // ENGAGEMENT, MEHENDI, HALDI, SANGEET, WEDDING, RECEPTION, CUSTOM
-  description?: string,      // ≤ 1000 (proposed)
+  description?: string,      // ≤ 1000
   date: Date,                // midnight UTC of the calendar date, in the wedding timezone
   startTime?: string,        // "HH:mm"
   endTime?: string,          // "HH:mm"; requires startTime; later than startTime
   timezone: string,          // copied from the wedding at creation
   venue?: {
-    name?: string,           // ≤ 120 (proposed)
-    address?: string         // ≤ 300 (proposed)
+    name?: string,           // ≤ 120
+    address?: string         // ≤ 300
   },
-  dressCode?: string,        // ≤ 120 (proposed)
-  notes?: string,            // ≤ 1000 (proposed); organizer-only
+  dressCode?: string,        // ≤ 120
+  notes?: string,            // ≤ 1000; organizer-only
   createdBy: ObjectId,
   createdAt: Date,
   updatedAt: Date,
@@ -333,7 +333,7 @@ The default permission matrix per role is open.
 
 ## 10. Guests, RSVP and invitations (Phase 4 — decisions 0008, 0010 #1, 0017, 0018)
 
-Limits marked _(proposed)_ here and in §9 are not approved until confirmed (0018 #10).
+The limits here and in §9 are approved (0019 #6).
 
 ### 10.1 `guests`
 
@@ -343,9 +343,9 @@ Limits marked _(proposed)_ here and in §9 are not approved until confirmed (001
   weddingId: ObjectId,
   name: string,          // 1–100
   mobile: string,        // normalized: digits with an optional leading "+", 7–15 digits
-  email?: string,        // trimmed, lower-cased; ≤ 254 (proposed)
-  relation?: string,     // ≤ 100 (proposed)
-  notes?: string,        // ≤ 1000 (proposed); organizer-only
+  email?: string,        // trimmed, lower-cased; ≤ 254
+  relation?: string,     // ≤ 100
+  notes?: string,        // ≤ 1000; organizer-only
   createdBy: ObjectId,
   createdAt: Date,
   updatedAt: Date,
@@ -885,8 +885,9 @@ Audit important security and business events (membership and permission changes,
 updates, expense edits, task changes, vendor lifecycle, website publish and unpublish, QR and
 invitation token revocation and regeneration), not every read. Retention is open.
 
-Phase 4 writes audit entries at least for organizer resets of an RSVP to `PENDING` (0018) and
-for invitation token regeneration and revocation.
+Phase 4 writes audit entries at least for organizer resets of an RSVP to `PENDING` (0018),
+for invitation token regeneration and revocation, and for every retrieval of an invitation
+link by an organizer (0019).
 
 ## 23. Database security
 
@@ -990,18 +991,18 @@ Then the remaining planned collections as their phases are approved.
 
 ## 32. Open technical decisions
 
-| Area          | Open decision                                                                                                   |
-| ------------- | --------------------------------------------------------------------------------------------------------------- |
-| Invitations   | Showing the link again after creation (0018); webhook handling; encryption algorithm and key rotation procedure |
-| QR            | Expiry policy and regeneration details                                                                          |
-| Permissions   | Default matrix per role                                                                                         |
-| Website       | `publicIdentifier` generation and collisions; sitemap and metadata                                              |
-| Google Places | Fields that may be stored or cached                                                                             |
-| Notifications | Templates and default schedules (product-deferred)                                                              |
-| Media         | S3 bucket and prefix layout; image processing; lifecycle                                                        |
-| Retention     | Audit, delivery history, soft-deleted data, permanent purge                                                     |
-| Backups       | RPO/RTO, retention, restore-test cadence                                                                        |
-| Indexes       | Final production set after observing real query plans                                                           |
+| Area          | Open decision                                                      |
+| ------------- | ------------------------------------------------------------------ |
+| Invitations   | Webhook handling; encryption algorithm and key rotation procedure  |
+| QR            | Expiry policy and regeneration details                             |
+| Permissions   | Default matrix per role                                            |
+| Website       | `publicIdentifier` generation and collisions; sitemap and metadata |
+| Google Places | Fields that may be stored or cached                                |
+| Notifications | Templates and default schedules (product-deferred)                 |
+| Media         | S3 bucket and prefix layout; image processing; lifecycle           |
+| Retention     | Audit, delivery history, soft-deleted data, permanent purge        |
+| Backups       | RPO/RTO, retention, restore-test cadence                           |
+| Indexes       | Final production set after observing real query plans              |
 
 ## 33. Decision summary
 
