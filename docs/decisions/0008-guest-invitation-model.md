@@ -1,7 +1,9 @@
 # 0008 — Guest invitation model
 
 **Status:** Accepted (includes resolution C3). Supersedes Database Design v1.0 §10 and
-System Design v1.2 §9 where they differ.
+System Design v1.2 §9 where they differ. **Amended by [0017](0017-phase-4-guests-and-invitations.md)
+(2026-10-10):** `OPENED` is no longer a status — opens are activity history — and the
+statuses are `DRAFT`, `SENT`, `DELIVERED`, `FAILED`. Everything else below stands.
 
 ## Decision
 
