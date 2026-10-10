@@ -30,7 +30,11 @@ route) and closes the open item in [0018](0018-invitation-token-storage-and-gues
 
 5. Phase 4 adds four dashboard summaries: **upcoming events**, **guest totals**, **RSVP
    breakdown** and **expected attendees**, calculated only from existing data. Their exact
-   calculation rules are in [Phase 4 PRD v1.2](../specs/PHASE_4_PRD_v1.2.md) §10.2.
+   calculation rules are in [Phase 4 PRD v1.2](../specs/PHASE_4_PRD_v1.2.md) §10.2; the
+   product owner approved them as written (2026-10-10): every summary counts only active
+   records; the RSVP breakdown covers past and future events; expected attendees are shown
+   per event only, with no wedding-wide total; guest totals include guests not yet assigned
+   to an event.
 
 ### Q4 — Field limits
 

@@ -247,8 +247,8 @@ Decision 0019.
 
 ### 10.2 Dashboard summaries
 
-Decision 0019 #5 adds four summaries, calculated only from existing data. The rules below are
-defined for approval with this specification:
+Decision 0019 #5 adds four summaries, calculated only from existing data. The product owner
+approved these rules on 2026-10-10, as written:
 
 - **Counted records.** An event counts if it is not deleted. A guest counts if not deleted.
   An assignment counts if it is active and both its event and its guest count. Deleted
@@ -264,9 +264,8 @@ defined for approval with this specification:
   to three events counts three times, once per event.
 - **Expected attendees:** for each upcoming event, the sum of `attendeeCount` over its counted
   Attending assignments. Declined (0), Pending and Maybe (no count) add nothing.
-- **For approval:** a single wedding-wide "expected attendees" total would count the same
-  person once for every event they attend, so this specification shows the figure **per
-  event** only.
+- **Per event only.** There is no wedding-wide "expected attendees" total: it would count the
+  same person once for every event they attend, so it would mislead as a count of people.
 
 ## 11. Acceptance criteria
 
@@ -312,8 +311,7 @@ defined for approval with this specification:
 - Token expiry: none in Phase 4; revisit only by decision.
 - Delivery webhooks (`DELIVERED`, later `FAILED`); provider retry and backoff details.
 - Wording drafted in Stitch, approved at design review (0019 #7).
-- Approval of the dashboard calculation rules in §10.2, including expected attendees per
-  event only.
+
 - Retention periods for audit and delivery history.
 - De-duplication of repeated opens (first open always kept).
 - Overnight events; locale-specific phone formatting.
