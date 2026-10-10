@@ -424,7 +424,9 @@ The limits here and in §9 are approved (0019 #6).
 - **No `expiresAt`:** no automatic expiry in Phase 4 (0017 #8). v1.0's `status` is now
   `deliveryStatus` (without `OPENED`), and its `openedAt` is now `firstOpenedAt`.
 - `deliveryStatus` follows the latest send attempt: `SENT` on provider acceptance, `FAILED`
-  on an immediate provider rejection (0018). `DELIVERED`, and failures reported after
+  on an immediate provider rejection (0018). Regenerating the link (from an active or a
+  revoked link) sets it back to `DRAFT` and clears `revokedAt`; revoking never changes it
+  (0020). `invitation_deliveries` records are never changed by either. `DELIVERED`, and failures reported after
   acceptance, need provider webhooks (not in Phase 4). Opens never change it.
 
 ### 10.4 `invitation_deliveries`

@@ -273,7 +273,9 @@ Guest routes (account-free, token in the path):
 firstOpenedAt }`. Create and regenerate also return `invitationUrl`
   (`https://makemymarriage.com/invite/{token}`).
 - `409 INVITATION_ALREADY_EXISTS` when creating twice; `404 INVITATION_NOT_FOUND` for
-  operations before creation; `409 INVITATION_REVOKED` for send or resend while revoked;
+  operations before creation; `409 INVITATION_REVOKED` for send or resend while revoked; regenerate (allowed while
+  revoked) returns the invitation with `deliveryStatus: "DRAFT"` and `isRevoked: false`, and
+  revoke leaves `deliveryStatus` unchanged (0020);
   `422 GUEST_EMAIL_REQUIRED` for send or resend without a guest email.
 - Send and resend accept an optional `Idempotency-Key` header; each attempt becomes an
   `invitation_deliveries` record and the email is sent by the worker, which decrypts the

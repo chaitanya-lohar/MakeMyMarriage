@@ -14,9 +14,9 @@ The single place to see where MakeMyMarriage stands. Read this first.
 | Item            | State                                                                                                                                                           |
 | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Current phase   | Phase 3 (Wedding setup) — done and merged to `main` (PR #5, 0016)                                                                                               |
-| Next phase      | Phase 4 (Events, guests, RSVP and invitations) — requirements and design decisions approved (0017–0019, Phase 4 PRD v1.2); **not started**; next: Stitch design |
+| Next phase      | Phase 4 (Events, guests, RSVP and invitations) — requirements and design decisions approved (0017–0020, Phase 4 PRD v1.2); **not started**; next: Stitch design |
 | `main`          | Scaffold, Phases 1–3, code-review and manual-testing fixes (PRs #1–6)                                                                                           |
-| Open PRs        | None (`docs/phase-4-design-decisions` is local)                                                                                                                 |
+| Open PRs        | None (`docs/regenerate-email-status` is local)                                                                                                                  |
 | Live deployment | None yet                                                                                                                                                        |
 
 ### Branches
@@ -36,7 +36,8 @@ Every branch below is merged into `main`; new work starts from `main`.
 | `fix/workspace-logo-home`     | Workspace logo opens the home page (manual-testing fix) | Merged (PR #6) |
 
 | `docs/consolidation` | Consolidated documentation, decisions 0017–0018 | Merged (PR #8) |
-| `docs/phase-4-design-decisions` | Decision 0019 and the matching spec updates (local, not pushed) | In progress |
+| `docs/phase-4-design-decisions` | Decision 0019 and the matching spec updates | Merged (PR #9) |
+| `docs/regenerate-email-status` | Decision 0020 and the matching spec updates (local, not pushed) | In progress |
 
 The merged branches can be deleted, on GitHub and locally.
 
@@ -53,7 +54,7 @@ questions for it are raised then (0004).
 | 1   | Design system and home page          | Done, merged          | 0014                                                            |
 | 2   | Authentication                       | Done, merged          | 0015                                                            |
 | 3   | Wedding setup and dashboard shell    | Done, merged          | 0010, 0012, 0016                                                |
-| 4   | Events, guests, RSVP and invitations | Approved, not started | 0008, 0010, 0017–0019; [Phase 4 PRD](specs/PHASE_4_PRD_v1.2.md) |
+| 4   | Events, guests, RSVP and invitations | Approved, not started | 0008, 0010, 0017–0020; [Phase 4 PRD](specs/PHASE_4_PRD_v1.2.md) |
 | 5   | (merged into Phase 4)                | —                     | —                                                               |
 | 6   | (merged into Phase 4)                | —                     | —                                                               |
 | 7   | Tasks                                | Not started           | 0010, 0013                                                      |
@@ -191,6 +192,7 @@ checked only for loading the saved values.
 
 | Date       | Change                                                                                                                                                                                                                                                                                                                                                            |
 | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-10 | Phase 4 design decisions merged (PR #9). Decision 0020: regenerating an invitation link resets the current email status to Draft; revoking leaves it unchanged; email history is never rewritten.                                                                                                                                                                 |
 | 2026-10-10 | Documentation consolidation merged (PR #8). Decision 0019: organizer route to retrieve the current invitation link (audited); invitations managed on the guest detail screen; four dashboard summaries; field limits approved; wording drafted at design review; confirmations for destructive actions; dashboard calculation rules approved (Phase 4 PRD §10.2). |
 | 2026-10-10 | Decision 0018: invitation tokens stored as a hash plus an encrypted copy (key outside the database); organizer RSVP resets audited; immediate provider rejection marks the attempt FAILED; deleting a guest revokes their token; proposed field limits labelled; no Cancelled expense status in V1. Specifications updated to match.                              |
 | 2026-10-10 | Documentation consolidated (`docs/consolidation`): PRD v1.2, Phase 4 PRD v1.2, System Design v1.3, Database Design v1.1 and API Design v1.1 in Markdown; decision 0017; Phase 4 combines events, guests, RSVP and invitations; documentation index added. Superseded `.docx` originals and the reconciled set moved to `docs/archive/` (approved).                |

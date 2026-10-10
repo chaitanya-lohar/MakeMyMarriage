@@ -5,7 +5,8 @@
 as listed under "Superseded statements". **Amended by
 [0019](0019-phase-4-design-decisions.md) (2026-10-10):** the open item below is decided (an
 organizer route returns the current link), #3 now includes that route, and the #10 limits
-are approved.
+are approved. **Amended by [0020](0020-email-status-after-regeneration.md) (2026-10-10):**
+regenerating sets the current email status to Draft (#8).
 
 ## Context
 
