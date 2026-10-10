@@ -13,7 +13,7 @@
 | Version | Date       | Change                                                                                                           |
 | ------- | ---------- | ---------------------------------------------------------------------------------------------------------------- |
 | 1.0     | 2026-09-24 | Baseline contract.                                                                                               |
-| 1.1     | 2026-10-10 | Consolidated: v1.0 plus decisions 0001, 0008, 0009, 0010, 0012, 0015–0017 and the endpoints built in Phases 2–3. |
+| 1.1     | 2026-10-10 | Consolidated: v1.0 plus decisions 0001, 0008, 0009, 0010, 0012, 0015–0018 and the endpoints built in Phases 2–3. |
 
 **Status of each route group** — _Built_: implemented; the generated OpenAPI contract
 (`packages/api-client/openapi.json`) is the exact reference. _Phase 4_: approved, not built.
@@ -190,17 +190,17 @@ POST /api/v1/weddings/{weddingId}/events
 
 ## 9. Guest, assignment and RSVP API (Phase 4 — decision 0017)
 
-| Method | Endpoint                                            | Purpose                                 |
-| ------ | --------------------------------------------------- | --------------------------------------- |
-| GET    | `/weddings/{weddingId}/guests`                      | List, search and filter guests          |
-| POST   | `/weddings/{weddingId}/guests`                      | Create a guest                          |
-| GET    | `/weddings/{weddingId}/guests/{guestId}`            | Get a guest                             |
-| PATCH  | `/weddings/{weddingId}/guests/{guestId}`            | Update a guest                          |
-| DELETE | `/weddings/{weddingId}/guests/{guestId}`            | Soft-delete a guest                     |
-| GET    | `/weddings/{weddingId}/guests/{guestId}/events`     | The guest's active assignments          |
-| POST   | `/weddings/{weddingId}/guests/{guestId}/events`     | Assign the guest to an event            |
-| PATCH  | `/weddings/{weddingId}/guest-events/{guestEventId}` | Organizer RSVP update                   |
-| DELETE | `/weddings/{weddingId}/guest-events/{guestEventId}` | Remove the assignment (kept as history) |
+| Method | Endpoint                                            | Purpose                                               |
+| ------ | --------------------------------------------------- | ----------------------------------------------------- |
+| GET    | `/weddings/{weddingId}/guests`                      | List, search and filter guests                        |
+| POST   | `/weddings/{weddingId}/guests`                      | Create a guest                                        |
+| GET    | `/weddings/{weddingId}/guests/{guestId}`            | Get a guest                                           |
+| PATCH  | `/weddings/{weddingId}/guests/{guestId}`            | Update a guest                                        |
+| DELETE | `/weddings/{weddingId}/guests/{guestId}`            | Soft-delete a guest and revoke their invitation token |
+| GET    | `/weddings/{weddingId}/guests/{guestId}/events`     | The guest's active assignments                        |
+| POST   | `/weddings/{weddingId}/guests/{guestId}/events`     | Assign the guest to an event                          |
+| PATCH  | `/weddings/{weddingId}/guest-events/{guestEventId}` | Organizer RSVP update                                 |
+| DELETE | `/weddings/{weddingId}/guest-events/{guestEventId}` | Remove the assignment (kept as history)               |
 
 ```json
 POST /api/v1/weddings/{weddingId}/guests
@@ -236,14 +236,20 @@ PATCH /api/v1/weddings/{weddingId}/guest-events/{guestEventId}
 - Both fields are required on every RSVP write. Accepted combinations: `PENDING`/`null`,
   `MAYBE`/`null`, `DECLINED`/`0`, `ATTENDING`/integer ≥ 1. Anything else:
   `400 VALIDATION_FAILED` with `details.fields.attendeeCount`.
-- **Open (0017):** whether organizers may set `PENDING`; decide before implementation.
+- Organizers may set any of the four combinations, including a reset to `PENDING`/`null`;
+  each reset to `PENDING` writes an audit entry (0018).
 - Records `rsvpUpdatedBy` and `rsvpUpdatedAt`; never changes other assignments or the
   invitation.
 - `DELETE …/guest-events/{id}` returns `204` and marks the assignment removed.
+- `DELETE …/guests/{guestId}` returns `204`, soft-deletes the guest and revokes their
+  invitation token at once; their assignments and invitation history are kept (0018).
+  Updating a guest's mobile or email never changes the token.
+- Field limits: Phase 4 PRD §3.1 and §4; limits marked _proposed_ there are enforced as
+  written but are not yet approved (0018 #10).
 - Errors: `400 VALIDATION_FAILED`, `404 WEDDING_NOT_FOUND`, `404 GUEST_NOT_FOUND`,
   `404 EVENT_NOT_FOUND`, `404 GUEST_EVENT_NOT_FOUND`. IDs from another wedding are `404`.
 
-## 10. Invitation API (Phase 4 — decisions 0008, 0017)
+## 10. Invitation API (Phase 4 — decisions 0008, 0017, 0018)
 
 Organizer routes (all `/api/v1/weddings/{weddingId}/guests/{guestId}/invitation…`):
 
@@ -270,9 +276,11 @@ firstOpenedAt }`. Create and regenerate also return `invitationUrl`
   operations before creation; `409 INVITATION_REVOKED` for send or resend while revoked;
   `422 GUEST_EMAIL_REQUIRED` for send or resend without a guest email.
 - Send and resend accept an optional `Idempotency-Key` header; each attempt becomes an
-  `invitation_deliveries` record and the email is sent by the worker. The status becomes
-  `SENT` when the provider accepts it; `DELIVERED`/`FAILED` need provider webhooks (not in
-  Phase 4).
+  `invitation_deliveries` record and the email is sent by the worker, which decrypts the
+  stored token copy to build the link. Resends reuse the same token. The attempt and the
+  invitation's status become `SENT` when the provider accepts the request and `FAILED`, with
+  the provider's reason, when it rejects it immediately (0018). `DELIVERED`, and failures
+  reported after acceptance, need provider webhooks (not in Phase 4).
 - `GET …/deliveries` returns
   `{ deliveries: [{ attemptNumber, kind, status, sentAt, failedAt, failureReason, createdAt }],
 activities: [{ type, occurredAt }] }`.
@@ -306,17 +314,17 @@ PATCH /api/v1/guest/invitations/{token}/rsvp
 
 - Same status/count rules as section 9; a guest may never send `PENDING`. The whole request
   is rejected if any response is invalid or names an assignment that is not the guest's.
-- Unknown, revoked and regenerated tokens all return the same `404 INVITATION_NOT_FOUND`.
+- Unknown, revoked and regenerated tokens, and tokens of deleted guests, all return the same
+  `404 INVITATION_NOT_FOUND`.
   Both guest routes are rate-limited per token and IP (`429`).
 - No automatic token expiry in Phase 4 (0017 #8).
 
-**UNRESOLVED — product decision required (raw invitation links).** Only the token's hash is
-stored (0008, 0017 #6), so the raw link exists only in the create and regenerate responses.
-Copy Link and WhatsApp sharing at a later time, and the worker's send and resend emails, all
-need the raw link. Options: (a) store the token encrypted, recoverable by the server, in
-addition to the hash used for lookup; (b) issue a new token on every send, resend or copy,
-so earlier links stop working; (c) show the link only once and require "regenerate" to share
-again. This contract is final for Phase 4 only after this is decided.
+**Token storage (0018).** The token is stored as a hash, used to look up guest requests,
+and as an encrypted copy, decrypted only by the server to send and resend the email. The
+encryption key is held outside the database and never logged. No endpoint returns the
+token, its hash or its ciphertext; only create and regenerate return `invitationUrl`.
+**Open (0018):** whether organizers can see the link again later (for Copy Link or WhatsApp)
+without regenerating — that would need a route outside the approved list.
 
 ## 11. Notification and reminder API (Planned)
 
@@ -664,7 +672,9 @@ independently where practical.
 
 Required for Phase 4: every application route under `/api/v1`; signup without a wedding;
 cross-wedding IDs return `404`; all four RSVP status/count combinations and every rejected
-one; a guest cannot send `PENDING`; old tokens rejected after regenerate or revoke; opens
+one; a guest cannot send `PENDING`; an organizer reset to `PENDING` is audited; old tokens
+rejected after regenerate, revoke or guest deletion; no form of the token in logs or
+responses other than `invitationUrl`; an immediate provider rejection gives `FAILED`; opens
 never change delivery status; deleting an event keeps RSVP and invitation history; private
 notes absent from guest responses.
 
@@ -673,7 +683,8 @@ notes absent from guest responses.
 - No wedding data without an authorized membership, except explicit guest-token and public
   endpoints.
 - Every wedding-scoped query is constrained by `weddingId`.
-- Guest endpoints never require an account; tokens are non-guessable and hashed.
+- Guest endpoints never require an account; tokens are non-guessable and never stored in
+  plain form (hash, plus an encrypted copy for invitation tokens — 0018).
 - Delivery state, activity and RSVP are independent; resends never duplicate guests or
   assignments.
 - Public endpoints return only public or shared data; private notes and expenses never leak.
@@ -682,22 +693,23 @@ notes absent from guest responses.
 
 ## 35. Open API decisions
 
-| Area             | Decision to finalize                                                                      |
-| ---------------- | ----------------------------------------------------------------------------------------- |
-| Invitation links | **UNRESOLVED:** how raw links are available for later copy, share and send (section 10)   |
-| Invitations      | Organizer reset to `PENDING`; immediate rejection → `FAILED`; deleted guest's link (0017) |
-| Webhooks         | Delivery webhooks for `DELIVERED`/`FAILED`                                                |
-| Roles            | Role names' default permission matrix                                                     |
-| Sharing          | Resource types and actions for `resource_shares` (A4)                                     |
-| Reminders        | Schedules, recipients, templates                                                          |
-| Uploads          | File size and type limits; image processing                                               |
-| Vendor discovery | Google fields and caching rules                                                           |
-| Website          | Public payload, caching and revalidation; sitemap and metadata                            |
-| Rate limits      | Numeric thresholds beyond 0015                                                            |
-| Reports          | Filter contract; download retention                                                       |
+| Area             | Decision to finalize                                                    |
+| ---------------- | ----------------------------------------------------------------------- |
+| Invitation links | Showing the link again after creation, for Copy Link or WhatsApp (0018) |
+| Webhooks         | Delivery webhooks for `DELIVERED`/`FAILED`                              |
+| Roles            | Role names' default permission matrix                                   |
+| Sharing          | Resource types and actions for `resource_shares` (A4)                   |
+| Reminders        | Schedules, recipients, templates                                        |
+| Uploads          | File size and type limits; image processing                             |
+| Vendor discovery | Google fields and caching rules                                         |
+| Website          | Public payload, caching and revalidation; sitemap and metadata          |
+| Rate limits      | Numeric thresholds beyond 0015                                          |
+| Reports          | Filter contract; download retention                                     |
 
 Resolved since v1.0: invitee-already-owns-a-wedding acceptance (0012, N1); attendee-count
-validation and token expiry and status semantics (0017); token and session lifetimes (0015).
+validation and token expiry and status semantics (0017); token and session lifetimes (0015);
+invitation token storage, organizer reset to `PENDING`, immediate rejection and deleted
+guests' links (0018).
 
 ## 36. Implementation order
 

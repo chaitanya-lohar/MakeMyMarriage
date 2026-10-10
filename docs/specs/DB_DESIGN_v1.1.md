@@ -13,7 +13,7 @@
 | Version | Date       | Change                                                                                                 |
 | ------- | ---------- | ------------------------------------------------------------------------------------------------------ |
 | 1.0     | 2026-09-24 | Baseline design.                                                                                       |
-| 1.1     | 2026-10-10 | Consolidated: v1.0 plus decisions 0008–0010, 0012, 0013, 0015–0017 and the schema built in Phases 2–3. |
+| 1.1     | 2026-10-10 | Consolidated: v1.0 plus decisions 0008–0010, 0012, 0013, 0015–0018 and the schema built in Phases 2–3. |
 
 **Status of each collection** — _Built_: exists in code. _Phase 4_: designed and approved for
 Phase 4. _Planned_: carried from v1.0 with approved changes; re-checked against the PRD
@@ -55,20 +55,20 @@ metadata, transaction boundaries and operational rules.
 
 ## 3. Technology and persistence architecture
 
-| Concern                      | Decision                                                                      |
-| ---------------------------- | ----------------------------------------------------------------------------- |
-| Database                     | MongoDB Atlas (local: single-node replica set)                                |
-| Data access                  | Mongoose, only inside each module's `infrastructure/`                         |
-| Primary ID                   | MongoDB ObjectId                                                              |
-| Public website identity      | Dedicated `publicIdentifier`                                                  |
-| Invitation, QR, reset access | Secure random token; only its hash stored                                     |
-| Binary storage               | Amazon S3                                                                     |
-| Background jobs              | Redis + BullMQ                                                                |
-| Email provider               | Resend                                                                        |
-| Vendor discovery             | Google Places API (New), through a provider abstraction                       |
-| Live streaming               | YouTube Live                                                                  |
-| Reports                      | Excel, generated on demand                                                    |
-| Index creation               | Automatic in local and test; a deployment operation in staging and production |
+| Concern                      | Decision                                                                                                                                  |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Database                     | MongoDB Atlas (local: single-node replica set)                                                                                            |
+| Data access                  | Mongoose, only inside each module's `infrastructure/`                                                                                     |
+| Primary ID                   | MongoDB ObjectId                                                                                                                          |
+| Public website identity      | Dedicated `publicIdentifier`                                                                                                              |
+| Invitation, QR, reset access | Secure random token, never stored in plain form: QR and reset tokens as a hash; invitation tokens as a hash plus an encrypted copy (0018) |
+| Binary storage               | Amazon S3                                                                                                                                 |
+| Background jobs              | Redis + BullMQ                                                                                                                            |
+| Email provider               | Resend                                                                                                                                    |
+| Vendor discovery             | Google Places API (New), through a provider abstraction                                                                                   |
+| Live streaming               | YouTube Live                                                                                                                              |
+| Reports                      | Excel, generated on demand                                                                                                                |
+| Index creation               | Automatic in local and test; a deployment operation in staging and production                                                             |
 
 ## 4. Domain and tenant model
 
@@ -89,37 +89,37 @@ then runs a query constrained by `weddingId`.
 
 ## 5. Collection inventory
 
-| Collection              | Purpose                                   | Module        | Status                     |
-| ----------------------- | ----------------------------------------- | ------------- | -------------------------- |
-| `users`                 | Account identity and profile              | Users         | Built                      |
-| `auth_sessions`         | Refresh-token sessions per device         | Auth          | Built                      |
-| `password_reset_tokens` | One-time password reset tokens            | Auth          | Built                      |
-| `weddings`              | Wedding root entity                       | Weddings      | Built                      |
-| `wedding_memberships`   | User access to weddings                   | Workspace     | Built                      |
-| `events`                | Wedding events                            | Events        | Phase 4                    |
-| `guests`                | One guest record per wedding              | Guests        | Phase 4                    |
-| `guest_events`          | Guest–event assignment and RSVP           | Guests / RSVP | Phase 4                    |
-| `guest_invitations`     | The guest's invitation and current token  | Invitations   | Phase 4                    |
-| `invitation_deliveries` | Email send and resend attempts            | Invitations   | Phase 4                    |
-| `invitation_activities` | Opens and other timestamped activity      | Invitations   | Phase 4                    |
-| `partner_connections`   | Partner relationship lifecycle            | Partner       | Planned                    |
-| `resource_shares`       | Explicit resource sharing                 | Sharing       | Planned                    |
-| `notifications`         | Recipient-specific notifications          | Notifications | Planned                    |
-| `reminders`             | Reminder configuration                    | Notifications | Planned (cadence deferred) |
-| `expenses`              | Wedding expenses                          | Expenses      | Planned                    |
-| `expense_payments`      | Instalment and payment history            | Expenses      | Planned                    |
-| `expense_receipts`      | S3 receipt metadata                       | Expenses      | Planned                    |
-| `tasks`                 | Wedding tasks                             | Tasks         | Planned                    |
-| `task_assignments`      | Task ↔ member assignment                  | Tasks         | Planned                    |
-| `task_activities`       | Task history                              | Tasks         | Planned                    |
-| `wedding_vendors`       | Managed wedding vendors                   | Vendors       | Planned                    |
-| `vendor_attachments`    | S3 vendor attachment metadata             | Vendors       | Planned                    |
-| `wedding_websites`      | Public website configuration              | Website       | Planned                    |
-| `photos`                | Wedding and event photos                  | Gallery       | Planned                    |
-| `memory_qrs`            | Wedding and event memory QR tokens        | QR            | Planned                    |
-| `live_streams`          | External live stream association          | Live stream   | Planned                    |
-| `report_exports`        | Report generation history                 | Reports       | Planned                    |
-| `audit_logs`            | Central business and security audit trail | Audit         | Planned                    |
+| Collection              | Purpose                                   | Module        | Status                                                                |
+| ----------------------- | ----------------------------------------- | ------------- | --------------------------------------------------------------------- |
+| `users`                 | Account identity and profile              | Users         | Built                                                                 |
+| `auth_sessions`         | Refresh-token sessions per device         | Auth          | Built                                                                 |
+| `password_reset_tokens` | One-time password reset tokens            | Auth          | Built                                                                 |
+| `weddings`              | Wedding root entity                       | Weddings      | Built                                                                 |
+| `wedding_memberships`   | User access to weddings                   | Workspace     | Built                                                                 |
+| `events`                | Wedding events                            | Events        | Phase 4                                                               |
+| `guests`                | One guest record per wedding              | Guests        | Phase 4                                                               |
+| `guest_events`          | Guest–event assignment and RSVP           | Guests / RSVP | Phase 4                                                               |
+| `guest_invitations`     | The guest's invitation and current token  | Invitations   | Phase 4                                                               |
+| `invitation_deliveries` | Email send and resend attempts            | Invitations   | Phase 4                                                               |
+| `invitation_activities` | Opens and other timestamped activity      | Invitations   | Phase 4                                                               |
+| `partner_connections`   | Partner relationship lifecycle            | Partner       | Planned                                                               |
+| `resource_shares`       | Explicit resource sharing                 | Sharing       | Planned                                                               |
+| `notifications`         | Recipient-specific notifications          | Notifications | Planned                                                               |
+| `reminders`             | Reminder configuration                    | Notifications | Planned (cadence deferred)                                            |
+| `expenses`              | Wedding expenses                          | Expenses      | Planned                                                               |
+| `expense_payments`      | Instalment and payment history            | Expenses      | Planned                                                               |
+| `expense_receipts`      | S3 receipt metadata                       | Expenses      | Planned                                                               |
+| `tasks`                 | Wedding tasks                             | Tasks         | Planned                                                               |
+| `task_assignments`      | Task ↔ member assignment                  | Tasks         | Planned                                                               |
+| `task_activities`       | Task history                              | Tasks         | Planned                                                               |
+| `wedding_vendors`       | Managed wedding vendors                   | Vendors       | Planned                                                               |
+| `vendor_attachments`    | S3 vendor attachment metadata             | Vendors       | Planned                                                               |
+| `wedding_websites`      | Public website configuration              | Website       | Planned                                                               |
+| `photos`                | Wedding and event photos                  | Gallery       | Planned                                                               |
+| `memory_qrs`            | Wedding and event memory QR tokens        | QR            | Planned                                                               |
+| `live_streams`          | External live stream association          | Live stream   | Planned                                                               |
+| `report_exports`        | Report generation history                 | Reports       | Planned                                                               |
+| `audit_logs`            | Central business and security audit trail | Audit         | Phase 4 (RSVP resets, invitation token changes); planned for the rest |
 
 ## 6. User and authentication collections (Built — decision 0015)
 
@@ -303,19 +303,19 @@ The default permission matrix per role is open.
 {
   _id: ObjectId,
   weddingId: ObjectId,
-  name: string,              // 1–100
+  name: string,              // 1–100 (proposed)
   type: string,              // ENGAGEMENT, MEHENDI, HALDI, SANGEET, WEDDING, RECEPTION, CUSTOM
-  description?: string,      // ≤ 1000
+  description?: string,      // ≤ 1000 (proposed)
   date: Date,                // midnight UTC of the calendar date, in the wedding timezone
   startTime?: string,        // "HH:mm"
   endTime?: string,          // "HH:mm"; requires startTime; later than startTime
   timezone: string,          // copied from the wedding at creation
   venue?: {
-    name?: string,           // ≤ 120
-    address?: string         // ≤ 300
+    name?: string,           // ≤ 120 (proposed)
+    address?: string         // ≤ 300 (proposed)
   },
-  dressCode?: string,        // ≤ 120
-  notes?: string,            // ≤ 1000; organizer-only
+  dressCode?: string,        // ≤ 120 (proposed)
+  notes?: string,            // ≤ 1000 (proposed); organizer-only
   createdBy: ObjectId,
   createdAt: Date,
   updatedAt: Date,
@@ -331,7 +331,9 @@ The default permission matrix per role is open.
 - Events are an independent collection; no event-count limit; venue is embedded; events
   are soft-deleted, and deletion keeps guest-event and invitation history.
 
-## 10. Guests, RSVP and invitations (Phase 4 — decisions 0008, 0010 #1, 0017)
+## 10. Guests, RSVP and invitations (Phase 4 — decisions 0008, 0010 #1, 0017, 0018)
+
+Limits marked _(proposed)_ here and in §9 are not approved until confirmed (0018 #10).
 
 ### 10.1 `guests`
 
@@ -341,9 +343,9 @@ The default permission matrix per role is open.
   weddingId: ObjectId,
   name: string,          // 1–100
   mobile: string,        // normalized: digits with an optional leading "+", 7–15 digits
-  email?: string,        // trimmed, lower-cased
-  relation?: string,     // ≤ 100
-  notes?: string,        // ≤ 1000; organizer-only
+  email?: string,        // trimmed, lower-cased; ≤ 254 (proposed)
+  relation?: string,     // ≤ 100 (proposed)
+  notes?: string,        // ≤ 1000 (proposed); organizer-only
   createdBy: ObjectId,
   createdAt: Date,
   updatedAt: Date,
@@ -394,7 +396,9 @@ The default permission matrix per role is open.
   _id: ObjectId,
   weddingId: ObjectId,
   guestId: ObjectId,           // unique: one invitation per guest
-  tokenHash?: string,          // current token; absent while revoked
+  tokenHash?: string,          // current token's hash, for lookup; absent while revoked
+  tokenCiphertext?: string,    // current token, encrypted (authenticated encryption); absent while revoked
+  tokenKeyVersion?: string,    // which encryption key encrypted it, for rotation
   tokenCreatedAt?: Date,
   revokedAt?: Date,
   deliveryStatus: string,      // DRAFT, SENT, DELIVERED, FAILED
@@ -408,12 +412,20 @@ The default permission matrix per role is open.
 ```
 
 - Created when the organizer starts the invitation flow, never when a guest is saved.
-- Regenerating replaces `tokenHash` (the old token stops working at once); revoking removes
-  it and sets `revokedAt`. Raw tokens are never stored.
+- The token is stored as `tokenHash` (guest requests are verified by hash) and
+  `tokenCiphertext`, which the server decrypts only to send or resend the invitation email.
+  The encryption key is held outside the database (platform secret manager) and is never
+  logged; `tokenKeyVersion` allows rotation. The raw token is never stored in plain form
+  (0018).
+- Resends and changes to the guest's mobile or email reuse the same token.
+- Regenerating replaces `tokenHash` and `tokenCiphertext` (the old token stops working at
+  once). Revoking — by the organizer or by deleting the guest — removes both and sets
+  `revokedAt`.
 - **No `expiresAt`:** no automatic expiry in Phase 4 (0017 #8). v1.0's `status` is now
   `deliveryStatus` (without `OPENED`), and its `openedAt` is now `firstOpenedAt`.
-- `deliveryStatus` reaches `DELIVERED` or `FAILED` only from provider confirmation
-  (webhooks, not in Phase 4). Opens never change it.
+- `deliveryStatus` follows the latest send attempt: `SENT` on provider acceptance, `FAILED`
+  on an immediate provider rejection (0018). `DELIVERED`, and failures reported after
+  acceptance, need provider webhooks (not in Phase 4). Opens never change it.
 
 ### 10.4 `invitation_deliveries`
 
@@ -439,7 +451,8 @@ The default permission matrix per role is open.
 
 - One record per attempt; resends add records without creating guests, assignments or a
   second invitation.
-- Whether an immediate provider rejection is recorded as `FAILED` is **Open** (0017).
+- An immediate provider rejection is recorded as `FAILED` with `failedAt` and
+  `failureReason` (0018). Attempts never affect RSVP state.
 
 ### 10.5 `invitation_activities`
 
@@ -519,7 +532,7 @@ The default permission matrix per role is open.
   paidByUserId?: ObjectId,
   paidByName?: string,
   expenseDate: Date,
-  paymentStatus: string,     // PENDING, PARTIALLY_PAID, PAID (CANCELLED — open, PRD v1.2 §15)
+  paymentStatus: string,     // PENDING, PARTIALLY_PAID, PAID — no CANCELLED in V1 (0018)
   notes?: string,
   createdBy: ObjectId,
   createdAt: Date,
@@ -856,9 +869,12 @@ Indexes support a known access pattern, uniqueness rule or job; each adds write 
   partner remain.
 - Deleting an event keeps its `guest_events`, invitation deliveries and activities
   (0017 #12). Removing an assignment keeps it inactive (`isActive = false`).
+- Deleting a guest soft-deletes the guest, revokes their invitation token (removing
+  `tokenHash` and `tokenCiphertext`) and keeps their assignments, RSVPs, deliveries and
+  activity as history (0018).
 - Wedding deletion is archive first, permanent later; account deletion is support-controlled.
 
-## 22. Audit and traceability (Planned)
+## 22. Audit and traceability (Phase 4 for RSVP resets and invitation token changes)
 
 ```ts
 { _id, weddingId?: ObjectId, actorUserId?: ObjectId, action: string, resourceType: string,
@@ -869,12 +885,16 @@ Audit important security and business events (membership and permission changes,
 updates, expense edits, task changes, vendor lifecycle, website publish and unpublish, QR and
 invitation token revocation and regeneration), not every read. Retention is open.
 
+Phase 4 writes audit entries at least for organizer resets of an RSVP to `PENDING` (0018) and
+for invitation token regeneration and revocation.
+
 ## 23. Database security
 
 - Never trust a client-supplied `weddingId` without resolving membership and authorization.
 - Driver-built queries only; global filter sanitization; no operators from user input.
-- Store hashes for passwords, invitation, QR, reset and refresh tokens; never raw secrets;
-  never log them.
+- Store hashes for passwords and for QR, reset and refresh tokens. Invitation tokens are
+  stored as a hash plus an encrypted copy whose key is kept outside the database (0018).
+  Never store raw secrets in plain form; never log any form of them.
 - Restrict S3 objects through application-controlled access and signed URLs.
 - Do not store provider responses wholesale where their terms forbid it.
 - No internal ObjectIds in public URLs or guest-facing tokens.
@@ -931,8 +951,8 @@ Transactions are a consistency tool, not a wrapper around every repository call.
 - A user owns at most one wedding; one membership per user per wedding.
 - A guest belongs to exactly one wedding; at most one active assignment per guest and event.
 - `attendeeCount` matches `rsvpStatus` (0017).
-- One invitation per guest; only the current token works; delivery history never creates
-  guests or assignments.
+- One invitation per guest; only the current token works; a deleted guest has no working
+  token; delivery history never creates guests or assignments.
 - `deliveryStatus` never becomes `DELIVERED` without provider confirmation; opens never
   change it.
 - `publicIdentifier` and `memory_qrs.tokenHash` are globally unique.
@@ -964,23 +984,24 @@ deployment operations (automatic only in local and test).
 ## 31. Implementation order
 
 Built: users, sessions, reset tokens (Phase 2); weddings and memberships (Phase 3).
-Next (Phase 4): events, guests, guest events, guest invitations, deliveries, activities.
+Next (Phase 4): events, guests, guest events, guest invitations, deliveries, activities,
+and `audit_logs` for the Phase 4 audit entries.
 Then the remaining planned collections as their phases are approved.
 
 ## 32. Open technical decisions
 
-| Area          | Open decision                                                          |
-| ------------- | ---------------------------------------------------------------------- |
-| Invitations   | Immediate rejection → `FAILED`; deleted guest's link; webhook handling |
-| QR            | Expiry policy and regeneration details                                 |
-| Permissions   | Default matrix per role                                                |
-| Website       | `publicIdentifier` generation and collisions; sitemap and metadata     |
-| Google Places | Fields that may be stored or cached                                    |
-| Notifications | Templates and default schedules (product-deferred)                     |
-| Media         | S3 bucket and prefix layout; image processing; lifecycle               |
-| Retention     | Audit, delivery history, soft-deleted data, permanent purge            |
-| Backups       | RPO/RTO, retention, restore-test cadence                               |
-| Indexes       | Final production set after observing real query plans                  |
+| Area          | Open decision                                                                                                   |
+| ------------- | --------------------------------------------------------------------------------------------------------------- |
+| Invitations   | Showing the link again after creation (0018); webhook handling; encryption algorithm and key rotation procedure |
+| QR            | Expiry policy and regeneration details                                                                          |
+| Permissions   | Default matrix per role                                                                                         |
+| Website       | `publicIdentifier` generation and collisions; sitemap and metadata                                              |
+| Google Places | Fields that may be stored or cached                                                                             |
+| Notifications | Templates and default schedules (product-deferred)                                                              |
+| Media         | S3 bucket and prefix layout; image processing; lifecycle                                                        |
+| Retention     | Audit, delivery history, soft-deleted data, permanent purge                                                     |
+| Backups       | RPO/RTO, retention, restore-test cadence                                                                        |
+| Indexes       | Final production set after observing real query plans                                                           |
 
 ## 33. Decision summary
 

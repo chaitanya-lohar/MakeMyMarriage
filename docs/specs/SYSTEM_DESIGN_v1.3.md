@@ -19,7 +19,7 @@
 | Version | Date       | Change                                                                                          |
 | ------- | ---------- | ----------------------------------------------------------------------------------------------- |
 | 1.0–1.2 | 2026-09    | Architecture baselines.                                                                         |
-| 1.3     | 2026-10-10 | Consolidated: v1.2 plus decisions 0001, 0002, 0005–0007, 0012, 0015–0017 and answers Q1 and Q4. |
+| 1.3     | 2026-10-10 | Consolidated: v1.2 plus decisions 0001, 0002, 0005–0007, 0012, 0015–0018 and answers Q1 and Q4. |
 
 ## 1. Purpose and scope
 
@@ -232,20 +232,23 @@ Wedding
 
 ## 10. Invitation and guest access
 
-Decisions 0008 and 0017.
+Decisions 0008, 0017 and 0018.
 
-| Delivery status | Meaning                                      |
-| --------------- | -------------------------------------------- |
-| Draft           | Prepared but not sent                        |
-| Sent            | Provider accepted the send request           |
-| Delivered       | Provider confirmed delivery (needs webhooks) |
-| Failed          | Provider reported failure (needs webhooks)   |
+| Delivery status | Meaning                                                                                    |
+| --------------- | ------------------------------------------------------------------------------------------ |
+| Draft           | Prepared but not sent                                                                      |
+| Sent            | Provider accepted the send request                                                         |
+| Delivered       | Provider confirmed delivery (needs webhooks)                                               |
+| Failed          | Provider rejected the send request (immediate), or reported failure later (needs webhooks) |
 
 - Opens are activity history, never a delivery status; the first-open time is kept.
 - RSVP states (Pending, Attending, Declined, Maybe) are separate from delivery.
 - Resending never creates duplicate guests or RSVPs; send history is kept.
-- Guest links use secure random tokens (hash stored); no automatic expiry in Phase 4;
-  revoke and regenerate invalidate the old token.
+- Guest links use secure random tokens, stored as a hash (lookup) and an encrypted copy
+  (decrypted only by the API and worker to send and resend the email). The token is reused
+  for resends and contact changes; no automatic expiry in Phase 4; regenerate, revoke and
+  guest deletion invalidate the old token (0018).
+- Organizer resets of an RSVP to Pending are written to the audit log (0018).
 - One invitation per guest contains the guest's applicable events.
 - WhatsApp uses the user's own sharing flow; no WhatsApp API in V1.
 - Email invitations are sent through Resend by the worker.
@@ -405,7 +408,11 @@ QR → secure token → validate status and scope → upload session
   sessions.
 - Server-side authorization on every protected operation.
 - Rate limiting on authentication, invitations, RSVP, QR and uploads.
-- Secure random invitation, QR and reset tokens; only hashes stored; never logged.
+- Secure random invitation, QR and reset tokens, never stored in plain form and never
+  logged. Reset, refresh and QR tokens are stored as hashes. Invitation tokens are stored as
+  a hash plus an encrypted copy (authenticated encryption); the encryption key lives in the
+  platform's secret manager, is supplied to the API and worker at start-up, is never stored
+  in the database or logged, and carries a version so it can be rotated (0018).
 - Input validation and output filtering; private notes never in guest or public output.
 - S3 access control and presigned uploads.
 - Structured and audit logs; privacy checks on public websites and shared resources.
@@ -484,6 +491,8 @@ decision records in `docs/decisions/` (0001–0017), which are the authoritative
 ## 28. Remaining open technical decisions
 
 - Exact role names' default permission matrix.
+- Invitation-token encryption: algorithm details, key rotation procedure and the
+  configuration name of the key (added by the Invitations module; 0018).
 - Public-identifier generation and collision strategy.
 - Google Places fields that may be stored or cached.
 - Notification templates and default reminder schedules (product-deferred).

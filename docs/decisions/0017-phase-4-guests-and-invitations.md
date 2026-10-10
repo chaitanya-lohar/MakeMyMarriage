@@ -1,6 +1,8 @@
 # 0017 — Phase 4: events, guests, RSVP and invitations
 
-**Status:** Accepted.
+**Status:** Accepted. **Amended by [0018](0018-invitation-token-storage-and-guest-access.md)
+(2026-10-10):** token storage (hash plus encrypted copy, replacing #6's hash-only rule),
+organizer reset to `PENDING`, immediate provider rejection, and deleted guests' links.
 
 ## History
 
@@ -43,6 +45,7 @@ requirements and acceptance criteria are in the
 6. One invitation token per guest covers all of the guest's active event assignments. It is
    created when the organizer starts the invitation or link flow, never merely because a
    guest is saved. Only its hash is stored; the raw token and the hash are never logged.
+   _(Storage amended by 0018: hash plus an encrypted copy.)_
 7. Regenerating or revoking a token invalidates the previous one immediately.
 8. **No automatic token expiry in Phase 4.** The organizer can revoke or regenerate a token
    at any time. **Security trade-off, accepted:** a link that is not revoked stays usable
@@ -113,15 +116,15 @@ reviewed.
 
 ## Open — not decided by this record
 
-- **How the raw invitation link is available after creation.** Decision 6 stores only the
+- _Decided by 0018 (option a):_ **How the raw invitation link is available after creation.** Decision 6 stores only the
   hash, so the link exists only in the create and regenerate responses, while Copy Link,
   WhatsApp sharing and email send/resend need it later. Options: (a) also store the token
   encrypted, recoverable by the server; (b) a new token on every send, resend or copy;
   (c) show it once and require regenerate. **Blocks Phase 4 implementation.**
-- Whether an **organizer** may set an RSVP back to `PENDING` (Q8a covers guests only).
-- Whether a provider's **immediate rejection** of a send request may set `FAILED` before
+- _Decided by 0018 (allowed, audited):_ Whether an **organizer** may set an RSVP back to `PENDING` (Q8a covers guests only).
+- _Decided by 0018 (the attempt is `FAILED`):_ Whether a provider's **immediate rejection** of a send request may set `FAILED` before
   webhooks exist (Q8d groups `FAILED` with webhook confirmation).
-- What happens to a **deleted guest's** invitation link (recommended: it stops working, as
+- _Decided by 0018 (revoked):_ What happens to a **deleted guest's** invitation link (recommended: it stops working, as
   for a revoked token).
 
 ## Superseded statements
