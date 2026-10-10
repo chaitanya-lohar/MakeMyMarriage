@@ -1,7 +1,11 @@
 # 0008 — Guest invitation model
 
 **Status:** Accepted (includes resolution C3). Supersedes Database Design v1.0 §10 and
-System Design v1.2 §9 where they differ.
+System Design v1.2 §9 where they differ. **Amended by [0017](0017-phase-4-guests-and-invitations.md)
+(2026-10-10):** `OPENED` is no longer a status — opens are activity history — and the
+statuses are `DRAFT`, `SENT`, `DELIVERED`, `FAILED`. **Amended by
+[0018](0018-invitation-token-storage-and-guest-access.md) (2026-10-10):** the token is stored
+as a hash plus an encrypted copy, not as a hash only. Everything else below stands.
 
 ## Decision
 
@@ -42,6 +46,7 @@ There is no per-`GuestEvent` invitation status.
 | Database Design v1.0 §20, §26 | Indexes/access patterns on `invitation_deliveries.guestEventId`           | Follow the guest invitation instead.         |
 | System Design v1.2 §9         | `GuestEvent ├─ Invitation state`                                          | Invitation state is on the guest invitation. |
 
-Unchanged: only a token hash is stored, never the raw token (Database Design §10.3);
+Unchanged: the raw token is never stored in plain form (Database Design §10.3; since 0018 a
+hash and an encrypted copy are stored);
 regeneration revokes the previous token; RSVP states and `attendeeCount` (0010 #1) stay
 on `GuestEvent`.
