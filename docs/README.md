@@ -41,9 +41,7 @@ Deferred or UNRESOLVED is implemented until a decision record approves it.
 `docs/archive/` holds superseded documents for history and recovery. They are not
 implementation instructions and are never deleted (decision 0003).
 
-**Pending approval (2026-10-10):** the moves below are proposed and not yet made. Until
-then the superseded originals remain in `docs/specs/`; they are superseded all the same and
-must not be used.
+Archived 2026-10-10 with the product owner's approval; see [`archive/README.md`](archive/README.md).
 
 | Archived document                                                                                                                                                                                                                              | Replaced by                                    |
 | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
