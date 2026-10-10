@@ -1,14 +1,14 @@
 # MakeMyMarriage — Phase 4 PRD v1.2: events, guests, RSVP and invitations
 
-| Item         | Value                                                                                                                                                                          |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Status       | **Canonical** for Phase 4. Approved scope; **not implemented**.                                                                                                                |
-| Date         | 2026-10-10                                                                                                                                                                     |
-| Parent       | [PRD v1.2](PRD_v1.2.md) (sections 9–13)                                                                                                                                        |
-| Decision     | [0017](../decisions/0017-phase-4-guests-and-invitations.md) and [0018](../decisions/0018-invitation-token-storage-and-guest-access.md), with 0008 and 0010                     |
-| Contracts    | [Database Design v1.1](DB_DESIGN_v1.1.md) §9–10, [API Design v1.1](API_DESIGN_v1.1.md) §8–10                                                                                   |
-| Supersedes   | Phase 4 PRD v1.1 FINAL and the earlier v1.0 draft (archived)                                                                                                                   |
-| Out of scope | Website records and public identifiers, partner connection and sharing, tasks, expenses, vendors, QR and gallery, live stream, reports, reminder scheduling, WhatsApp API, SMS |
+| Item         | Value                                                                                                                                                                                                             |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status       | **Canonical** for Phase 4. Approved scope; **not implemented**.                                                                                                                                                   |
+| Date         | 2026-10-10                                                                                                                                                                                                        |
+| Parent       | [PRD v1.2](PRD_v1.2.md) (sections 9–13)                                                                                                                                                                           |
+| Decision     | [0017](../decisions/0017-phase-4-guests-and-invitations.md), [0018](../decisions/0018-invitation-token-storage-and-guest-access.md) and [0019](../decisions/0019-phase-4-design-decisions.md), with 0008 and 0010 |
+| Contracts    | [Database Design v1.1](DB_DESIGN_v1.1.md) §9–10, [API Design v1.1](API_DESIGN_v1.1.md) §8–10                                                                                                                      |
+| Supersedes   | Phase 4 PRD v1.1 FINAL and the earlier v1.0 draft (archived)                                                                                                                                                      |
+| Out of scope | Website records and public identifiers, partner connection and sharing, tasks, expenses, vendors, QR and gallery, live stream, reports, reminder scheduling, WhatsApp API, SMS                                    |
 
 | Version | Date       | Change                                                                                    |
 | ------- | ---------- | ----------------------------------------------------------------------------------------- |
@@ -49,22 +49,21 @@ invitations (answer Q3).
 
 | Field         | Rule                                                                                       |
 | ------------- | ------------------------------------------------------------------------------------------ |
-| Name          | Required; trimmed; 1–100 characters (**proposed**).                                        |
+| Name          | Required; trimmed; 1–100 characters.                                                       |
 | Event type    | Required: `ENGAGEMENT`, `MEHENDI`, `HALDI`, `SANGEET`, `WEDDING`, `RECEPTION` or `CUSTOM`. |
 | Date          | Required calendar date in the wedding's timezone. Past dates are valid.                    |
 | Start time    | Optional, `HH:mm`, wedding timezone.                                                       |
 | End time      | Optional, `HH:mm`; requires a start time and must be later on the same day.                |
-| Description   | Optional; at most 1,000 characters (**proposed**).                                         |
-| Venue name    | Optional; at most 120 characters (**proposed**).                                           |
-| Venue address | Optional; at most 300 characters (**proposed**).                                           |
-| Dress code    | Optional; at most 120 characters (**proposed**).                                           |
-| Notes         | Optional; at most 1,000 characters (**proposed**); organizer-only.                         |
+| Description   | Optional; at most 1,000 characters.                                                        |
+| Venue name    | Optional; at most 120 characters.                                                          |
+| Venue address | Optional; at most 300 characters.                                                          |
+| Dress code    | Optional; at most 120 characters.                                                          |
+| Notes         | Optional; at most 1,000 characters; organizer-only.                                        |
 
 - Not in Phase 4: map location, cover image, `isPublic`, `instructions`, `publicId`
   (decision 0017 #15).
-- Limits marked **proposed** follow the Phase 3 conventions (names 100, places 120, long
-  text 1,000) and are not approved until confirmed (0018 #10). Validation, the API and the
-  Phase 4 screens use them as written until then.
+- All limits are approved (0019 #6) and apply to server validation, the API and the
+  designs.
 - The date and time convention is decision 0017 #17: a date-only event is stored without an
   invented time. Overnight events (end after midnight) are deferred.
 
@@ -78,13 +77,13 @@ invitations (answer Q3).
 
 ## 4. Guests
 
-| Field         | Rule                                                                                                |
-| ------------- | --------------------------------------------------------------------------------------------------- |
-| Name          | Required; trimmed; 1–100 characters.                                                                |
-| Mobile number | Required; 7–15 digits; optional leading `+`; spaces and hyphens allowed; no country format.         |
-| Email         | Optional; valid email address when given; at most 254 characters (**proposed**).                    |
-| Relation      | Optional; at most 100 characters (**proposed**).                                                    |
-| Notes         | Optional; at most 1,000 characters (**proposed**); organizer-only, never in guest-facing responses. |
+| Field         | Rule                                                                                        |
+| ------------- | ------------------------------------------------------------------------------------------- |
+| Name          | Required; trimmed; 1–100 characters.                                                        |
+| Mobile number | Required; 7–15 digits; optional leading `+`; spaces and hyphens allowed; no country format. |
+| Email         | Optional; valid email address when given; at most 254 characters.                           |
+| Relation      | Optional; at most 100 characters.                                                           |
+| Notes         | Optional; at most 1,000 characters; organizer-only, never in guest-facing responses.        |
 
 - Mobile numbers are stored normalized (separators removed, leading `+` kept) and compared
   in that form for duplicate detection.
@@ -92,8 +91,8 @@ invitations (answer Q3).
   guests; saving still succeeds, and guests are never merged automatically.
 - Create, list, search (by name or mobile), view, update and soft-delete guests. Lists can
   be filtered by event and RSVP status.
-- The guest name limit and the mobile rule are approved (Phase 4 PRD v1.1, 0017 #14); the
-  limits marked **proposed** are not yet approved (0018 #10).
+- All limits are approved (Phase 4 PRD v1.1, 0017 #14, 0019 #6). Character limits do not
+  replace the email and mobile format checks.
 - Changing a guest's mobile or email keeps their invitation token (0018).
 - **Deleting a guest revokes their invitation token** immediately; their assignments, RSVPs
   and invitation history are kept as soft-deleted history (0018).
@@ -147,9 +146,9 @@ invitations (answer Q3).
   including by anyone it is forwarded to.
 - Guest token endpoints are rate-limited and return the same safe error for unknown,
   revoked or regenerated tokens, revealing nothing about other guests or internal IDs.
-- **Open (0018):** whether an organizer can see the link again after creating it, for Copy
-  Link or WhatsApp, without regenerating. Until decided, the link is shown in the create
-  and regenerate responses.
+- Organizers can retrieve the **current** link at any time
+  (`GET …/guests/{guestId}/invitation/link`, 0019). Retrieval never creates a token; it is
+  recorded in the audit history and the token never appears in logs.
 
 ### 7.2 Guest view and sharing
 
@@ -157,8 +156,9 @@ invitations (answer Q3).
   (name, type, date, times, venue, dress code, description) with an RSVP control per event.
   Organizer notes, the guest's mobile and email, other guests, and wedding or event IDs are
   never included; only the guest's own assignment IDs are returned, for the RSVP request.
-- Copy Link copies the secure invitation URL, from the create or regenerate response.
-- WhatsApp opens the user's own share flow with a prefilled message and that link.
+- Copy Link copies the guest's current invitation link; WhatsApp opens the user's own share
+  flow with a prefilled message and that link. Both reuse the existing link; only
+  Regenerate replaces it (0019).
 - Email is sent by the platform through the worker (BullMQ) and the email adapter. Sending
   needs the guest's email address.
 
@@ -199,17 +199,74 @@ are in API Design v1.1 §8–10:
 - Guests: `GET/POST …/guests`, `GET/PATCH/DELETE …/guests/{guestId}`.
 - Assignments: `GET/POST …/guests/{guestId}/events`, `PATCH/DELETE …/guest-events/{guestEventId}`.
 - Invitations: `POST …/guests/{guestId}/invitation`, `…/regenerate`, `…/send`, `…/resend`,
-  `…/revoke`; `GET …/invitation/deliveries`.
+  `…/revoke`; `GET …/invitation/link`, `GET …/invitation/deliveries`.
 - Guest: `GET /api/v1/guest/invitations/{token}`, `PATCH /api/v1/guest/invitations/{token}/rsvp`.
 
 ## 10. UI
 
+Decision 0019.
+
+### 10.1 Screens and behaviour
+
 - New screens are designed in Google Stitch and approved before they are built (working
   rule). None exist yet for Phase 4.
 - Screens show only the approved fields and actions, each with loading, empty, validation,
-  error and success states.
-- Navigation adds Events and Guests & RSVP; the dashboard adds event and guest summaries
-  only for data that exists.
+  error and success states, on desktop and mobile.
+- Navigation adds **Events** and **Guests & RSVP** only. There is no "Invitation" navigation
+  item and no separate invitation workspace.
+- **Invitations are managed on the guest's detail screen**, which offers only the actions
+  that fit the invitation's current state:
+
+  | Invitation state      | Actions offered                                                                |
+  | --------------------- | ------------------------------------------------------------------------------ |
+  | None (no invitation)  | Create invitation                                                              |
+  | Draft, Sent or Failed | Copy Link, WhatsApp, Send (Draft) or Resend (Sent, Failed), Regenerate, Revoke |
+  | Revoked               | Regenerate (creates a new link)                                                |
+
+  Send and Resend also need the guest's email address.
+
+- **Status labels:** None, Draft, Sent, Failed — the email delivery state — and Revoked,
+  shown as the link's availability rather than a delivery result. Delivered is never shown
+  in Phase 4.
+- **Confirmations.** These actions do nothing until the user confirms, and the confirmation
+  explains the consequence:
+
+  | Action                       | The confirmation explains                                                   |
+  | ---------------------------- | --------------------------------------------------------------------------- |
+  | Delete an event              | It leaves active use; its history (RSVPs, invitation records) is kept.      |
+  | Delete a guest               | It leaves active use; history is kept; their invitation link stops working. |
+  | Remove a guest from an event | The assignment leaves active use; its RSVP history is kept.                 |
+  | Regenerate the link          | The old link stops working; the new link must be shared again.              |
+  | Revoke the link              | The current link stops working; no replacement is created.                  |
+
+- **Copy to draft in Stitch and approve at design review** (none is approved yet): the
+  invitation email subject and body, the WhatsApp prefilled message, the duplicate-mobile
+  warning, the guest confirmation message, the invalid or revoked link message, and the
+  no-events message. Wording is clear, respectful and suited to Indian wedding invitations,
+  and never says an email was delivered or an RSVP saved unless that operation succeeded.
+
+### 10.2 Dashboard summaries
+
+Decision 0019 #5 adds four summaries, calculated only from existing data. The rules below are
+defined for approval with this specification:
+
+- **Counted records.** An event counts if it is not deleted. A guest counts if not deleted.
+  An assignment counts if it is active and both its event and its guest count. Deleted
+  events and guests and removed assignments are excluded from every summary but kept as
+  history.
+- **Upcoming events:** counted events whose date is today or later in the wedding's
+  timezone, in date and start-time order (untimed first on their day). How many are listed
+  is set at design review.
+- **Guest totals:** the number of counted guests, including guests not yet assigned to any
+  event.
+- **RSVP breakdown:** the number of counted assignments in each status — Pending,
+  Attending, Declined and Maybe — across all counted events, past and future. A guest invited
+  to three events counts three times, once per event.
+- **Expected attendees:** for each upcoming event, the sum of `attendeeCount` over its counted
+  Attending assignments. Declined (0), Pending and Maybe (no count) add nothing.
+- **For approval:** a single wedding-wide "expected attendees" total would count the same
+  person once for every event they attend, so this specification shows the figure **per
+  event** only.
 
 ## 11. Acceptance criteria
 
@@ -234,8 +291,8 @@ are in API Design v1.1 §8–10:
    invitation or submit an RSVP.
 9. A guest sees only their own active events, never organizer notes or other guests, and can
    RSVP per event without an account.
-10. Copy Link and WhatsApp sharing of the link from the create or regenerate response work
-    without a WhatsApp API.
+10. Copy Link and WhatsApp reuse the guest's current link, retrieved without creating a
+    token and recorded in the audit history; neither needs a WhatsApp API.
 11. Each send and resend is recorded; the status becomes `SENT` on provider acceptance,
     `FAILED` on an immediate rejection, and never `DELIVERED` without provider confirmation;
     opens are stored as activity without changing the status.
@@ -243,15 +300,20 @@ are in API Design v1.1 §8–10:
 13. Deleting an event removes it from active views and counts and keeps its RSVP and
     invitation history unchanged.
 14. Cross-wedding IDs fail with `404`; token endpoints are rate-limited.
-15. Unit, integration, contract and security tests cover the above, including token
+15. Invitations are managed on the guest detail screen with only state-appropriate actions;
+    the five destructive actions ask for confirmation first.
+16. The dashboard shows the four summaries using the §10.2 rules; deleted and removed
+    records are excluded.
+17. Unit, integration, contract and security tests cover the above, including token
     guessing, rate limiting and tenant isolation.
 
 ## 12. Deferred or open
 
 - Token expiry: none in Phase 4; revisit only by decision.
 - Delivery webhooks (`DELIVERED`, later `FAILED`); provider retry and backoff details.
-- Showing the invitation link again after creation (0018, Open).
-- Confirmation of the limits marked proposed (0018 #10).
+- Wording drafted in Stitch, approved at design review (0019 #7).
+- Approval of the dashboard calculation rules in §10.2, including expected attendees per
+  event only.
 - Retention periods for audit and delivery history.
 - De-duplication of repeated opens (first open always kept).
 - Overnight events; locale-specific phone formatting.

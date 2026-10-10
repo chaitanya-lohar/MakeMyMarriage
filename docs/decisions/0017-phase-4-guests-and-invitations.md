@@ -3,6 +3,8 @@
 **Status:** Accepted. **Amended by [0018](0018-invitation-token-storage-and-guest-access.md)
 (2026-10-10):** token storage (hash plus encrypted copy, replacing #6's hash-only rule),
 organizer reset to `PENDING`, immediate provider rejection, and deleted guests' links.
+**Amended by [0019](0019-phase-4-design-decisions.md) (2026-10-10):** adds the route
+`GET …/guests/{guestId}/invitation/link` to #16.
 
 ## History
 

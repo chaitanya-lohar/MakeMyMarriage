@@ -13,7 +13,7 @@
 | Version | Date       | Change                                                                                                           |
 | ------- | ---------- | ---------------------------------------------------------------------------------------------------------------- |
 | 1.0     | 2026-09-24 | Baseline contract.                                                                                               |
-| 1.1     | 2026-10-10 | Consolidated: v1.0 plus decisions 0001, 0008, 0009, 0010, 0012, 0015–0018 and the endpoints built in Phases 2–3. |
+| 1.1     | 2026-10-10 | Consolidated: v1.0 plus decisions 0001, 0008, 0009, 0010, 0012, 0015–0019 and the endpoints built in Phases 2–3. |
 
 **Status of each route group** — _Built_: implemented; the generated OpenAPI contract
 (`packages/api-client/openapi.json`) is the exact reference. _Phase 4_: approved, not built.
@@ -244,12 +244,11 @@ PATCH /api/v1/weddings/{weddingId}/guest-events/{guestEventId}
 - `DELETE …/guests/{guestId}` returns `204`, soft-deletes the guest and revokes their
   invitation token at once; their assignments and invitation history are kept (0018).
   Updating a guest's mobile or email never changes the token.
-- Field limits: Phase 4 PRD §3.1 and §4; limits marked _proposed_ there are enforced as
-  written but are not yet approved (0018 #10).
+- Field limits: Phase 4 PRD §3.1 and §4 (approved, 0019 #6).
 - Errors: `400 VALIDATION_FAILED`, `404 WEDDING_NOT_FOUND`, `404 GUEST_NOT_FOUND`,
   `404 EVENT_NOT_FOUND`, `404 GUEST_EVENT_NOT_FOUND`. IDs from another wedding are `404`.
 
-## 10. Invitation API (Phase 4 — decisions 0008, 0017, 0018)
+## 10. Invitation API (Phase 4 — decisions 0008, 0017, 0018, 0019)
 
 Organizer routes (all `/api/v1/weddings/{weddingId}/guests/{guestId}/invitation…`):
 
@@ -260,6 +259,7 @@ Organizer routes (all `/api/v1/weddings/{weddingId}/guests/{guestId}/invitation�
 | POST   | `/invitation/send`       | Queue the invitation email                   | `202`   |
 | POST   | `/invitation/resend`     | Queue it again                               | `202`   |
 | POST   | `/invitation/revoke`     | Revoke the token                             | `200`   |
+| GET    | `/invitation/link`       | The current link, for Copy Link and WhatsApp | `200`   |
 | GET    | `/invitation/deliveries` | Delivery history and activity history        | `200`   |
 
 Guest routes (account-free, token in the path):
@@ -322,9 +322,15 @@ PATCH /api/v1/guest/invitations/{token}/rsvp
 **Token storage (0018).** The token is stored as a hash, used to look up guest requests,
 and as an encrypted copy, decrypted only by the server to send and resend the email. The
 encryption key is held outside the database and never logged. No endpoint returns the
-token, its hash or its ciphertext; only create and regenerate return `invitationUrl`.
-**Open (0018):** whether organizers can see the link again later (for Copy Link or WhatsApp)
-without regenerating — that would need a route outside the approved list.
+token, its hash or its ciphertext; only create, regenerate and the link route return
+`invitationUrl`.
+
+**Link retrieval (0019).** `GET …/invitation/link` returns `{ invitationUrl }` for the current
+token by decrypting the stored copy; it never creates or changes a token. It needs an `ACTIVE`
+membership of the wedding like every organizer route, writes an audit entry for each
+retrieval, and never logs the token. Errors: `404 INVITATION_NOT_FOUND` before the invitation
+exists; `409 INVITATION_REVOKED` while revoked. Copy Link and WhatsApp reuse this link; only
+regenerate replaces it.
 
 ## 11. Notification and reminder API (Planned)
 
@@ -673,7 +679,8 @@ independently where practical.
 Required for Phase 4: every application route under `/api/v1`; signup without a wedding;
 cross-wedding IDs return `404`; all four RSVP status/count combinations and every rejected
 one; a guest cannot send `PENDING`; an organizer reset to `PENDING` is audited; old tokens
-rejected after regenerate, revoke or guest deletion; no form of the token in logs or
+rejected after regenerate, revoke or guest deletion; link retrieval returns the same link
+without changing the token and is audited; no form of the token in logs or
 responses other than `invitationUrl`; an immediate provider rejection gives `FAILED`; opens
 never change delivery status; deleting an event keeps RSVP and invitation history; private
 notes absent from guest responses.
@@ -693,23 +700,23 @@ notes absent from guest responses.
 
 ## 35. Open API decisions
 
-| Area             | Decision to finalize                                                    |
-| ---------------- | ----------------------------------------------------------------------- |
-| Invitation links | Showing the link again after creation, for Copy Link or WhatsApp (0018) |
-| Webhooks         | Delivery webhooks for `DELIVERED`/`FAILED`                              |
-| Roles            | Role names' default permission matrix                                   |
-| Sharing          | Resource types and actions for `resource_shares` (A4)                   |
-| Reminders        | Schedules, recipients, templates                                        |
-| Uploads          | File size and type limits; image processing                             |
-| Vendor discovery | Google fields and caching rules                                         |
-| Website          | Public payload, caching and revalidation; sitemap and metadata          |
-| Rate limits      | Numeric thresholds beyond 0015                                          |
-| Reports          | Filter contract; download retention                                     |
+| Area | Decision to finalize |
+| ---- | -------------------- |
+
+| Webhooks | Delivery webhooks for `DELIVERED`/`FAILED` |
+| Roles | Role names' default permission matrix |
+| Sharing | Resource types and actions for `resource_shares` (A4) |
+| Reminders | Schedules, recipients, templates |
+| Uploads | File size and type limits; image processing |
+| Vendor discovery | Google fields and caching rules |
+| Website | Public payload, caching and revalidation; sitemap and metadata |
+| Rate limits | Numeric thresholds beyond 0015 |
+| Reports | Filter contract; download retention |
 
 Resolved since v1.0: invitee-already-owns-a-wedding acceptance (0012, N1); attendee-count
 validation and token expiry and status semantics (0017); token and session lifetimes (0015);
 invitation token storage, organizer reset to `PENDING`, immediate rejection and deleted
-guests' links (0018).
+guests' links (0018); showing the link again after creation (0019).
 
 ## 36. Implementation order
 

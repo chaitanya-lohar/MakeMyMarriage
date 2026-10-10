@@ -248,7 +248,8 @@ Decisions 0008, 0017 and 0018.
   (decrypted only by the API and worker to send and resend the email). The token is reused
   for resends and contact changes; no automatic expiry in Phase 4; regenerate, revoke and
   guest deletion invalidate the old token (0018).
-- Organizer resets of an RSVP to Pending are written to the audit log (0018).
+- Organizer resets of an RSVP to Pending, and organizer retrievals of an invitation link,
+  are written to the audit log (0018, 0019).
 - One invitation per guest contains the guest's applicable events.
 - WhatsApp uses the user's own sharing flow; no WhatsApp API in V1.
 - Email invitations are sent through Resend by the worker.
