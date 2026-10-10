@@ -2,7 +2,7 @@
 
 The single place to see where MakeMyMarriage stands. Read this first.
 
-- **Updated:** 2026-10-10, with the Phase 4 design decisions (0019).
+- **Updated:** 2026-10-11, with the Phase 4 Stitch design review (round 2).
 - **Source of truth:** the canonical documents listed in the [documentation index](README.md)
   and the decision records in [`decisions/`](decisions/README.md). This page only summarises
   and links; where they differ, the decision record wins.
@@ -11,33 +11,32 @@ The single place to see where MakeMyMarriage stands. Read this first.
 
 ## Snapshot
 
-| Item            | State                                                                                                                                                           |
-| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Current phase   | Phase 3 (Wedding setup) — done and merged to `main` (PR #5, 0016)                                                                                               |
-| Next phase      | Phase 4 (Events, guests, RSVP and invitations) — requirements and design decisions approved (0017–0020, Phase 4 PRD v1.2); **not started**; next: Stitch design |
-| `main`          | Scaffold, Phases 1–3, code-review and manual-testing fixes (PRs #1–6)                                                                                           |
-| Open PRs        | None (`docs/regenerate-email-status` is local)                                                                                                                  |
-| Live deployment | None yet                                                                                                                                                        |
+| Item            | State                                                                                                                                                                               |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Current phase   | Phase 3 (Wedding setup) — done and merged to `main` (PR #5, 0016)                                                                                                                   |
+| Next phase      | Phase 4 (Events, guests, RSVP and invitations) — requirements and design decisions approved (0017–0020, Phase 4 PRD v1.2); **not started**; Stitch screens in review (not approved) |
+| `main`          | Scaffold, Phases 1–3, code-review and manual-testing fixes (PRs #1–6)                                                                                                               |
+| Open PRs        | None (`docs/regenerate-email-status` is local)                                                                                                                                      |
+| Live deployment | None yet                                                                                                                                                                            |
 
 ### Branches
 
-Every branch below is merged into `main`; new work starts from `main`.
+Every branch below except `docs/regenerate-email-status` is merged into `main`; new work starts from `main`.
 
-| Branch                        | Contains                                                | State          |
-| ----------------------------- | ------------------------------------------------------- | -------------- |
-| `main`                        | Everything below                                        | Up to date     |
-| `feat/home-page`              | Phase 1: design system and home page                    | Merged (PR #2) |
-| `feat/auth`                   | Phase 2: authentication                                 | Merged (PR #3) |
-| `chore/pre-phase-3`           | The three branches below, `.mcp.json`, this page        | Merged (PR #4) |
-| ↳ `fix/auth-hardening`        | Code-review fixes (4 commits)                           | Merged via #4  |
-| ↳ `fix/auth-test-findings`    | Manual-testing fixes (3 commits)                        | Merged via #4  |
-| ↳ `docs/status-after-phase-2` | This page after the Phase 1/2 merges (1 commit)         | Merged via #4  |
-| `feat/weddings`               | Phase 3: wedding setup and dashboard shell              | Merged (PR #5) |
-| `fix/workspace-logo-home`     | Workspace logo opens the home page (manual-testing fix) | Merged (PR #6) |
-
-| `docs/consolidation` | Consolidated documentation, decisions 0017–0018 | Merged (PR #8) |
-| `docs/phase-4-design-decisions` | Decision 0019 and the matching spec updates | Merged (PR #9) |
-| `docs/regenerate-email-status` | Decision 0020 and the matching spec updates (local, not pushed) | In progress |
+| Branch                          | Contains                                                        | State          |
+| ------------------------------- | --------------------------------------------------------------- | -------------- |
+| `main`                          | Everything below                                                | Up to date     |
+| `feat/home-page`                | Phase 1: design system and home page                            | Merged (PR #2) |
+| `feat/auth`                     | Phase 2: authentication                                         | Merged (PR #3) |
+| `chore/pre-phase-3`             | The three branches below, `.mcp.json`, this page                | Merged (PR #4) |
+| ↳ `fix/auth-hardening`          | Code-review fixes (4 commits)                                   | Merged via #4  |
+| ↳ `fix/auth-test-findings`      | Manual-testing fixes (3 commits)                                | Merged via #4  |
+| ↳ `docs/status-after-phase-2`   | This page after the Phase 1/2 merges (1 commit)                 | Merged via #4  |
+| `feat/weddings`                 | Phase 3: wedding setup and dashboard shell                      | Merged (PR #5) |
+| `fix/workspace-logo-home`       | Workspace logo opens the home page (manual-testing fix)         | Merged (PR #6) |
+| `docs/consolidation`            | Consolidated documentation, decisions 0017–0018                 | Merged (PR #8) |
+| `docs/phase-4-design-decisions` | Decision 0019 and the matching spec updates                     | Merged (PR #9) |
+| `docs/regenerate-email-status`  | Decision 0020 and the matching spec updates (local, not pushed) | In progress    |
 
 The merged branches can be deleted, on GitHub and locally.
 
@@ -133,6 +132,32 @@ Mailpit locally, Resend later).
 
 Design system "Regal Modernity" (0014) applies to every screen.
 
+**Phase 4 screens ("P4 ·", not approved).** All screens are generated: O2–O10, G1–G5, the
+mobile navigation drawer, a states board and a DRAFT copy board. Review round 2 (2026-10-11)
+found no horizontal scrolling at 390px or 1440px but several remaining issues:
+
+- Three mobile screens were never rebuilt: O3, O6 and O7.
+- Some screens break the rules: a "Reset invitation link" dialog that isn't an approved
+  action, "Delivered · Read" and "mailbox full" wording, the link text shown, "Link: Active"
+  labels, "Pending" shown to guests, and invented fields and features.
+- Clean-up: wrong sidebar date and city, the old "M" logo, visible layout notes, black
+  buttons.
+
+Round-3 edits are in progress; the product owner runs them in Stitch from prompts Claude
+writes. Several screens now exist twice, and the older copies must be deleted:
+
+| Screen        | Keep       | Delete     |
+| ------------- | ---------- | ---------- |
+| O3 desktop    | `dbec8474` | `502c9710` |
+| O6 desktop    | `b39150ad` | `f6062555` |
+| O7 desktop    | `482b86c7` | `4c0c32f1` |
+| G1/G2 desktop | `e10c2e9c` | `15b36479` |
+| G1/G2 mobile  | `f76aaa23` | `ccd2f5a2` |
+| O8 mobile     | `427c1ec2` | `84d0ebd1` |
+
+The "Desktop Navigation Drawer" screen (`a0197a0a`) should also be deleted. Its replacement
+is `d7c7ad59`, which Stitch saved as a desktop screen, so it may need regenerating.
+
 ## Open decisions and blockers
 
 | Item                                                                                                                                                    | Blocks              | Owner         |
@@ -147,7 +172,8 @@ Design system "Regal Modernity" (0014) applies to every screen.
 | Forgot-password response time hints whether an email is registered (code review, deferred)                                                              | Public launch       | Engineering   |
 | Reset email says "signs you out on all your devices", but access tokens live ≤15 min (0015) — reword or revoke instantly                                | Public launch       | Product       |
 | Phase 4 wording drafted in Stitch and approved at design review: invitation email, WhatsApp message, duplicate-mobile warning, guest messages (0019 #7) | Phase 4 UI          | Product       |
-| Phase 4 screens to design and approve in Stitch                                                                                                         | Phase 4 UI          | Product       |
+| Phase 4 Stitch screens: finish round-3 fixes, delete duplicate screens, then design review and approval                                                 | Phase 4 UI          | Product       |
+| Dashboard summaries API contract (`GET …/dashboard` is still Planned in API §6)                                                                         | Phase 4 dashboard   | Engineering   |
 | Delivery webhooks for DELIVERED/FAILED (Sent is the highest status until then)                                                                          | Delivery statuses   | Product / Ops |
 
 ## Working rules
@@ -192,6 +218,7 @@ checked only for loading the saved values.
 
 | Date       | Change                                                                                                                                                                                                                                                                                                                                                            |
 | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-11 | Phase 4 Stitch screens generated and reviewed twice. Not yet approved: three mobile screens need rebuilding, some screens still break approved rules, and duplicate screens need deleting. Round-3 fixes in progress.                                                                                                                                             |
 | 2026-10-10 | Phase 4 design decisions merged (PR #9). Decision 0020: regenerating an invitation link resets the current email status to Draft; revoking leaves it unchanged; email history is never rewritten.                                                                                                                                                                 |
 | 2026-10-10 | Documentation consolidation merged (PR #8). Decision 0019: organizer route to retrieve the current invitation link (audited); invitations managed on the guest detail screen; four dashboard summaries; field limits approved; wording drafted at design review; confirmations for destructive actions; dashboard calculation rules approved (Phase 4 PRD §10.2). |
 | 2026-10-10 | Decision 0018: invitation tokens stored as a hash plus an encrypted copy (key outside the database); organizer RSVP resets audited; immediate provider rejection marks the attempt FAILED; deleting a guest revokes their token; proposed field limits labelled; no Cancelled expense status in V1. Specifications updated to match.                              |
