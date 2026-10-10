@@ -1,20 +1,20 @@
 # MakeMyMarriage — Phase 4 PRD v1.2: events, guests, RSVP and invitations
 
-| Item         | Value                                                                                              |
-| ------------ | -------------------------------------------------------------------------------------------------- |
-| Status       | **Canonical** for Phase 4. Approved scope; **not implemented**.                                    |
-| Date         | 2026-10-10                                                                                         |
-| Parent       | [PRD v1.2](PRD_v1.2.md) (sections 9–13)                                                            |
-| Decision     | [0017](../decisions/0017-phase-4-guests-and-invitations.md), with 0008 and 0010                    |
-| Contracts    | [Database Design v1.1](DB_DESIGN_v1.1.md) §9–10, [API Design v1.1](API_DESIGN_v1.1.md) §8–10       |
-| Supersedes   | Phase 4 PRD v1.1 FINAL and the earlier v1.0 draft (archived)                                       |
+| Item         | Value                                                                                                                                                                          |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Status       | **Canonical** for Phase 4. Approved scope; **not implemented**.                                                                                                                |
+| Date         | 2026-10-10                                                                                                                                                                     |
+| Parent       | [PRD v1.2](PRD_v1.2.md) (sections 9–13)                                                                                                                                        |
+| Decision     | [0017](../decisions/0017-phase-4-guests-and-invitations.md), with 0008 and 0010                                                                                                |
+| Contracts    | [Database Design v1.1](DB_DESIGN_v1.1.md) §9–10, [API Design v1.1](API_DESIGN_v1.1.md) §8–10                                                                                   |
+| Supersedes   | Phase 4 PRD v1.1 FINAL and the earlier v1.0 draft (archived)                                                                                                                   |
 | Out of scope | Website records and public identifiers, partner connection and sharing, tasks, expenses, vendors, QR and gallery, live stream, reports, reminder scheduling, WhatsApp API, SMS |
 
-| Version | Date       | Change                                                                                     |
-| ------- | ---------- | ------------------------------------------------------------------------------------------ |
-| 1.0     | 2026-10    | Draft (outside this repository).                                                           |
-| 1.1     | 2026-10-10 | "Final" draft in the reconciled set.                                                       |
-| 1.2     | 2026-10-10 | Corrected after the documentation audit and the product-owner answers Q2, Q3, Q6, Q7, Q8.   |
+| Version | Date       | Change                                                                                    |
+| ------- | ---------- | ----------------------------------------------------------------------------------------- |
+| 1.0     | 2026-10    | Draft (outside this repository).                                                          |
+| 1.1     | 2026-10-10 | "Final" draft in the reconciled set.                                                      |
+| 1.2     | 2026-10-10 | Corrected after the documentation audit and the product-owner answers Q2, Q3, Q6, Q7, Q8. |
 
 ## 1. Purpose and outcomes
 
@@ -46,18 +46,18 @@ invitations (answer Q3).
 
 ### 3.1 Fields
 
-| Field          | Rule                                                                                         |
-| -------------- | -------------------------------------------------------------------------------------------- |
-| Name           | Required; trimmed; 1–100 characters.                                                         |
-| Event type     | Required: `ENGAGEMENT`, `MEHENDI`, `HALDI`, `SANGEET`, `WEDDING`, `RECEPTION` or `CUSTOM`.  |
-| Date           | Required calendar date in the wedding's timezone. Past dates are valid.                     |
-| Start time     | Optional, `HH:mm`, wedding timezone.                                                         |
-| End time       | Optional, `HH:mm`; requires a start time and must be later on the same day.                  |
-| Description    | Optional; at most 1,000 characters.                                                          |
-| Venue name     | Optional; at most 120 characters.                                                            |
-| Venue address  | Optional; at most 300 characters.                                                            |
-| Dress code     | Optional; at most 120 characters.                                                            |
-| Notes          | Optional; at most 1,000 characters; organizer-only.                                          |
+| Field         | Rule                                                                                       |
+| ------------- | ------------------------------------------------------------------------------------------ |
+| Name          | Required; trimmed; 1–100 characters.                                                       |
+| Event type    | Required: `ENGAGEMENT`, `MEHENDI`, `HALDI`, `SANGEET`, `WEDDING`, `RECEPTION` or `CUSTOM`. |
+| Date          | Required calendar date in the wedding's timezone. Past dates are valid.                    |
+| Start time    | Optional, `HH:mm`, wedding timezone.                                                       |
+| End time      | Optional, `HH:mm`; requires a start time and must be later on the same day.                |
+| Description   | Optional; at most 1,000 characters.                                                        |
+| Venue name    | Optional; at most 120 characters.                                                          |
+| Venue address | Optional; at most 300 characters.                                                          |
+| Dress code    | Optional; at most 120 characters.                                                          |
+| Notes         | Optional; at most 1,000 characters; organizer-only.                                        |
 
 - Not in Phase 4: map location, cover image, `isPublic`, `instructions`, `publicId`
   (decision 0017 #15).
@@ -77,13 +77,13 @@ invitations (answer Q3).
 
 ## 4. Guests
 
-| Field         | Rule                                                                                               |
-| ------------- | -------------------------------------------------------------------------------------------------- |
-| Name          | Required; trimmed; 1–100 characters.                                                               |
-| Mobile number | Required; 7–15 digits; optional leading `+`; spaces and hyphens allowed; no country format.        |
-| Email         | Optional; valid email address when given; at most 254 characters.                                  |
-| Relation      | Optional; at most 100 characters.                                                                  |
-| Notes         | Optional; at most 1,000 characters; organizer-only, never in guest-facing responses.              |
+| Field         | Rule                                                                                        |
+| ------------- | ------------------------------------------------------------------------------------------- |
+| Name          | Required; trimmed; 1–100 characters.                                                        |
+| Mobile number | Required; 7–15 digits; optional leading `+`; spaces and hyphens allowed; no country format. |
+| Email         | Optional; valid email address when given; at most 254 characters.                           |
+| Relation      | Optional; at most 100 characters.                                                           |
+| Notes         | Optional; at most 1,000 characters; organizer-only, never in guest-facing responses.        |
 
 - Mobile numbers are stored normalized (separators removed, leading `+` kept) and compared
   in that form for duplicate detection.
@@ -105,12 +105,12 @@ invitations (answer Q3).
 
 ## 6. RSVP
 
-| Status      | Meaning                    | `attendeeCount` |
-| ----------- | -------------------------- | --------------- |
-| `PENDING`   | No response yet.           | `null`          |
-| `ATTENDING` | Accepts the invitation.    | integer ≥ 1     |
-| `DECLINED`  | Declines the invitation.   | `0`             |
-| `MAYBE`     | Not yet confirming.        | `null`          |
+| Status      | Meaning                  | `attendeeCount` |
+| ----------- | ------------------------ | --------------- |
+| `PENDING`   | No response yet.         | `null`          |
+| `ATTENDING` | Accepts the invitation.  | integer ≥ 1     |
+| `DECLINED`  | Declines the invitation. | `0`             |
+| `MAYBE`     | Not yet confirming.      | `null`          |
 
 - RSVP is per assignment: the same guest can attend Haldi with 4 and decline Sangeet.
 - The count covers everyone in the RSVP, including the named guest. Companions are counted,
@@ -158,11 +158,11 @@ invitations (answer Q3).
 
 ### 7.3 Delivery state and activity
 
-| Concept                 | Values                                     | Rules                                                                                     |
-| ----------------------- | ------------------------------------------ | ----------------------------------------------------------------------------------------- |
-| Current delivery status | `DRAFT`, `SENT`, `DELIVERED`, `FAILED`     | `DRAFT` when created. `SENT` when the provider accepts a send. `DELIVERED`/`FAILED` only from provider confirmation (webhooks — not in Phase 4). |
-| Activity history        | Timestamped events: sent, resent, opened  | Opens never overwrite the delivery status. The first-open time is kept. Whether repeated opens are all stored or de-duplicated is an implementation choice. |
-| RSVP status             | `PENDING`, `ATTENDING`, `DECLINED`, `MAYBE` | Per assignment; never inferred from delivery or opens.                                   |
+| Concept                 | Values                                      | Rules                                                                                                                                                       |
+| ----------------------- | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Current delivery status | `DRAFT`, `SENT`, `DELIVERED`, `FAILED`      | `DRAFT` when created. `SENT` when the provider accepts a send. `DELIVERED`/`FAILED` only from provider confirmation (webhooks — not in Phase 4).            |
+| Activity history        | Timestamped events: sent, resent, opened    | Opens never overwrite the delivery status. The first-open time is kept. Whether repeated opens are all stored or de-duplicated is an implementation choice. |
+| RSVP status             | `PENDING`, `ATTENDING`, `DECLINED`, `MAYBE` | Per assignment; never inferred from delivery or opens.                                                                                                      |
 
 - Every send and resend attempt is stored with its provider message ID when available.
 - Resending never creates duplicate guests or assignments; sends are idempotent jobs.

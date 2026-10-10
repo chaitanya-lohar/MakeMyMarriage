@@ -1,18 +1,18 @@
 # MakeMyMarriage — API Design v1.1
 
-| Item        | Value                                                                       |
-| ----------- | --------------------------------------------------------------------------- |
-| Version     | 1.1 (consolidated)                                                          |
-| Status      | **Canonical** REST contract; authoritative for route names (0004)           |
-| Date        | 2026-10-10                                                                  |
-| Style       | REST / JSON                                                                 |
-| Backend     | NestJS / Node.js / TypeScript                                               |
-| Base path   | `/api/v1`                                                                   |
-| Supersedes  | API Design v1.0 (archived in `docs/archive/specs/`)                         |
+| Item       | Value                                                             |
+| ---------- | ----------------------------------------------------------------- |
+| Version    | 1.1 (consolidated)                                                |
+| Status     | **Canonical** REST contract; authoritative for route names (0004) |
+| Date       | 2026-10-10                                                        |
+| Style      | REST / JSON                                                       |
+| Backend    | NestJS / Node.js / TypeScript                                     |
+| Base path  | `/api/v1`                                                         |
+| Supersedes | API Design v1.0 (archived in `docs/archive/specs/`)               |
 
-| Version | Date       | Change                                                                                       |
-| ------- | ---------- | -------------------------------------------------------------------------------------------- |
-| 1.0     | 2026-09-24 | Baseline contract.                                                                           |
+| Version | Date       | Change                                                                                                           |
+| ------- | ---------- | ---------------------------------------------------------------------------------------------------------------- |
+| 1.0     | 2026-09-24 | Baseline contract.                                                                                               |
 | 1.1     | 2026-10-10 | Consolidated: v1.0 plus decisions 0001, 0008, 0009, 0010, 0012, 0015–0017 and the endpoints built in Phases 2–3. |
 
 **Status of each route group** — _Built_: implemented; the generated OpenAPI contract
@@ -44,22 +44,22 @@ endpoints expose only the minimum data their flow needs.
 
 ## 3. Conventions
 
-| Convention         | Baseline                                                                     |
-| ------------------ | ---------------------------------------------------------------------------- |
-| Protocol           | HTTPS                                                                        |
+| Convention         | Baseline                                                                                                                      |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| Protocol           | HTTPS                                                                                                                         |
 | Base path          | `/api/v1` for every application endpoint. Health probes (`/health/live`, `/health/ready`) are deliberately outside it (0001). |
-| Format             | `application/json`, UTF-8                                                    |
-| IDs                | MongoDB ObjectId strings in authenticated APIs; tokens and public identifiers in guest and public URLs |
-| Timestamps         | ISO 8601 UTC                                                                 |
-| Calendar dates     | `YYYY-MM-DD` in the wedding's timezone (wedding date, event date)            |
-| Local times        | `HH:mm` in the wedding's timezone (event start and end)                      |
-| Money              | Integer minor units + currency                                               |
-| Absent values      | Optional fields are returned as `null`, never omitted. In requests, `null` (or an empty string) clears an optional field. |
-| Pagination         | Cursor-based for large lists; bounded lists return everything                |
-| Filtering, sorting | Allow-listed query parameters per resource                                   |
-| Authentication     | HttpOnly session cookies (0015)                                              |
-| Uploads            | S3 presigned upload flow                                                     |
-| Unknown fields     | Rejected (`VALIDATION_FAILED`)                                               |
+| Format             | `application/json`, UTF-8                                                                                                     |
+| IDs                | MongoDB ObjectId strings in authenticated APIs; tokens and public identifiers in guest and public URLs                        |
+| Timestamps         | ISO 8601 UTC                                                                                                                  |
+| Calendar dates     | `YYYY-MM-DD` in the wedding's timezone (wedding date, event date)                                                             |
+| Local times        | `HH:mm` in the wedding's timezone (event start and end)                                                                       |
+| Money              | Integer minor units + currency                                                                                                |
+| Absent values      | Optional fields are returned as `null`, never omitted. In requests, `null` (or an empty string) clears an optional field.     |
+| Pagination         | Cursor-based for large lists; bounded lists return everything                                                                 |
+| Filtering, sorting | Allow-listed query parameters per resource                                                                                    |
+| Authentication     | HttpOnly session cookies (0015)                                                                                               |
+| Uploads            | S3 presigned upload flow                                                                                                      |
+| Unknown fields     | Rejected (`VALIDATION_FAILED`)                                                                                                |
 
 ## 4. URL and resource naming
 
@@ -79,19 +79,19 @@ guest, QR or public URLs. Unversioned paths such as `/api/auth/*` are never used
 
 ## 5. Authentication and session API (Built — decision 0015)
 
-| Method | Endpoint                       | Purpose                                   | Auth   | Status   |
-| ------ | ------------------------------ | ----------------------------------------- | ------ | -------- |
-| POST   | `/auth/register`               | Create the user (no wedding) and sign in  | Public | Built    |
-| POST   | `/auth/login`                  | Sign in (`rememberMe` optional)           | Public | Built    |
-| POST   | `/auth/refresh`                | Rotate the session                        | Refresh cookie | Built |
-| POST   | `/auth/logout`                 | Revoke the current session                | Refresh cookie | Built |
-| POST   | `/auth/forgot-password`        | Request a reset email (always `202`)      | Public | Built    |
-| POST   | `/auth/reset-password`         | Set a new password with a reset token     | Public token | Built |
-| GET    | `/me`                          | Current user                              | User   | Built    |
-| POST   | `/auth/logout-all`             | Revoke all sessions                       | User   | Planned (Settings) |
-| PATCH  | `/me`                          | Update profile                            | User   | Planned (Settings) |
-| GET    | `/me/sessions`                 | List active sessions                      | User   | Planned (Settings) |
-| DELETE | `/me/sessions/{sessionId}`     | Revoke one session                        | User   | Planned (Settings) |
+| Method | Endpoint                   | Purpose                                  | Auth           | Status             |
+| ------ | -------------------------- | ---------------------------------------- | -------------- | ------------------ |
+| POST   | `/auth/register`           | Create the user (no wedding) and sign in | Public         | Built              |
+| POST   | `/auth/login`              | Sign in (`rememberMe` optional)          | Public         | Built              |
+| POST   | `/auth/refresh`            | Rotate the session                       | Refresh cookie | Built              |
+| POST   | `/auth/logout`             | Revoke the current session               | Refresh cookie | Built              |
+| POST   | `/auth/forgot-password`    | Request a reset email (always `202`)     | Public         | Built              |
+| POST   | `/auth/reset-password`     | Set a new password with a reset token    | Public token   | Built              |
+| GET    | `/me`                      | Current user                             | User           | Built              |
+| POST   | `/auth/logout-all`         | Revoke all sessions                      | User           | Planned (Settings) |
+| PATCH  | `/me`                      | Update profile                           | User           | Planned (Settings) |
+| GET    | `/me/sessions`             | List active sessions                     | User           | Planned (Settings) |
+| DELETE | `/me/sessions/{sessionId}` | Revoke one session                       | User           | Planned (Settings) |
 
 - Cookies `mmm_at` (15-minute access JWT) and `mmm_rt` (rotating refresh token, path
   `/api/v1/auth`); HttpOnly, SameSite=Lax, Secure outside local and test.
@@ -103,14 +103,14 @@ guest, QR or public URLs. Unversioned paths such as `/api/auth/*` are never used
 
 ## 6. Wedding and workspace API (decision 0016)
 
-| Method | Endpoint                         | Purpose                                         | Auth       | Status  |
-| ------ | -------------------------------- | ----------------------------------------------- | ---------- | ------- |
-| POST   | `/weddings`                      | Create the user's wedding; user becomes OWNER   | User       | Built   |
-| GET    | `/weddings`                      | Weddings with an `ACTIVE` membership (may be empty) | User   | Built   |
-| GET    | `/weddings/{weddingId}`          | One wedding                                     | Member     | Built   |
-| PATCH  | `/weddings/{weddingId}`          | Update wedding details                          | Member (OWNER until Phase 10) | Built |
-| DELETE | `/weddings/{weddingId}`          | Archive / soft-delete the wedding               | Owner      | Planned |
-| GET    | `/weddings/{weddingId}/dashboard`| Dashboard summary                               | Permission | Planned |
+| Method | Endpoint                          | Purpose                                             | Auth                          | Status  |
+| ------ | --------------------------------- | --------------------------------------------------- | ----------------------------- | ------- |
+| POST   | `/weddings`                       | Create the user's wedding; user becomes OWNER       | User                          | Built   |
+| GET    | `/weddings`                       | Weddings with an `ACTIVE` membership (may be empty) | User                          | Built   |
+| GET    | `/weddings/{weddingId}`           | One wedding                                         | Member                        | Built   |
+| PATCH  | `/weddings/{weddingId}`           | Update wedding details                              | Member (OWNER until Phase 10) | Built   |
+| DELETE | `/weddings/{weddingId}`           | Archive / soft-delete the wedding                   | Owner                         | Planned |
+| GET    | `/weddings/{weddingId}/dashboard` | Dashboard summary                                   | Permission                    | Planned |
 
 ```json
 POST /api/v1/weddings
@@ -135,19 +135,19 @@ POST /api/v1/weddings
 
 ## 7. Membership, partner and sharing API (Planned)
 
-| Method | Endpoint                                      | Purpose                          |
-| ------ | --------------------------------------------- | -------------------------------- |
-| GET    | `/weddings/{weddingId}/members`               | List members and organizers      |
-| POST   | `/weddings/{weddingId}/members/invitations`   | Invite an organizer or member    |
-| PATCH  | `/weddings/{weddingId}/members/{membershipId}`| Change role, status or overrides |
-| DELETE | `/weddings/{weddingId}/members/{membershipId}`| Revoke a membership              |
-| GET    | `/weddings/{weddingId}/partner`               | Get the partner connection       |
-| POST   | `/weddings/{weddingId}/partner/invitations`   | Invite the partner               |
-| POST   | `/partner/invitations/{token}/accept`         | Accept a partner invitation      |
-| POST   | `/weddings/{weddingId}/partner/disconnect`    | Disconnect                       |
-| GET    | `/weddings/{weddingId}/shares`                | List explicit shares             |
-| POST   | `/weddings/{weddingId}/shares`                | Create a resource share          |
-| DELETE | `/weddings/{weddingId}/shares/{shareId}`      | Revoke a share                   |
+| Method | Endpoint                                       | Purpose                          |
+| ------ | ---------------------------------------------- | -------------------------------- |
+| GET    | `/weddings/{weddingId}/members`                | List members and organizers      |
+| POST   | `/weddings/{weddingId}/members/invitations`    | Invite an organizer or member    |
+| PATCH  | `/weddings/{weddingId}/members/{membershipId}` | Change role, status or overrides |
+| DELETE | `/weddings/{weddingId}/members/{membershipId}` | Revoke a membership              |
+| GET    | `/weddings/{weddingId}/partner`                | Get the partner connection       |
+| POST   | `/weddings/{weddingId}/partner/invitations`    | Invite the partner               |
+| POST   | `/partner/invitations/{token}/accept`          | Accept a partner invitation      |
+| POST   | `/weddings/{weddingId}/partner/disconnect`     | Disconnect                       |
+| GET    | `/weddings/{weddingId}/shares`                 | List explicit shares             |
+| POST   | `/weddings/{weddingId}/shares`                 | Create a resource share          |
+| DELETE | `/weddings/{weddingId}/shares/{shareId}`       | Revoke a share                   |
 
 - Membership answers "who can access this wedding"; sharing answers "which protected
   resource is shared"; the partner connection records the relationship.
@@ -156,13 +156,13 @@ POST /api/v1/weddings
 
 ## 8. Event API (Phase 4 — decision 0017)
 
-| Method | Endpoint                                 | Purpose               |
-| ------ | ---------------------------------------- | --------------------- |
-| GET    | `/weddings/{weddingId}/events`           | List active events    |
-| POST   | `/weddings/{weddingId}/events`           | Create an event       |
-| GET    | `/weddings/{weddingId}/events/{eventId}` | Get an event          |
-| PATCH  | `/weddings/{weddingId}/events/{eventId}` | Update an event       |
-| DELETE | `/weddings/{weddingId}/events/{eventId}` | Soft-delete an event  |
+| Method | Endpoint                                 | Purpose              |
+| ------ | ---------------------------------------- | -------------------- |
+| GET    | `/weddings/{weddingId}/events`           | List active events   |
+| POST   | `/weddings/{weddingId}/events`           | Create an event      |
+| GET    | `/weddings/{weddingId}/events/{eventId}` | Get an event         |
+| PATCH  | `/weddings/{weddingId}/events/{eventId}` | Update an event      |
+| DELETE | `/weddings/{weddingId}/events/{eventId}` | Soft-delete an event |
 
 ```json
 POST /api/v1/weddings/{weddingId}/events
@@ -190,16 +190,16 @@ POST /api/v1/weddings/{weddingId}/events
 
 ## 9. Guest, assignment and RSVP API (Phase 4 — decision 0017)
 
-| Method | Endpoint                                          | Purpose                                 |
-| ------ | ------------------------------------------------- | --------------------------------------- |
-| GET    | `/weddings/{weddingId}/guests`                    | List, search and filter guests          |
-| POST   | `/weddings/{weddingId}/guests`                    | Create a guest                          |
-| GET    | `/weddings/{weddingId}/guests/{guestId}`          | Get a guest                             |
-| PATCH  | `/weddings/{weddingId}/guests/{guestId}`          | Update a guest                          |
-| DELETE | `/weddings/{weddingId}/guests/{guestId}`          | Soft-delete a guest                     |
-| GET    | `/weddings/{weddingId}/guests/{guestId}/events`   | The guest's active assignments          |
-| POST   | `/weddings/{weddingId}/guests/{guestId}/events`   | Assign the guest to an event            |
-| PATCH  | `/weddings/{weddingId}/guest-events/{guestEventId}` | Organizer RSVP update                 |
+| Method | Endpoint                                            | Purpose                                 |
+| ------ | --------------------------------------------------- | --------------------------------------- |
+| GET    | `/weddings/{weddingId}/guests`                      | List, search and filter guests          |
+| POST   | `/weddings/{weddingId}/guests`                      | Create a guest                          |
+| GET    | `/weddings/{weddingId}/guests/{guestId}`            | Get a guest                             |
+| PATCH  | `/weddings/{weddingId}/guests/{guestId}`            | Update a guest                          |
+| DELETE | `/weddings/{weddingId}/guests/{guestId}`            | Soft-delete a guest                     |
+| GET    | `/weddings/{weddingId}/guests/{guestId}/events`     | The guest's active assignments          |
+| POST   | `/weddings/{weddingId}/guests/{guestId}/events`     | Assign the guest to an event            |
+| PATCH  | `/weddings/{weddingId}/guest-events/{guestEventId}` | Organizer RSVP update                   |
 | DELETE | `/weddings/{weddingId}/guest-events/{guestEventId}` | Remove the assignment (kept as history) |
 
 ```json
@@ -226,7 +226,7 @@ POST /api/v1/weddings/{weddingId}/guests
   with `rsvpStatus: "PENDING"`, `attendeeCount: null` and returns `201 GuestEventDto`. If an
   active assignment already exists it is returned unchanged with `200` — never a duplicate.
 - `GuestEventDto`: `{ id, guestId, eventId, rsvpStatus, attendeeCount, respondedAt,
-  rsvpUpdatedAt, createdAt }`.
+rsvpUpdatedAt, createdAt }`.
 
 ```json
 PATCH /api/v1/weddings/{weddingId}/guest-events/{guestEventId}
@@ -247,24 +247,24 @@ PATCH /api/v1/weddings/{weddingId}/guest-events/{guestEventId}
 
 Organizer routes (all `/api/v1/weddings/{weddingId}/guests/{guestId}/invitation…`):
 
-| Method | Endpoint suffix          | Purpose                                         | Success |
-| ------ | ------------------------ | ----------------------------------------------- | ------- |
-| POST   | `/invitation`            | Create the invitation and its first token       | `201`   |
-| POST   | `/invitation/regenerate` | Replace the token; the old one stops working    | `200`   |
-| POST   | `/invitation/send`       | Queue the invitation email                      | `202`   |
-| POST   | `/invitation/resend`     | Queue it again                                  | `202`   |
-| POST   | `/invitation/revoke`     | Revoke the token                                | `200`   |
-| GET    | `/invitation/deliveries` | Delivery history and activity history           | `200`   |
+| Method | Endpoint suffix          | Purpose                                      | Success |
+| ------ | ------------------------ | -------------------------------------------- | ------- |
+| POST   | `/invitation`            | Create the invitation and its first token    | `201`   |
+| POST   | `/invitation/regenerate` | Replace the token; the old one stops working | `200`   |
+| POST   | `/invitation/send`       | Queue the invitation email                   | `202`   |
+| POST   | `/invitation/resend`     | Queue it again                               | `202`   |
+| POST   | `/invitation/revoke`     | Revoke the token                             | `200`   |
+| GET    | `/invitation/deliveries` | Delivery history and activity history        | `200`   |
 
 Guest routes (account-free, token in the path):
 
-| Method | Endpoint                             | Purpose                         |
-| ------ | ------------------------------------ | ------------------------------- |
-| GET    | `/guest/invitations/{token}`         | Open the invitation             |
-| PATCH  | `/guest/invitations/{token}/rsvp`    | Submit or update RSVPs          |
+| Method | Endpoint                          | Purpose                |
+| ------ | --------------------------------- | ---------------------- |
+| GET    | `/guest/invitations/{token}`      | Open the invitation    |
+| PATCH  | `/guest/invitations/{token}/rsvp` | Submit or update RSVPs |
 
 - `InvitationDto`: `{ guestId, deliveryStatus, isRevoked, tokenCreatedAt, lastSentAt,
-  firstOpenedAt }`. Create and regenerate also return `invitationUrl`
+firstOpenedAt }`. Create and regenerate also return `invitationUrl`
   (`https://makemymarriage.com/invite/{token}`).
 - `409 INVITATION_ALREADY_EXISTS` when creating twice; `404 INVITATION_NOT_FOUND` for
   operations before creation; `409 INVITATION_REVOKED` for send or resend while revoked;
@@ -275,7 +275,7 @@ Guest routes (account-free, token in the path):
   Phase 4).
 - `GET …/deliveries` returns
   `{ deliveries: [{ attemptNumber, kind, status, sentAt, failedAt, failureReason, createdAt }],
-  activities: [{ type, occurredAt }] }`.
+activities: [{ type, occurredAt }] }`.
 
 ```json
 GET /api/v1/guest/invitations/{token}
@@ -320,34 +320,34 @@ again. This contract is final for Phase 4 only after this is decided.
 
 ## 11. Notification and reminder API (Planned)
 
-| Method | Endpoint                                      | Purpose                         |
-| ------ | --------------------------------------------- | ------------------------------- |
-| GET    | `/notifications`                              | The user's notifications        |
-| PATCH  | `/notifications/{notificationId}/read`        | Mark one read                   |
-| POST   | `/notifications/read-all`                     | Mark all read                   |
-| GET    | `/weddings/{weddingId}/reminders`             | Reminder configuration          |
-| POST   | `/weddings/{weddingId}/reminders`             | Create a reminder               |
-| PATCH  | `/weddings/{weddingId}/reminders/{reminderId}`| Update a reminder               |
-| DELETE | `/weddings/{weddingId}/reminders/{reminderId}`| Disable or delete               |
+| Method | Endpoint                                       | Purpose                  |
+| ------ | ---------------------------------------------- | ------------------------ |
+| GET    | `/notifications`                               | The user's notifications |
+| PATCH  | `/notifications/{notificationId}/read`         | Mark one read            |
+| POST   | `/notifications/read-all`                      | Mark all read            |
+| GET    | `/weddings/{weddingId}/reminders`              | Reminder configuration   |
+| POST   | `/weddings/{weddingId}/reminders`              | Create a reminder        |
+| PATCH  | `/weddings/{weddingId}/reminders/{reminderId}` | Update a reminder        |
+| DELETE | `/weddings/{weddingId}/reminders/{reminderId}` | Disable or delete        |
 
 Reminder routes are not exposed until reminder cadence and customization are decided
 (PRD v1.2 §14).
 
 ## 12. Expense API (Planned — decisions 0009, 0010)
 
-| Method | Endpoint                                                            | Purpose            |
-| ------ | ------------------------------------------------------------------- | ------------------ |
-| GET    | `/weddings/{weddingId}/expenses`                                    | List and filter    |
-| POST   | `/weddings/{weddingId}/expenses`                                    | Create             |
-| GET    | `/weddings/{weddingId}/expenses/{expenseId}`                        | Get                |
-| PATCH  | `/weddings/{weddingId}/expenses/{expenseId}`                        | Update             |
-| DELETE | `/weddings/{weddingId}/expenses/{expenseId}`                        | Soft-delete        |
-| GET    | `/weddings/{weddingId}/expenses/{expenseId}/payments`               | List payments      |
-| POST   | `/weddings/{weddingId}/expenses/{expenseId}/payments`               | Add a payment      |
-| PATCH  | `/weddings/{weddingId}/expenses/{expenseId}/payments/{paymentId}`   | Update a payment   |
-| DELETE | `/weddings/{weddingId}/expenses/{expenseId}/payments/{paymentId}`   | Remove a payment   |
-| POST   | `/weddings/{weddingId}/expenses/{expenseId}/receipts/upload-url`    | S3 upload URL      |
-| DELETE | `/weddings/{weddingId}/expenses/{expenseId}/receipts/{receiptId}`   | Delete a receipt   |
+| Method | Endpoint                                                          | Purpose          |
+| ------ | ----------------------------------------------------------------- | ---------------- |
+| GET    | `/weddings/{weddingId}/expenses`                                  | List and filter  |
+| POST   | `/weddings/{weddingId}/expenses`                                  | Create           |
+| GET    | `/weddings/{weddingId}/expenses/{expenseId}`                      | Get              |
+| PATCH  | `/weddings/{weddingId}/expenses/{expenseId}`                      | Update           |
+| DELETE | `/weddings/{weddingId}/expenses/{expenseId}`                      | Soft-delete      |
+| GET    | `/weddings/{weddingId}/expenses/{expenseId}/payments`             | List payments    |
+| POST   | `/weddings/{weddingId}/expenses/{expenseId}/payments`             | Add a payment    |
+| PATCH  | `/weddings/{weddingId}/expenses/{expenseId}/payments/{paymentId}` | Update a payment |
+| DELETE | `/weddings/{weddingId}/expenses/{expenseId}/payments/{paymentId}` | Remove a payment |
+| POST   | `/weddings/{weddingId}/expenses/{expenseId}/receipts/upload-url`  | S3 upload URL    |
+| DELETE | `/weddings/{weddingId}/expenses/{expenseId}/receipts/{receiptId}` | Delete a receipt |
 
 ```json
 POST /api/v1/weddings/{weddingId}/expenses
@@ -363,33 +363,33 @@ POST /api/v1/weddings/{weddingId}/expenses
 
 ## 13. Task API (Planned)
 
-| Method | Endpoint                                              | Purpose        |
-| ------ | ----------------------------------------------------- | -------------- |
-| GET    | `/weddings/{weddingId}/tasks`                         | List, filter   |
-| POST   | `/weddings/{weddingId}/tasks`                         | Create         |
-| GET    | `/weddings/{weddingId}/tasks/{taskId}`                | Get            |
-| PATCH  | `/weddings/{weddingId}/tasks/{taskId}`                | Update         |
-| DELETE | `/weddings/{weddingId}/tasks/{taskId}`                | Soft-delete    |
-| POST   | `/weddings/{weddingId}/tasks/{taskId}/assignees`      | Assign a user  |
-| DELETE | `/weddings/{weddingId}/tasks/{taskId}/assignees/{userId}` | Unassign   |
-| GET    | `/weddings/{weddingId}/tasks/{taskId}/activities`     | History        |
+| Method | Endpoint                                                  | Purpose       |
+| ------ | --------------------------------------------------------- | ------------- |
+| GET    | `/weddings/{weddingId}/tasks`                             | List, filter  |
+| POST   | `/weddings/{weddingId}/tasks`                             | Create        |
+| GET    | `/weddings/{weddingId}/tasks/{taskId}`                    | Get           |
+| PATCH  | `/weddings/{weddingId}/tasks/{taskId}`                    | Update        |
+| DELETE | `/weddings/{weddingId}/tasks/{taskId}`                    | Soft-delete   |
+| POST   | `/weddings/{weddingId}/tasks/{taskId}/assignees`          | Assign a user |
+| DELETE | `/weddings/{weddingId}/tasks/{taskId}/assignees/{userId}` | Unassign      |
+| GET    | `/weddings/{weddingId}/tasks/{taskId}/activities`         | History       |
 
 Statuses `TODO`, `IN_PROGRESS`, `BLOCKED`, `COMPLETED`, `CANCELLED` (0010 #3, 0013). Note and
 attachment endpoints are designed with the Tasks phase (0010 #4).
 
 ## 14. Vendor API (Planned)
 
-| Method | Endpoint                                                        | Purpose                 |
-| ------ | --------------------------------------------------------------- | ----------------------- |
-| GET    | `/weddings/{weddingId}/vendors`                                 | List managed vendors    |
-| POST   | `/weddings/{weddingId}/vendors`                                 | Add a vendor            |
-| GET    | `/weddings/{weddingId}/vendors/{vendorId}`                      | Get                     |
-| PATCH  | `/weddings/{weddingId}/vendors/{vendorId}`                      | Update                  |
-| DELETE | `/weddings/{weddingId}/vendors/{vendorId}`                      | Soft-delete             |
-| POST   | `/weddings/{weddingId}/vendors/{vendorId}/attachments/upload-url` | S3 upload URL         |
-| GET    | `/weddings/{weddingId}/vendor-discovery/search`                 | Search nearby vendors   |
-| GET    | `/weddings/{weddingId}/vendor-discovery/{providerPlaceId}`      | Discovery detail        |
-| POST   | `/weddings/{weddingId}/vendor-discovery/{providerPlaceId}/add`  | Add a discovered vendor |
+| Method | Endpoint                                                          | Purpose                 |
+| ------ | ----------------------------------------------------------------- | ----------------------- |
+| GET    | `/weddings/{weddingId}/vendors`                                   | List managed vendors    |
+| POST   | `/weddings/{weddingId}/vendors`                                   | Add a vendor            |
+| GET    | `/weddings/{weddingId}/vendors/{vendorId}`                        | Get                     |
+| PATCH  | `/weddings/{weddingId}/vendors/{vendorId}`                        | Update                  |
+| DELETE | `/weddings/{weddingId}/vendors/{vendorId}`                        | Soft-delete             |
+| POST   | `/weddings/{weddingId}/vendors/{vendorId}/attachments/upload-url` | S3 upload URL           |
+| GET    | `/weddings/{weddingId}/vendor-discovery/search`                   | Search nearby vendors   |
+| GET    | `/weddings/{weddingId}/vendor-discovery/{providerPlaceId}`        | Discovery detail        |
+| POST   | `/weddings/{weddingId}/vendor-discovery/{providerPlaceId}/add`    | Add a discovered vendor |
 
 `GET …/vendor-discovery/search?q=photographer&lat=26.9124&lng=75.7873&radius=10000`. The web
 app calls MakeMyMarriage, never Google directly; results are not managed vendors until
@@ -397,16 +397,16 @@ added.
 
 ## 15. Wedding website API (Planned — decision 0016; answer Q4)
 
-| Method | Endpoint                                   | Purpose                      |
-| ------ | ------------------------------------------ | ---------------------------- |
-| GET    | `/weddings/{weddingId}/website`            | Website configuration        |
-| PATCH  | `/weddings/{weddingId}/website`            | Update configuration         |
-| POST   | `/weddings/{weddingId}/website/publish`    | Publish                      |
-| POST   | `/weddings/{weddingId}/website/unpublish`  | Unpublish                    |
-| GET    | `/public/w/{publicIdentifier}`             | Public website payload       |
-| GET    | `/public/w/{publicIdentifier}/events`      | Public events                |
-| GET    | `/public/w/{publicIdentifier}/gallery`     | Public gallery               |
-| GET    | `/public/w/{publicIdentifier}/live-streams`| Public live streams          |
+| Method | Endpoint                                    | Purpose                |
+| ------ | ------------------------------------------- | ---------------------- |
+| GET    | `/weddings/{weddingId}/website`             | Website configuration  |
+| PATCH  | `/weddings/{weddingId}/website`             | Update configuration   |
+| POST   | `/weddings/{weddingId}/website/publish`     | Publish                |
+| POST   | `/weddings/{weddingId}/website/unpublish`   | Unpublish              |
+| GET    | `/public/w/{publicIdentifier}`              | Public website payload |
+| GET    | `/public/w/{publicIdentifier}/events`       | Public events          |
+| GET    | `/public/w/{publicIdentifier}/gallery`      | Public gallery         |
+| GET    | `/public/w/{publicIdentifier}/live-streams` | Public live streams    |
 
 - Public endpoints resolve by `publicIdentifier` and return only public or shared data —
   never wedding IDs, private notes, private guests, membership data or expenses.
@@ -415,51 +415,51 @@ added.
 
 ## 16. Gallery and memory QR API (Planned)
 
-| Method | Endpoint                                              | Purpose                    |
-| ------ | ----------------------------------------------------- | -------------------------- |
-| GET    | `/weddings/{weddingId}/photos`                        | Gallery photos             |
-| POST   | `/weddings/{weddingId}/photos/upload-url`             | Upload URL                 |
-| DELETE | `/weddings/{weddingId}/photos/{photoId}`              | Delete a managed photo     |
-| GET    | `/weddings/{weddingId}/memory-qrs`                    | List QR codes              |
-| POST   | `/weddings/{weddingId}/memory-qrs`                    | Generate a QR              |
-| POST   | `/weddings/{weddingId}/memory-qrs/{qrId}/regenerate`  | Revoke and create new      |
-| POST   | `/weddings/{weddingId}/memory-qrs/{qrId}/revoke`      | Revoke                     |
-| GET    | `/guest/memory/{token}`                               | Open the guest upload flow |
-| POST   | `/guest/memory/{token}/upload-url`                    | Guest upload URL           |
-| DELETE | `/guest/memory/{token}/photos/{photoId}`              | Guest deletes own upload   |
+| Method | Endpoint                                             | Purpose                    |
+| ------ | ---------------------------------------------------- | -------------------------- |
+| GET    | `/weddings/{weddingId}/photos`                       | Gallery photos             |
+| POST   | `/weddings/{weddingId}/photos/upload-url`            | Upload URL                 |
+| DELETE | `/weddings/{weddingId}/photos/{photoId}`             | Delete a managed photo     |
+| GET    | `/weddings/{weddingId}/memory-qrs`                   | List QR codes              |
+| POST   | `/weddings/{weddingId}/memory-qrs`                   | Generate a QR              |
+| POST   | `/weddings/{weddingId}/memory-qrs/{qrId}/regenerate` | Revoke and create new      |
+| POST   | `/weddings/{weddingId}/memory-qrs/{qrId}/revoke`     | Revoke                     |
+| GET    | `/guest/memory/{token}`                              | Open the guest upload flow |
+| POST   | `/guest/memory/{token}/upload-url`                   | Guest upload URL           |
+| DELETE | `/guest/memory/{token}/photos/{photoId}`             | Guest deletes own upload   |
 
 QR tokens are random and never derived from IDs; an event QR scopes uploads to the event;
 guest uploads publish automatically; binaries go to S3.
 
 ## 17. Live stream API (Planned)
 
-| Method | Endpoint                                                  | Purpose                 |
-| ------ | --------------------------------------------------------- | ----------------------- |
-| GET    | `/weddings/{weddingId}/events/{eventId}/live-streams`     | List event streams      |
-| POST   | `/weddings/{weddingId}/events/{eventId}/live-streams`     | Associate a stream      |
-| PATCH  | `/weddings/{weddingId}/live-streams/{streamId}`           | Update                  |
-| DELETE | `/weddings/{weddingId}/live-streams/{streamId}`           | Remove                  |
+| Method | Endpoint                                                    | Purpose               |
+| ------ | ----------------------------------------------------------- | --------------------- |
+| GET    | `/weddings/{weddingId}/events/{eventId}/live-streams`       | List event streams    |
+| POST   | `/weddings/{weddingId}/events/{eventId}/live-streams`       | Associate a stream    |
+| PATCH  | `/weddings/{weddingId}/live-streams/{streamId}`             | Update                |
+| DELETE | `/weddings/{weddingId}/live-streams/{streamId}`             | Remove                |
 | GET    | `/public/w/{publicIdentifier}/events/{eventId}/live-stream` | Public stream payload |
 
 ## 18. Reports API (Planned — Excel only)
 
-| Method | Endpoint                                                  | Purpose                 |
-| ------ | --------------------------------------------------------- | ----------------------- |
-| POST   | `/weddings/{weddingId}/reports/guest/export`              | Guest Excel report      |
-| POST   | `/weddings/{weddingId}/reports/expense/export`            | Expense Excel report    |
-| POST   | `/weddings/{weddingId}/reports/task/export`               | Task Excel report       |
-| GET    | `/weddings/{weddingId}/reports/exports`                   | List export jobs        |
-| GET    | `/weddings/{weddingId}/reports/exports/{exportId}`        | Export status           |
-| GET    | `/weddings/{weddingId}/reports/exports/{exportId}/download` | Download              |
+| Method | Endpoint                                                    | Purpose              |
+| ------ | ----------------------------------------------------------- | -------------------- |
+| POST   | `/weddings/{weddingId}/reports/guest/export`                | Guest Excel report   |
+| POST   | `/weddings/{weddingId}/reports/expense/export`              | Expense Excel report |
+| POST   | `/weddings/{weddingId}/reports/task/export`                 | Task Excel report    |
+| GET    | `/weddings/{weddingId}/reports/exports`                     | List export jobs     |
+| GET    | `/weddings/{weddingId}/reports/exports/{exportId}`          | Export status        |
+| GET    | `/weddings/{weddingId}/reports/exports/{exportId}/download` | Download             |
 
 ## 19. Settings and management API (Planned)
 
-| Method | Endpoint                             | Purpose                          |
-| ------ | ------------------------------------ | -------------------------------- |
-| GET    | `/weddings/{weddingId}/settings`     | Permission-scoped settings       |
-| PATCH  | `/weddings/{weddingId}/settings`     | Update settings                  |
-| GET    | `/weddings/{weddingId}/permissions`  | Effective permissions            |
-| GET    | `/weddings/{weddingId}/audit-logs`   | Authorized audit history         |
+| Method | Endpoint                            | Purpose                    |
+| ------ | ----------------------------------- | -------------------------- |
+| GET    | `/weddings/{weddingId}/settings`    | Permission-scoped settings |
+| PATCH  | `/weddings/{weddingId}/settings`    | Update settings            |
+| GET    | `/weddings/{weddingId}/permissions` | Effective permissions      |
+| GET    | `/weddings/{weddingId}/audit-logs`  | Authorized audit history   |
 
 ## 20. Standard response envelope
 
@@ -476,44 +476,49 @@ database errors are returned. A `204` response has no body.
 ## 21. Standard error contract
 
 ```json
-{ "error": { "code": "GUEST_EVENT_NOT_FOUND",
-  "message": "The requested guest-event relationship was not found.",
-  "details": {}, "requestId": "req_…" } }
+{
+  "error": {
+    "code": "GUEST_EVENT_NOT_FOUND",
+    "message": "The requested guest-event relationship was not found.",
+    "details": {},
+    "requestId": "req_…"
+  }
+}
 ```
 
 `VALIDATION_FAILED` puts field messages in `details.fields`: `{ "attendeeCount": ["…"] }`.
 
-| HTTP | Use                                         |
-| ---- | ------------------------------------------- |
-| 400  | Malformed request or invalid input          |
-| 401  | Missing or invalid authentication           |
-| 403  | Authenticated but not authorized            |
-| 404  | Not found, or intentionally hidden          |
-| 409  | Business or uniqueness conflict             |
-| 422  | Semantically invalid request                |
-| 429  | Rate limit exceeded                         |
-| 500  | Unexpected server error                     |
-| 502/503 | Upstream provider or temporary failure   |
+| HTTP    | Use                                    |
+| ------- | -------------------------------------- |
+| 400     | Malformed request or invalid input     |
+| 401     | Missing or invalid authentication      |
+| 403     | Authenticated but not authorized       |
+| 404     | Not found, or intentionally hidden     |
+| 409     | Business or uniqueness conflict        |
+| 422     | Semantically invalid request           |
+| 429     | Rate limit exceeded                    |
+| 500     | Unexpected server error                |
+| 502/503 | Upstream provider or temporary failure |
 
 Error codes in use or approved:
 
-| Code                        | HTTP | Where                                   |
-| --------------------------- | ---- | --------------------------------------- |
-| `VALIDATION_FAILED`         | 400  | Any DTO or rule violation               |
-| `UNAUTHENTICATED`           | 401  | No or ended session                     |
-| `INVALID_CREDENTIALS`       | 401  | Sign-in (0015)                          |
-| `EMAIL_ALREADY_REGISTERED`  | 409  | Registration (0015)                     |
-| `RESET_TOKEN_INVALID`       | 400  | Password reset (0015)                   |
-| `RATE_LIMITED`              | 429  | Rate limits                             |
-| `WEDDING_ALREADY_OWNED`     | 409  | Create wedding (0016)                   |
-| `WEDDING_NOT_FOUND`         | 404  | Any wedding route (0016)                |
-| `EVENT_NOT_FOUND`           | 404  | Phase 4                                 |
-| `GUEST_NOT_FOUND`           | 404  | Phase 4                                 |
-| `GUEST_EVENT_NOT_FOUND`     | 404  | Phase 4                                 |
-| `INVITATION_NOT_FOUND`      | 404  | Phase 4 (organizer and guest routes)    |
-| `INVITATION_ALREADY_EXISTS` | 409  | Phase 4                                 |
-| `INVITATION_REVOKED`        | 409  | Phase 4                                 |
-| `GUEST_EMAIL_REQUIRED`      | 422  | Phase 4                                 |
+| Code                        | HTTP | Where                                |
+| --------------------------- | ---- | ------------------------------------ |
+| `VALIDATION_FAILED`         | 400  | Any DTO or rule violation            |
+| `UNAUTHENTICATED`           | 401  | No or ended session                  |
+| `INVALID_CREDENTIALS`       | 401  | Sign-in (0015)                       |
+| `EMAIL_ALREADY_REGISTERED`  | 409  | Registration (0015)                  |
+| `RESET_TOKEN_INVALID`       | 400  | Password reset (0015)                |
+| `RATE_LIMITED`              | 429  | Rate limits                          |
+| `WEDDING_ALREADY_OWNED`     | 409  | Create wedding (0016)                |
+| `WEDDING_NOT_FOUND`         | 404  | Any wedding route (0016)             |
+| `EVENT_NOT_FOUND`           | 404  | Phase 4                              |
+| `GUEST_NOT_FOUND`           | 404  | Phase 4                              |
+| `GUEST_EVENT_NOT_FOUND`     | 404  | Phase 4                              |
+| `INVITATION_NOT_FOUND`      | 404  | Phase 4 (organizer and guest routes) |
+| `INVITATION_ALREADY_EXISTS` | 409  | Phase 4                              |
+| `INVITATION_REVOKED`        | 409  | Phase 4                              |
+| `GUEST_EMAIL_REQUIRED`      | 422  | Phase 4                              |
 
 ## 22. Validation and DTO strategy
 
@@ -531,17 +536,17 @@ Request → authentication guard → resolve weddingId → membership lookup →
         → application service → repository (weddingId-scoped query)
 ```
 
-| Example                 | Required authorization                     |
-| ----------------------- | ------------------------------------------ |
-| Create guest            | CREATE on Guests                           |
-| Edit RSVP manually      | EDIT/MANAGE on GuestEvent                  |
-| Create, send, revoke invitation | MANAGE on Invitations              |
-| Edit expense            | EDIT on Expenses                           |
-| View expense            | VIEW on Expenses (no visibility check — 0009) |
-| Publish website         | CONFIGURE/MANAGE on Website                |
-| Regenerate QR           | MANAGE on Memory QR                        |
-| Delete guest photo      | DELETE on Gallery                          |
-| View audit logs         | VIEW/MANAGE on Audit                       |
+| Example                         | Required authorization                        |
+| ------------------------------- | --------------------------------------------- |
+| Create guest                    | CREATE on Guests                              |
+| Edit RSVP manually              | EDIT/MANAGE on GuestEvent                     |
+| Create, send, revoke invitation | MANAGE on Invitations                         |
+| Edit expense                    | EDIT on Expenses                              |
+| View expense                    | VIEW on Expenses (no visibility check — 0009) |
+| Publish website                 | CONFIGURE/MANAGE on Website                   |
+| Regenerate QR                   | MANAGE on Memory QR                           |
+| Delete guest photo              | DELETE on Gallery                             |
+| View audit logs                 | VIEW/MANAGE on Audit                          |
 
 Until Phase 10 only `OWNER` members exist, and owners pass every check.
 
@@ -558,15 +563,15 @@ parameters; no MongoDB operators from query strings.
 
 ## 25. Idempotency and duplicate protection
 
-| Operation             | Strategy                                                              |
-| --------------------- | --------------------------------------------------------------------- |
-| Create guest          | Normal POST; duplicate mobile produces a warning, never a block       |
-| Assign guest to event | Partial unique active assignment; repeat returns the existing one     |
-| Send/resend invitation| Each attempt is a delivery record; optional `Idempotency-Key`; jobs idempotent |
-| Accept partner invite | Idempotent on invitation/connection state                             |
-| Create payment        | Optional `Idempotency-Key`                                            |
-| Generate QR           | POST creates; regenerate is explicit                                  |
-| Report export         | Optional `Idempotency-Key`                                            |
+| Operation              | Strategy                                                                       |
+| ---------------------- | ------------------------------------------------------------------------------ |
+| Create guest           | Normal POST; duplicate mobile produces a warning, never a block                |
+| Assign guest to event  | Partial unique active assignment; repeat returns the existing one              |
+| Send/resend invitation | Each attempt is a delivery record; optional `Idempotency-Key`; jobs idempotent |
+| Accept partner invite  | Idempotent on invitation/connection state                                      |
+| Create payment         | Optional `Idempotency-Key`                                                     |
+| Generate QR            | POST creates; regenerate is explicit                                           |
+| Report export          | Optional `Idempotency-Key`                                                     |
 
 Idempotency keys are stored with the result for a bounded period (0010 #16).
 
@@ -582,29 +587,29 @@ objects are cleaned up asynchronously.
 
 ## 27. Background job boundaries
 
-| Job                         | Trigger                    | Queue  |
-| --------------------------- | -------------------------- | ------ |
-| Password reset email        | Forgot password            | BullMQ `email` (Built) |
-| Invitation email            | Send / resend              | BullMQ |
-| Guest reminders             | Reminder schedule (deferred) | BullMQ |
-| Organizer notifications     | Business events            | BullMQ |
-| Report generation           | Export request             | BullMQ |
-| Media cleanup               | Deleted or orphaned object | BullMQ |
-| Email delivery reconciliation | Provider webhook (future) | BullMQ |
+| Job                           | Trigger                      | Queue                  |
+| ----------------------------- | ---------------------------- | ---------------------- |
+| Password reset email          | Forgot password              | BullMQ `email` (Built) |
+| Invitation email              | Send / resend                | BullMQ                 |
+| Guest reminders               | Reminder schedule (deferred) | BullMQ                 |
+| Organizer notifications       | Business events              | BullMQ                 |
+| Report generation             | Export request               | BullMQ                 |
+| Media cleanup                 | Deleted or orphaned object   | BullMQ                 |
+| Email delivery reconciliation | Provider webhook (future)    | BullMQ                 |
 
 The worker runs in its own container, never as a Vercel request function (0005).
 
 ## 28. Rate limiting and abuse protection
 
-| Endpoint class           | Protection                                             |
-| ------------------------ | ------------------------------------------------------ |
-| Sign-in / password reset | Per-identity limits (0015)                             |
-| Guest invitation token   | Token and IP limits                                    |
-| Guest RSVP               | Token and IP limits + state validation                 |
-| Guest photo upload       | Token and IP limits + file size and content limits     |
-| QR endpoints             | Token and IP limits                                    |
-| Public website           | General traffic limit                                  |
-| Vendor discovery         | Provider-aware limits and permitted caching            |
+| Endpoint class           | Protection                                         |
+| ------------------------ | -------------------------------------------------- |
+| Sign-in / password reset | Per-identity limits (0015)                         |
+| Guest invitation token   | Token and IP limits                                |
+| Guest RSVP               | Token and IP limits + state validation             |
+| Guest photo upload       | Token and IP limits + file size and content limits |
+| QR endpoints             | Token and IP limits                                |
+| Public website           | General traffic limit                              |
+| Vendor discovery         | Provider-aware limits and permitted caching        |
 
 Numeric limits beyond 0015 are set from observed traffic and abuse testing.
 
@@ -614,10 +619,10 @@ A request ID per request, in responses and logs; method, route, status, duration
 logged without secrets; provider failures recorded separately; audit events for important
 changes.
 
-| Endpoint            | Purpose                         | Exposure                     |
-| ------------------- | ------------------------------- | ---------------------------- |
-| `GET /health/live`  | Process is alive                | Infrastructure (outside `/api/v1`) |
-| `GET /health/ready` | Dependencies ready for traffic  | Load balancer (outside `/api/v1`)  |
+| Endpoint            | Purpose                        | Exposure                           |
+| ------------------- | ------------------------------ | ---------------------------------- |
+| `GET /health/live`  | Process is alive               | Infrastructure (outside `/api/v1`) |
+| `GET /health/ready` | Dependencies ready for traffic | Load balancer (outside `/api/v1`)  |
 
 ## 30. API security rules
 
@@ -638,24 +643,24 @@ independently where practical.
 
 ## 32. Integration boundaries
 
-| Integration          | API responsibility                                                 |
-| -------------------- | ------------------------------------------------------------------ |
-| Resend               | Send transactional emails; capture provider status (webhooks later) |
-| Google Places (New)  | Vendor discovery only; map responses to internal DTOs              |
-| YouTube Live         | Store stream identifiers; expose embed information                 |
-| Amazon S3            | Binary storage; controlled upload and access URLs                  |
-| Redis / BullMQ       | Asynchronous jobs; not a public API                                |
+| Integration         | API responsibility                                                  |
+| ------------------- | ------------------------------------------------------------------- |
+| Resend              | Send transactional emails; capture provider status (webhooks later) |
+| Google Places (New) | Vendor discovery only; map responses to internal DTOs               |
+| YouTube Live        | Store stream identifiers; expose embed information                  |
+| Amazon S3           | Binary storage; controlled upload and access URLs                   |
+| Redis / BullMQ      | Asynchronous jobs; not a public API                                 |
 
 ## 33. Testing strategy
 
-| Level     | Coverage                                                                     |
-| --------- | ---------------------------------------------------------------------------- |
-| Unit      | DTO validation, services, permission evaluators, token services             |
-| Integration | Controllers + MongoDB repositories + authorization (real Redis, in-memory MongoDB) |
-| Contract  | Generated OpenAPI checked in CI; request/response schemas                   |
-| Security  | Authentication, tenant isolation, token guessing, IDOR, rate limiting       |
-| Workflow  | Invitation → send → open → RSVP; QR → upload → gallery → guest deletion; partner invite → accept → share → disconnect; expense → payment → receipt |
-| Provider  | Resend, Google Places, YouTube adapters                                      |
+| Level       | Coverage                                                                                                                                           |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Unit        | DTO validation, services, permission evaluators, token services                                                                                    |
+| Integration | Controllers + MongoDB repositories + authorization (real Redis, in-memory MongoDB)                                                                 |
+| Contract    | Generated OpenAPI checked in CI; request/response schemas                                                                                          |
+| Security    | Authentication, tenant isolation, token guessing, IDOR, rate limiting                                                                              |
+| Workflow    | Invitation → send → open → RSVP; QR → upload → gallery → guest deletion; partner invite → accept → share → disconnect; expense → payment → receipt |
+| Provider    | Resend, Google Places, YouTube adapters                                                                                                            |
 
 Required for Phase 4: every application route under `/api/v1`; signup without a wedding;
 cross-wedding IDs return `404`; all four RSVP status/count combinations and every rejected
@@ -677,19 +682,19 @@ notes absent from guest responses.
 
 ## 35. Open API decisions
 
-| Area             | Decision to finalize                                                         |
-| ---------------- | ---------------------------------------------------------------------------- |
-| Invitation links | **UNRESOLVED:** how raw links are available for later copy, share and send (section 10) |
+| Area             | Decision to finalize                                                                      |
+| ---------------- | ----------------------------------------------------------------------------------------- |
+| Invitation links | **UNRESOLVED:** how raw links are available for later copy, share and send (section 10)   |
 | Invitations      | Organizer reset to `PENDING`; immediate rejection → `FAILED`; deleted guest's link (0017) |
-| Webhooks         | Delivery webhooks for `DELIVERED`/`FAILED`                                    |
-| Roles            | Role names' default permission matrix                                        |
-| Sharing          | Resource types and actions for `resource_shares` (A4)                        |
-| Reminders        | Schedules, recipients, templates                                             |
-| Uploads          | File size and type limits; image processing                                  |
-| Vendor discovery | Google fields and caching rules                                              |
-| Website          | Public payload, caching and revalidation; sitemap and metadata               |
-| Rate limits      | Numeric thresholds beyond 0015                                               |
-| Reports          | Filter contract; download retention                                          |
+| Webhooks         | Delivery webhooks for `DELIVERED`/`FAILED`                                                |
+| Roles            | Role names' default permission matrix                                                     |
+| Sharing          | Resource types and actions for `resource_shares` (A4)                                     |
+| Reminders        | Schedules, recipients, templates                                                          |
+| Uploads          | File size and type limits; image processing                                               |
+| Vendor discovery | Google fields and caching rules                                                           |
+| Website          | Public payload, caching and revalidation; sitemap and metadata                            |
+| Rate limits      | Numeric thresholds beyond 0015                                                            |
+| Reports          | Filter contract; download retention                                                       |
 
 Resolved since v1.0: invitee-already-owns-a-wedding acceptance (0012, N1); attendee-count
 validation and token expiry and status semantics (0017); token and session lifetimes (0015).

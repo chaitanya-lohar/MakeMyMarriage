@@ -2,15 +2,15 @@
 
 Production-ready wedding planning and management platform for Indian weddings.
 
-| Item       | Value                                                                    |
-| ---------- | ------------------------------------------------------------------------ |
-| Product    | MakeMyMarriage                                                           |
-| Version    | 1.2 (consolidated master)                                                |
-| Status     | **Canonical** product baseline                                           |
-| Date       | 2026-10-10                                                               |
-| Users      | Bride, Groom, Organizers, Guests                                         |
-| Deployment | Public online product                                                    |
-| Supersedes | PRD v1.1 and PRD v1.0 (archived in `docs/archive/specs/`)                |
+| Item         | Value                                                                 |
+| ------------ | --------------------------------------------------------------------- |
+| Product      | MakeMyMarriage                                                        |
+| Version      | 1.2 (consolidated master)                                             |
+| Status       | **Canonical** product baseline                                        |
+| Date         | 2026-10-10                                                            |
+| Users        | Bride, Groom, Organizers, Guests                                      |
+| Deployment   | Public online product                                                 |
+| Supersedes   | PRD v1.1 and PRD v1.0 (archived in `docs/archive/specs/`)             |
 | Feature PRDs | [Phase 4 — Events, guests, RSVP and invitations](PHASE_4_PRD_v1.2.md) |
 
 ## Document control
@@ -24,11 +24,11 @@ Production-ready wedding planning and management platform for Indian weddings.
 - Items marked **Deferred** or **Open** are not decided. They are not implemented until an
   approved decision converts them into requirements.
 
-| Version | Date       | Change                                                                                                          |
-| ------- | ---------- | --------------------------------------------------------------------------------------------------------------- |
-| 1.0     | 2026-09    | Original PRD.                                                                                                    |
-| 1.1     | 2026-09    | Product scope baseline.                                                                                          |
-| 1.2     | 2026-10-10 | Consolidated master: PRD v1.1 plus decisions 0008–0017 and the product-owner answers of 2026-10-10 (Q1–Q8).     |
+| Version | Date       | Change                                                                                                      |
+| ------- | ---------- | ----------------------------------------------------------------------------------------------------------- |
+| 1.0     | 2026-09    | Original PRD.                                                                                               |
+| 1.1     | 2026-09    | Product scope baseline.                                                                                     |
+| 1.2     | 2026-10-10 | Consolidated master: PRD v1.1 plus decisions 0008–0017 and the product-owner answers of 2026-10-10 (Q1–Q8). |
 
 ## 1. Executive summary
 
@@ -85,11 +85,11 @@ important operational and guest-facing parts of an Indian wedding into one secur
 
 ## 6. User types
 
-| User      | Purpose                                                                                   |
-| --------- | ----------------------------------------------------------------------------------------- |
-| Bride     | Owns and manages the wedding.                                                             |
-| Groom     | Owns and manages the wedding.                                                             |
-| Organizer | Helps manage the wedding according to permissions.                                        |
+| User      | Purpose                                                                                     |
+| --------- | ------------------------------------------------------------------------------------------- |
+| Bride     | Owns and manages the wedding.                                                               |
+| Groom     | Owns and manages the wedding.                                                               |
+| Organizer | Helps manage the wedding according to permissions.                                          |
 | Guest     | Receives an invitation, responds to event RSVPs and may upload photos — without an account. |
 
 ## 7. Account, wedding and workspace model
@@ -119,16 +119,16 @@ Decision 0016.
 
 Either the bride or the groom can create the wedding.
 
-| Field        | Rule                                                                        |
-| ------------ | --------------------------------------------------------------------------- |
-| Bride's name | Required, 1–100 characters after trimming.                                  |
-| Groom's name | Required, 1–100 characters after trimming.                                  |
-| Wedding date | Optional single calendar date; past dates are allowed.                      |
-| Venue name   | Optional, at most 120 characters.                                           |
-| City         | Optional, at most 120 characters.                                           |
-| Description  | Optional, at most 1,000 characters.                                         |
-| Display name | Always "{Bride} & {Groom}", generated and never typed.                      |
-| Timezone     | `Asia/Kolkata`, stored on the wedding; no timezone selection in V1.         |
+| Field        | Rule                                                                |
+| ------------ | ------------------------------------------------------------------- |
+| Bride's name | Required, 1–100 characters after trimming.                          |
+| Groom's name | Required, 1–100 characters after trimming.                          |
+| Wedding date | Optional single calendar date; past dates are allowed.              |
+| Venue name   | Optional, at most 120 characters.                                   |
+| City         | Optional, at most 120 characters.                                   |
+| Description  | Optional, at most 1,000 characters.                                 |
+| Display name | Always "{Bride} & {Groom}", generated and never typed.              |
+| Timezone     | `Asia/Kolkata`, stored on the wedding; no timezone selection in V1. |
 
 - Owner type (bride or groom) is not collected in V1.
 - **Cover image** and a **wedding theme selector** are part of V1 scope but **deferred to a
@@ -151,21 +151,21 @@ Decisions 0010 (#10) and 0017; product-owner answer Q7 (2026-10-10).
 - Deleting an event removes it from active lists and counts but preserves its RSVP history
   and invitation delivery history (section 12).
 
-| Field                      | V1 | Delivered in |
-| -------------------------- | -- | ------------ |
-| Name                       | Required | Phase 4 |
-| Event type (`ENGAGEMENT`, `MEHENDI`, `HALDI`, `SANGEET`, `WEDDING`, `RECEPTION`, `CUSTOM`) | Required | Phase 4 |
-| Date                       | Required | Phase 4 |
-| Start time, end time       | Optional | Phase 4 |
-| Description                | Optional | Phase 4 |
-| Venue name and address     | Optional | Phase 4 |
-| Dress code                 | Optional | Phase 4 |
-| Notes                      | Optional | Phase 4 |
-| Map location (latitude/longitude) | Optional | Later phase |
-| Cover image                | Optional | Later phase |
-| Public/website visibility (`isPublic`) | — | Later phase (Wedding website) |
-| Public event identifier (`publicId`) | — | Later phase |
-| Instructions               | — | Later phase, once its purpose is approved |
+| Field                                                                                      | V1       | Delivered in                              |
+| ------------------------------------------------------------------------------------------ | -------- | ----------------------------------------- |
+| Name                                                                                       | Required | Phase 4                                   |
+| Event type (`ENGAGEMENT`, `MEHENDI`, `HALDI`, `SANGEET`, `WEDDING`, `RECEPTION`, `CUSTOM`) | Required | Phase 4                                   |
+| Date                                                                                       | Required | Phase 4                                   |
+| Start time, end time                                                                       | Optional | Phase 4                                   |
+| Description                                                                                | Optional | Phase 4                                   |
+| Venue name and address                                                                     | Optional | Phase 4                                   |
+| Dress code                                                                                 | Optional | Phase 4                                   |
+| Notes                                                                                      | Optional | Phase 4                                   |
+| Map location (latitude/longitude)                                                          | Optional | Later phase                               |
+| Cover image                                                                                | Optional | Later phase                               |
+| Public/website visibility (`isPublic`)                                                     | —        | Later phase (Wedding website)             |
+| Public event identifier (`publicId`)                                                       | —        | Later phase                               |
+| Instructions                                                                               | —        | Later phase, once its purpose is approved |
 
 - Events can remain private or be selectively shared with the connected partner; partner
   connection does not automatically share every event. The exact sharing model is decision
@@ -175,13 +175,13 @@ Decisions 0010 (#10) and 0017; product-owner answer Q7 (2026-10-10).
 
 Guest management is intentionally lightweight. Guests do not need MakeMyMarriage accounts.
 
-| Field         | Required | Rule                                                                                                   |
-| ------------- | -------- | ------------------------------------------------------------------------------------------------------ |
-| Guest name    | Yes      | Trimmed, 1–100 characters.                                                                             |
+| Field         | Required | Rule                                                                                                        |
+| ------------- | -------- | ----------------------------------------------------------------------------------------------------------- |
+| Guest name    | Yes      | Trimmed, 1–100 characters.                                                                                  |
 | Mobile number | Yes      | 7–15 digits, an optional leading `+`, spaces and hyphens allowed as separators; no country-specific format. |
-| Email         | No       | Must be a valid email address when given; used for email invitations.                                 |
-| Relation      | No       | Family, friend, colleague, etc.                                                                         |
-| Notes         | No       | Private organizer notes; never shown to guests.                                                        |
+| Email         | No       | Must be a valid email address when given; used for email invitations.                                       |
+| Relation      | No       | Family, friend, colleague, etc.                                                                             |
+| Notes         | No       | Private organizer notes; never shown to guests.                                                             |
 
 - One guest record per wedding; guest identity is separate from event participation.
 - A guest can be invited to any number of events.
@@ -206,12 +206,12 @@ RSVP belongs to the guest–event relationship, not to the guest.
 | Raju  | Wedding   | Attending | 4         |
 | Raju  | Reception | Pending   | —         |
 
-| RSVP status | Meaning                    | Attendee count                      |
-| ----------- | -------------------------- | ----------------------------------- |
-| Pending     | No response yet.           | Empty (`null`).                     |
-| Attending   | Accepts the invitation.    | A whole number of at least 1.       |
-| Declined    | Declines the invitation.   | 0.                                  |
-| Maybe       | Not yet confirming.        | Empty (`null`).                     |
+| RSVP status | Meaning                  | Attendee count                |
+| ----------- | ------------------------ | ----------------------------- |
+| Pending     | No response yet.         | Empty (`null`).               |
+| Attending   | Accepts the invitation.  | A whole number of at least 1. |
+| Declined    | Declines the invitation. | 0.                            |
+| Maybe       | Not yet confirming.      | Empty (`null`).               |
 
 - The attendee count is the total number of people covered by the RSVP, including the
   named guest. Companions are represented by the count only.
@@ -230,12 +230,12 @@ Decisions 0008 and 0017; product-owner answers Q2 and Q8d.
 One invitation per guest covers all of that guest's applicable events; RSVP stays per
 event. Delivery state, activity history and RSVP state are three separate things.
 
-| Delivery status | Meaning                                                              |
-| --------------- | -------------------------------------------------------------------- |
-| Draft           | Prepared but not sent.                                               |
-| Sent            | The email provider accepted the send request.                        |
-| Delivered       | The provider confirmed delivery.                                     |
-| Failed          | The provider reported that delivery failed.                          |
+| Delivery status | Meaning                                       |
+| --------------- | --------------------------------------------- |
+| Draft           | Prepared but not sent.                        |
+| Sent            | The email provider accepted the send request. |
+| Delivered       | The provider confirmed delivery.              |
+| Failed          | The provider reported that delivery failed.   |
 
 - **Opens are activity history, not a delivery status.** Opening an invitation never
   overwrites Delivered or Failed. The first-open time is always kept.
@@ -469,22 +469,22 @@ Public website: Home, Our Story, Events, RSVP, Gallery, Live Stream, Share Your 
 
 ## 30. Deferred and open product decisions
 
-| Area                                   | Status                                                                                       |
-| -------------------------------------- | -------------------------------------------------------------------------------------------- |
-| A4 — partner sharing scope             | **Open** (0011). Expenses already decided: automatically shared (0009).                      |
-| A5 — partner disconnection             | **Open** (0011).                                                                             |
-| Guest fields beyond the core set       | Deferred until a real need is established.                                                  |
-| Vendor management depth                | Feature included; detailed workflow deferred.                                               |
-| Reminder cadence and channels          | Engine included; schedules, channels and customization deferred.                            |
-| Roles and permission templates         | Granular authorization required; default matrix deferred.                                   |
-| QR expiry                              | Deferred. Revoke and regenerate are approved.                                               |
-| Invitation token expiry                | No automatic expiry in V1 (0017); revisit only through a new decision.                      |
-| Delivered / Failed delivery statuses   | Depend on provider webhooks, which are not yet approved; Sent is the highest status shown until then. |
-| Expense payment status `CANCELLED`     | **Open** (section 15).                                                                       |
-| Audit, delivery-history and data retention periods; permanent deletion | Deferred; to be set before production launch.                 |
-| Website sitemap, metadata and crawler directives | To specify in the Wedding website phase.                                          |
-| Provider webhook, retry and backoff details | To specify per integration.                                                             |
-| Overnight events (end time after midnight) and locale-specific phone formatting | Deferred (Phase 4 PRD).                              |
+| Area                                                                            | Status                                                                                                |
+| ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| A4 — partner sharing scope                                                      | **Open** (0011). Expenses already decided: automatically shared (0009).                               |
+| A5 — partner disconnection                                                      | **Open** (0011).                                                                                      |
+| Guest fields beyond the core set                                                | Deferred until a real need is established.                                                            |
+| Vendor management depth                                                         | Feature included; detailed workflow deferred.                                                         |
+| Reminder cadence and channels                                                   | Engine included; schedules, channels and customization deferred.                                      |
+| Roles and permission templates                                                  | Granular authorization required; default matrix deferred.                                             |
+| QR expiry                                                                       | Deferred. Revoke and regenerate are approved.                                                         |
+| Invitation token expiry                                                         | No automatic expiry in V1 (0017); revisit only through a new decision.                                |
+| Delivered / Failed delivery statuses                                            | Depend on provider webhooks, which are not yet approved; Sent is the highest status shown until then. |
+| Expense payment status `CANCELLED`                                              | **Open** (section 15).                                                                                |
+| Audit, delivery-history and data retention periods; permanent deletion          | Deferred; to be set before production launch.                                                         |
+| Website sitemap, metadata and crawler directives                                | To specify in the Wedding website phase.                                                              |
+| Provider webhook, retry and backoff details                                     | To specify per integration.                                                                           |
+| Overnight events (end time after midnight) and locale-specific phone formatting | Deferred (Phase 4 PRD).                                                                               |
 
 ## 31. Product principles
 

@@ -1,25 +1,25 @@
 # MakeMyMarriage — System Design & Architecture v1.3
 
-| Item           | Value                                                                       |
-| -------------- | --------------------------------------------------------------------------- |
-| Version        | 1.3 (consolidated)                                                          |
-| Status         | **Canonical** architecture baseline                                         |
-| Date           | 2026-10-10                                                                  |
-| Architecture   | Modular monolith                                                            |
-| Web            | Next.js + TypeScript on Vercel                                              |
-| API and worker | NestJS + Node.js + TypeScript; one Docker image; containers (AWS ECS/Fargate recommended) |
-| Database       | MongoDB Atlas                                                               |
-| Object storage | Amazon S3                                                                   |
-| Background jobs| Redis + BullMQ                                                              |
-| Email          | Resend                                                                      |
-| Vendor discovery | Google Places API (New)                                                   |
-| Live streaming | YouTube Live (external)                                                     |
-| Supersedes     | System Design v1.0–v1.2 (archived in `docs/archive/specs/`)                 |
+| Item             | Value                                                                                     |
+| ---------------- | ----------------------------------------------------------------------------------------- |
+| Version          | 1.3 (consolidated)                                                                        |
+| Status           | **Canonical** architecture baseline                                                       |
+| Date             | 2026-10-10                                                                                |
+| Architecture     | Modular monolith                                                                          |
+| Web              | Next.js + TypeScript on Vercel                                                            |
+| API and worker   | NestJS + Node.js + TypeScript; one Docker image; containers (AWS ECS/Fargate recommended) |
+| Database         | MongoDB Atlas                                                                             |
+| Object storage   | Amazon S3                                                                                 |
+| Background jobs  | Redis + BullMQ                                                                            |
+| Email            | Resend                                                                                    |
+| Vendor discovery | Google Places API (New)                                                                   |
+| Live streaming   | YouTube Live (external)                                                                   |
+| Supersedes       | System Design v1.0–v1.2 (archived in `docs/archive/specs/`)                               |
 
-| Version | Date       | Change                                                                                              |
-| ------- | ---------- | --------------------------------------------------------------------------------------------------- |
-| 1.0–1.2 | 2026-09    | Architecture baselines.                                                                             |
-| 1.3     | 2026-10-10 | Consolidated: v1.2 plus decisions 0001, 0002, 0005–0007, 0012, 0015–0017 and answers Q1 and Q4.     |
+| Version | Date       | Change                                                                                          |
+| ------- | ---------- | ----------------------------------------------------------------------------------------------- |
+| 1.0–1.2 | 2026-09    | Architecture baselines.                                                                         |
+| 1.3     | 2026-10-10 | Consolidated: v1.2 plus decisions 0001, 0002, 0005–0007, 0012, 0015–0017 and answers Q1 and Q4. |
 
 ## 1. Purpose and scope
 
@@ -33,27 +33,27 @@ reporting, sharing, security, observability and deployment.
 
 ## 2. Confirmed architecture decisions
 
-| Area                | Decision                                                                                   |
-| ------------------- | ------------------------------------------------------------------------------------------ |
-| Architecture        | Modular monolith                                                                           |
-| Frontend            | Next.js (App Router) + TypeScript, Tailwind CSS v4, the "Regal Modernity" design system (0014) |
-| Backend             | NestJS + Node.js + TypeScript                                                              |
-| API                 | REST/JSON under `/api/v1` (API Design v1.1)                                                |
-| Database            | MongoDB Atlas, accessed through Mongoose inside module repositories                       |
-| Object storage      | Amazon S3                                                                                  |
-| Web hosting         | Vercel (web app and its `/api/v1` proxy only)                                              |
-| API and worker hosting | Containers from one Docker image; AWS ECS/Fargate recommended (0002, 0005)              |
-| Background jobs     | Redis + BullMQ                                                                             |
-| Email               | Resend (local development uses a Mailpit inbox)                                            |
-| Authentication V1   | Email + password; no mandatory email verification (0015)                                  |
-| Social login        | Google login is future-ready, not V1                                                       |
-| Sessions            | Multiple devices supported                                                                  |
-| Public wedding URL  | Path-based: `makemymarriage.com/w/{public-identifier}`                                     |
-| Vendor discovery    | Google Maps Platform Places API (New)                                                      |
-| Live streaming      | YouTube Live                                                                               |
-| CI/CD               | GitHub Actions                                                                             |
-| Docker              | Production runtime for the API and worker; also local development and CI                  |
-| CDN                 | CDN-ready; CloudFront optional                                                             |
+| Area                   | Decision                                                                                       |
+| ---------------------- | ---------------------------------------------------------------------------------------------- |
+| Architecture           | Modular monolith                                                                               |
+| Frontend               | Next.js (App Router) + TypeScript, Tailwind CSS v4, the "Regal Modernity" design system (0014) |
+| Backend                | NestJS + Node.js + TypeScript                                                                  |
+| API                    | REST/JSON under `/api/v1` (API Design v1.1)                                                    |
+| Database               | MongoDB Atlas, accessed through Mongoose inside module repositories                            |
+| Object storage         | Amazon S3                                                                                      |
+| Web hosting            | Vercel (web app and its `/api/v1` proxy only)                                                  |
+| API and worker hosting | Containers from one Docker image; AWS ECS/Fargate recommended (0002, 0005)                     |
+| Background jobs        | Redis + BullMQ                                                                                 |
+| Email                  | Resend (local development uses a Mailpit inbox)                                                |
+| Authentication V1      | Email + password; no mandatory email verification (0015)                                       |
+| Social login           | Google login is future-ready, not V1                                                           |
+| Sessions               | Multiple devices supported                                                                     |
+| Public wedding URL     | Path-based: `makemymarriage.com/w/{public-identifier}`                                         |
+| Vendor discovery       | Google Maps Platform Places API (New)                                                          |
+| Live streaming         | YouTube Live                                                                                   |
+| CI/CD                  | GitHub Actions                                                                                 |
+| Docker                 | Production runtime for the API and worker; also local development and CI                       |
+| CDN                    | CDN-ready; CloudFront optional                                                                 |
 
 ## 3. Product and domain principles
 
@@ -94,15 +94,15 @@ MongoDB Atlas   Amazon S3     Redis + BullMQ ─→ worker container
 
 Decisions 0001, 0002 and 0005; answer Q1.
 
-| Component      | Hosting                                                    |
-| -------------- | ---------------------------------------------------------- |
-| Web (Next.js)  | Vercel                                                     |
-| NestJS API     | Container — AWS ECS/Fargate recommended                    |
-| BullMQ worker  | Separate container — AWS ECS/Fargate recommended           |
-| Database       | MongoDB Atlas                                              |
-| Redis          | Managed Redis service                                      |
-| Object storage | Amazon S3                                                  |
-| CI/CD          | GitHub Actions                                             |
+| Component      | Hosting                                          |
+| -------------- | ------------------------------------------------ |
+| Web (Next.js)  | Vercel                                           |
+| NestJS API     | Container — AWS ECS/Fargate recommended          |
+| BullMQ worker  | Separate container — AWS ECS/Fargate recommended |
+| Database       | MongoDB Atlas                                    |
+| Redis          | Managed Redis service                            |
+| Object storage | Amazon S3                                        |
+| CI/CD          | GitHub Actions                                   |
 
 - Browsers only call the web origin. The Next.js server forwards `/api/v1/*` to the API
   (configured by the server-only `API_INTERNAL_URL`); nothing else is forwarded. The API
@@ -118,30 +118,30 @@ Decisions 0001, 0002 and 0005; answer Q1.
 
 ## 6. Backend modular monolith
 
-| Module           | Responsibility                                            |
-| ---------------- | --------------------------------------------------------- |
-| Auth             | Registration, login, password reset, sessions and tokens  |
-| Users            | User accounts and the current-user endpoint               |
-| Weddings         | Wedding identity, couple details, settings                |
-| Workspace        | Memberships and the access check for wedding routes       |
-| Partner          | Partner connection                                         |
-| Sharing          | Resource-specific sharing                                  |
-| Events           | Predefined and custom events                               |
-| Guests           | Guest records and event assignment                         |
-| Invitations      | Invitation tokens, delivery lifecycle and activity         |
-| RSVP             | Event-level RSVP and attendee count                        |
-| Notifications    | In-app and email notifications and reminders               |
-| Expenses         | Expense tracking, payments and receipts                    |
-| Tasks            | Wedding and event tasks                                    |
-| Vendors          | Managed wedding vendors                                    |
-| Vendor discovery | Provider abstraction and Google Places                     |
-| Website          | Website configuration and publication                      |
-| Gallery          | Albums and photos                                          |
-| QR               | Wedding and event QR lifecycle                             |
-| Live stream      | Event–stream association                                   |
-| Reports          | Reports and Excel export                                   |
-| Settings         | Account and wedding settings                               |
-| Audit            | Meaningful and security-sensitive history                  |
+| Module           | Responsibility                                           |
+| ---------------- | -------------------------------------------------------- |
+| Auth             | Registration, login, password reset, sessions and tokens |
+| Users            | User accounts and the current-user endpoint              |
+| Weddings         | Wedding identity, couple details, settings               |
+| Workspace        | Memberships and the access check for wedding routes      |
+| Partner          | Partner connection                                       |
+| Sharing          | Resource-specific sharing                                |
+| Events           | Predefined and custom events                             |
+| Guests           | Guest records and event assignment                       |
+| Invitations      | Invitation tokens, delivery lifecycle and activity       |
+| RSVP             | Event-level RSVP and attendee count                      |
+| Notifications    | In-app and email notifications and reminders             |
+| Expenses         | Expense tracking, payments and receipts                  |
+| Tasks            | Wedding and event tasks                                  |
+| Vendors          | Managed wedding vendors                                  |
+| Vendor discovery | Provider abstraction and Google Places                   |
+| Website          | Website configuration and publication                    |
+| Gallery          | Albums and photos                                        |
+| QR               | Wedding and event QR lifecycle                           |
+| Live stream      | Event–stream association                                 |
+| Reports          | Reports and Excel export                                 |
+| Settings         | Account and wedding settings                             |
+| Audit            | Meaningful and security-sensitive history                |
 
 Module layout (0006):
 
@@ -234,12 +234,12 @@ Wedding
 
 Decisions 0008 and 0017.
 
-| Delivery status | Meaning                                         |
-| --------------- | ----------------------------------------------- |
-| Draft           | Prepared but not sent                           |
-| Sent            | Provider accepted the send request              |
-| Delivered       | Provider confirmed delivery (needs webhooks)    |
-| Failed          | Provider reported failure (needs webhooks)      |
+| Delivery status | Meaning                                      |
+| --------------- | -------------------------------------------- |
+| Draft           | Prepared but not sent                        |
+| Sent            | Provider accepted the send request           |
+| Delivered       | Provider confirmed delivery (needs webhooks) |
+| Failed          | Provider reported failure (needs webhooks)   |
 
 - Opens are activity history, never a delivery status; the first-open time is kept.
 - RSVP states (Pending, Attending, Declined, Maybe) are separate from delivery.
@@ -383,15 +383,15 @@ QR → secure token → validate status and scope → upload session
 
 ## 20. Amazon S3
 
-| Data                 | Storage       |
-| -------------------- | ------------- |
-| Guest photos         | S3            |
-| Cover images         | S3            |
-| Expense receipts     | S3            |
-| Task attachments     | S3            |
-| Vendor attachments   | S3            |
+| Data                 | Storage        |
+| -------------------- | -------------- |
+| Guest photos         | S3             |
+| Cover images         | S3             |
+| Expense receipts     | S3             |
+| Task attachments     | S3             |
+| Vendor attachments   | S3             |
 | Report exports       | S3 (temporary) |
-| Application metadata | MongoDB Atlas |
+| Application metadata | MongoDB Atlas  |
 
 - Private files use controlled access and presigned URLs; public media may use a CDN.
 - Server-side validation controls file type and size; object keys are opaque and
@@ -463,23 +463,23 @@ Deploy: web → Vercel; API and worker → containers (ECS/Fargate recommended)
 The original ADR list (001–015) is carried by this document and by the repository's
 decision records in `docs/decisions/` (0001–0017), which are the authoritative history.
 
-| ADR | Decision                                              | Status                         |
-| --- | ----------------------------------------------------- | ------------------------------ |
-| 001 | Modular monolith                                      | Accepted                       |
-| 002 | Next.js + TypeScript                                  | Accepted                       |
-| 003 | NestJS + Node.js + TypeScript                         | Accepted                       |
-| 004 | MongoDB Atlas                                         | Accepted                       |
-| 005 | Amazon S3                                             | Accepted                       |
-| 006 | Vercel                                                | Accepted for the web app; API and worker in containers (0005) |
-| 007 | Redis + BullMQ                                        | Accepted                       |
-| 008 | Resend                                                | Accepted                       |
-| 009 | Email/password without mandatory verification         | Accepted                       |
-| 010 | Secure tokenized guest/QR access                      | Accepted                       |
-| 011 | Google Places API (New) via provider abstraction      | Accepted                       |
-| 012 | YouTube Live                                          | Accepted                       |
-| 013 | Path-based public wedding URL                         | Accepted                       |
-| 014 | Predefined roles + customizable permissions           | Accepted                       |
-| 015 | Soft-delete/archive deletion workflow                 | Accepted                       |
+| ADR | Decision                                         | Status                                                        |
+| --- | ------------------------------------------------ | ------------------------------------------------------------- |
+| 001 | Modular monolith                                 | Accepted                                                      |
+| 002 | Next.js + TypeScript                             | Accepted                                                      |
+| 003 | NestJS + Node.js + TypeScript                    | Accepted                                                      |
+| 004 | MongoDB Atlas                                    | Accepted                                                      |
+| 005 | Amazon S3                                        | Accepted                                                      |
+| 006 | Vercel                                           | Accepted for the web app; API and worker in containers (0005) |
+| 007 | Redis + BullMQ                                   | Accepted                                                      |
+| 008 | Resend                                           | Accepted                                                      |
+| 009 | Email/password without mandatory verification    | Accepted                                                      |
+| 010 | Secure tokenized guest/QR access                 | Accepted                                                      |
+| 011 | Google Places API (New) via provider abstraction | Accepted                                                      |
+| 012 | YouTube Live                                     | Accepted                                                      |
+| 013 | Path-based public wedding URL                    | Accepted                                                      |
+| 014 | Predefined roles + customizable permissions      | Accepted                                                      |
+| 015 | Soft-delete/archive deletion workflow            | Accepted                                                      |
 
 ## 28. Remaining open technical decisions
 

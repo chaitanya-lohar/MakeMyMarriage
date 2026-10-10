@@ -4,7 +4,8 @@ dist
 .turbo
 coverage
 pnpm-lock.yaml
-docs/specs
+# Archived documents stay exactly as they were (decision 0003)
+docs/archive
 
 # Generated API contract
 packages/api-client/openapi.json

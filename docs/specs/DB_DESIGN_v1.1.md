@@ -1,18 +1,18 @@
 # MakeMyMarriage — Database Design v1.1
 
-| Item             | Value                                                                  |
-| ---------------- | ---------------------------------------------------------------------- |
-| Version          | 1.1 (consolidated)                                                     |
-| Status           | **Canonical** persistence baseline                                     |
-| Date             | 2026-10-10                                                             |
-| Database         | MongoDB Atlas (Mongoose, inside module repositories)                   |
-| Binary storage   | Amazon S3; MongoDB holds metadata                                      |
-| Tenant boundary  | Wedding                                                                |
-| Supersedes       | Database Design v1.0 (archived in `docs/archive/specs/`)               |
+| Item            | Value                                                    |
+| --------------- | -------------------------------------------------------- |
+| Version         | 1.1 (consolidated)                                       |
+| Status          | **Canonical** persistence baseline                       |
+| Date            | 2026-10-10                                               |
+| Database        | MongoDB Atlas (Mongoose, inside module repositories)     |
+| Binary storage  | Amazon S3; MongoDB holds metadata                        |
+| Tenant boundary | Wedding                                                  |
+| Supersedes      | Database Design v1.0 (archived in `docs/archive/specs/`) |
 
-| Version | Date       | Change                                                                                               |
-| ------- | ---------- | ---------------------------------------------------------------------------------------------------- |
-| 1.0     | 2026-09-24 | Baseline design.                                                                                     |
+| Version | Date       | Change                                                                                                 |
+| ------- | ---------- | ------------------------------------------------------------------------------------------------------ |
+| 1.0     | 2026-09-24 | Baseline design.                                                                                       |
 | 1.1     | 2026-10-10 | Consolidated: v1.0 plus decisions 0008–0010, 0012, 0013, 0015–0017 and the schema built in Phases 2–3. |
 
 **Status of each collection** — _Built_: exists in code. _Phase 4_: designed and approved for
@@ -55,20 +55,20 @@ metadata, transaction boundaries and operational rules.
 
 ## 3. Technology and persistence architecture
 
-| Concern                | Decision                                                     |
-| ---------------------- | ------------------------------------------------------------ |
-| Database               | MongoDB Atlas (local: single-node replica set)               |
-| Data access            | Mongoose, only inside each module's `infrastructure/`        |
-| Primary ID             | MongoDB ObjectId                                             |
-| Public website identity| Dedicated `publicIdentifier`                                 |
-| Invitation, QR, reset access | Secure random token; only its hash stored              |
-| Binary storage         | Amazon S3                                                    |
-| Background jobs        | Redis + BullMQ                                               |
-| Email provider         | Resend                                                       |
-| Vendor discovery       | Google Places API (New), through a provider abstraction      |
-| Live streaming         | YouTube Live                                                 |
-| Reports                | Excel, generated on demand                                   |
-| Index creation         | Automatic in local and test; a deployment operation in staging and production |
+| Concern                      | Decision                                                                      |
+| ---------------------------- | ----------------------------------------------------------------------------- |
+| Database                     | MongoDB Atlas (local: single-node replica set)                                |
+| Data access                  | Mongoose, only inside each module's `infrastructure/`                         |
+| Primary ID                   | MongoDB ObjectId                                                              |
+| Public website identity      | Dedicated `publicIdentifier`                                                  |
+| Invitation, QR, reset access | Secure random token; only its hash stored                                     |
+| Binary storage               | Amazon S3                                                                     |
+| Background jobs              | Redis + BullMQ                                                                |
+| Email provider               | Resend                                                                        |
+| Vendor discovery             | Google Places API (New), through a provider abstraction                       |
+| Live streaming               | YouTube Live                                                                  |
+| Reports                      | Excel, generated on demand                                                    |
+| Index creation               | Automatic in local and test; a deployment operation in staging and production |
 
 ## 4. Domain and tenant model
 
@@ -89,37 +89,37 @@ then runs a query constrained by `weddingId`.
 
 ## 5. Collection inventory
 
-| Collection              | Purpose                                   | Module        | Status   |
-| ----------------------- | ----------------------------------------- | ------------- | -------- |
-| `users`                 | Account identity and profile              | Users         | Built    |
-| `auth_sessions`         | Refresh-token sessions per device         | Auth          | Built    |
-| `password_reset_tokens` | One-time password reset tokens            | Auth          | Built    |
-| `weddings`              | Wedding root entity                       | Weddings      | Built    |
-| `wedding_memberships`   | User access to weddings                   | Workspace     | Built    |
-| `events`                | Wedding events                            | Events        | Phase 4  |
-| `guests`                | One guest record per wedding              | Guests        | Phase 4  |
-| `guest_events`          | Guest–event assignment and RSVP           | Guests / RSVP | Phase 4  |
-| `guest_invitations`     | The guest's invitation and current token  | Invitations   | Phase 4  |
-| `invitation_deliveries` | Email send and resend attempts            | Invitations   | Phase 4  |
-| `invitation_activities` | Opens and other timestamped activity      | Invitations   | Phase 4  |
-| `partner_connections`   | Partner relationship lifecycle            | Partner       | Planned  |
-| `resource_shares`       | Explicit resource sharing                 | Sharing       | Planned  |
-| `notifications`         | Recipient-specific notifications          | Notifications | Planned  |
+| Collection              | Purpose                                   | Module        | Status                     |
+| ----------------------- | ----------------------------------------- | ------------- | -------------------------- |
+| `users`                 | Account identity and profile              | Users         | Built                      |
+| `auth_sessions`         | Refresh-token sessions per device         | Auth          | Built                      |
+| `password_reset_tokens` | One-time password reset tokens            | Auth          | Built                      |
+| `weddings`              | Wedding root entity                       | Weddings      | Built                      |
+| `wedding_memberships`   | User access to weddings                   | Workspace     | Built                      |
+| `events`                | Wedding events                            | Events        | Phase 4                    |
+| `guests`                | One guest record per wedding              | Guests        | Phase 4                    |
+| `guest_events`          | Guest–event assignment and RSVP           | Guests / RSVP | Phase 4                    |
+| `guest_invitations`     | The guest's invitation and current token  | Invitations   | Phase 4                    |
+| `invitation_deliveries` | Email send and resend attempts            | Invitations   | Phase 4                    |
+| `invitation_activities` | Opens and other timestamped activity      | Invitations   | Phase 4                    |
+| `partner_connections`   | Partner relationship lifecycle            | Partner       | Planned                    |
+| `resource_shares`       | Explicit resource sharing                 | Sharing       | Planned                    |
+| `notifications`         | Recipient-specific notifications          | Notifications | Planned                    |
 | `reminders`             | Reminder configuration                    | Notifications | Planned (cadence deferred) |
-| `expenses`              | Wedding expenses                          | Expenses      | Planned  |
-| `expense_payments`      | Instalment and payment history            | Expenses      | Planned  |
-| `expense_receipts`      | S3 receipt metadata                       | Expenses      | Planned  |
-| `tasks`                 | Wedding tasks                             | Tasks         | Planned  |
-| `task_assignments`      | Task ↔ member assignment                  | Tasks         | Planned  |
-| `task_activities`       | Task history                              | Tasks         | Planned  |
-| `wedding_vendors`       | Managed wedding vendors                   | Vendors       | Planned  |
-| `vendor_attachments`    | S3 vendor attachment metadata             | Vendors       | Planned  |
-| `wedding_websites`      | Public website configuration              | Website       | Planned  |
-| `photos`                | Wedding and event photos                  | Gallery       | Planned  |
-| `memory_qrs`            | Wedding and event memory QR tokens        | QR            | Planned  |
-| `live_streams`          | External live stream association          | Live stream   | Planned  |
-| `report_exports`        | Report generation history                 | Reports       | Planned  |
-| `audit_logs`            | Central business and security audit trail | Audit         | Planned  |
+| `expenses`              | Wedding expenses                          | Expenses      | Planned                    |
+| `expense_payments`      | Instalment and payment history            | Expenses      | Planned                    |
+| `expense_receipts`      | S3 receipt metadata                       | Expenses      | Planned                    |
+| `tasks`                 | Wedding tasks                             | Tasks         | Planned                    |
+| `task_assignments`      | Task ↔ member assignment                  | Tasks         | Planned                    |
+| `task_activities`       | Task history                              | Tasks         | Planned                    |
+| `wedding_vendors`       | Managed wedding vendors                   | Vendors       | Planned                    |
+| `vendor_attachments`    | S3 vendor attachment metadata             | Vendors       | Planned                    |
+| `wedding_websites`      | Public website configuration              | Website       | Planned                    |
+| `photos`                | Wedding and event photos                  | Gallery       | Planned                    |
+| `memory_qrs`            | Wedding and event memory QR tokens        | QR            | Planned                    |
+| `live_streams`          | External live stream association          | Live stream   | Planned                    |
+| `report_exports`        | Report generation history                 | Reports       | Planned                    |
+| `audit_logs`            | Central business and security audit trail | Audit         | Planned                    |
 
 ## 6. User and authentication collections (Built — decision 0015)
 
@@ -276,22 +276,22 @@ then runs a query constrained by `weddingId`.
 
 ## 8. Roles and permission model
 
-| Role      | Purpose                                         |
-| --------- | ----------------------------------------------- |
-| OWNER     | Bride or groom; unrestricted wedding control    |
-| ADMIN     | Broad delegated management                      |
-| ORGANIZER | Planning and operational coordination           |
-| EDITOR    | Modify permitted wedding data                   |
-| VIEWER    | Read-only access                                |
+| Role      | Purpose                                      |
+| --------- | -------------------------------------------- |
+| OWNER     | Bride or groom; unrestricted wedding control |
+| ADMIN     | Broad delegated management                   |
+| ORGANIZER | Planning and operational coordination        |
+| EDITOR    | Modify permitted wedding data                |
+| VIEWER    | Read-only access                             |
 
-| Action    | Use                                    |
-| --------- | -------------------------------------- |
-| VIEW      | Read                                   |
-| CREATE    | Create                                 |
-| EDIT      | Modify                                 |
-| DELETE    | Delete or soft-delete                  |
-| MANAGE    | Broader lifecycle and administration   |
-| CONFIGURE | Change configuration and settings      |
+| Action    | Use                                  |
+| --------- | ------------------------------------ |
+| VIEW      | Read                                 |
+| CREATE    | Create                               |
+| EDIT      | Modify                               |
+| DELETE    | Delete or soft-delete                |
+| MANAGE    | Broader lifecycle and administration |
+| CONFIGURE | Change configuration and settings    |
 
 Authorization flow: authenticate → resolve wedding membership → check `ACTIVE` status →
 resolve role and overrides → authorize resource and action → run a `weddingId`-scoped query.
@@ -770,86 +770,86 @@ Excel only; generated files are temporary, not permanent business data.
 
 ## 18. Relationship model
 
-| From          | Relationship        | To                   | Cardinality              |
-| ------------- | ------------------- | -------------------- | ------------------------ |
-| User          | owns                | Wedding              | 0..1                     |
-| User          | participates via    | WeddingMembership    | 0..N                     |
-| Wedding       | has                 | WeddingMembership    | 1..N                     |
-| Wedding       | has                 | Event                | 0..N                     |
-| Wedding       | has                 | Guest                | 0..N                     |
-| Guest         | participates through| GuestEvent           | 0..N                     |
-| Event         | has                 | GuestEvent           | 0..N                     |
-| Guest         | has                 | GuestInvitation      | 0..1                     |
-| GuestInvitation | has               | InvitationDelivery   | 0..N                     |
-| GuestInvitation | has               | InvitationActivity   | 0..N                     |
-| Wedding       | has                 | Expense              | 0..N                     |
-| Expense       | has                 | ExpensePayment, ExpenseReceipt | 0..N           |
-| Wedding       | has                 | Task                 | 0..N                     |
-| Task          | has                 | TaskAssignment, TaskActivity | 0..N             |
-| Wedding       | has                 | WeddingVendor        | 0..N                     |
-| WeddingVendor | has                 | VendorAttachment     | 0..N                     |
-| Wedding       | has                 | WeddingWebsite       | 0..1 (created by the Website phase) |
-| Wedding       | has                 | Photo, MemoryQR, LiveStream, ReportExport | 0..N |
+| From            | Relationship         | To                                        | Cardinality                         |
+| --------------- | -------------------- | ----------------------------------------- | ----------------------------------- |
+| User            | owns                 | Wedding                                   | 0..1                                |
+| User            | participates via     | WeddingMembership                         | 0..N                                |
+| Wedding         | has                  | WeddingMembership                         | 1..N                                |
+| Wedding         | has                  | Event                                     | 0..N                                |
+| Wedding         | has                  | Guest                                     | 0..N                                |
+| Guest           | participates through | GuestEvent                                | 0..N                                |
+| Event           | has                  | GuestEvent                                | 0..N                                |
+| Guest           | has                  | GuestInvitation                           | 0..1                                |
+| GuestInvitation | has                  | InvitationDelivery                        | 0..N                                |
+| GuestInvitation | has                  | InvitationActivity                        | 0..N                                |
+| Wedding         | has                  | Expense                                   | 0..N                                |
+| Expense         | has                  | ExpensePayment, ExpenseReceipt            | 0..N                                |
+| Wedding         | has                  | Task                                      | 0..N                                |
+| Task            | has                  | TaskAssignment, TaskActivity              | 0..N                                |
+| Wedding         | has                  | WeddingVendor                             | 0..N                                |
+| WeddingVendor   | has                  | VendorAttachment                          | 0..N                                |
+| Wedding         | has                  | WeddingWebsite                            | 0..1 (created by the Website phase) |
+| Wedding         | has                  | Photo, MemoryQR, LiveStream, ReportExport | 0..N                                |
 
 ## 19. Embedding vs referencing
 
-| Data                     | Strategy   | Reason                               |
-| ------------------------ | ---------- | ------------------------------------ |
-| Wedding → events         | Reference  | Independent queries; growing         |
-| Wedding → guests         | Reference  | Unbounded growth; search             |
-| Guest → GuestEvent       | Reference  | Many-to-many                         |
-| Guest → invitation       | Reference  | Own lifecycle and history            |
-| Invitation → deliveries, activities | Reference | Growing history              |
-| Expense → payments, receipts | Reference | Multiple records                 |
-| Task → assignments, activities | Reference | Multiple records               |
-| Wedding → website        | Single document | Bounded configuration           |
-| Event → venue            | Embedded   | Value object of the event            |
-| Website → sections       | Embedded   | Bounded configuration                |
-| Vendor → events          | Reference IDs | A vendor can serve several events |
+| Data                                | Strategy        | Reason                            |
+| ----------------------------------- | --------------- | --------------------------------- |
+| Wedding → events                    | Reference       | Independent queries; growing      |
+| Wedding → guests                    | Reference       | Unbounded growth; search          |
+| Guest → GuestEvent                  | Reference       | Many-to-many                      |
+| Guest → invitation                  | Reference       | Own lifecycle and history         |
+| Invitation → deliveries, activities | Reference       | Growing history                   |
+| Expense → payments, receipts        | Reference       | Multiple records                  |
+| Task → assignments, activities      | Reference       | Multiple records                  |
+| Wedding → website                   | Single document | Bounded configuration             |
+| Event → venue                       | Embedded        | Value object of the event         |
+| Website → sections                  | Embedded        | Bounded configuration             |
+| Vendor → events                     | Reference IDs   | A vendor can serve several events |
 
 ## 20. Indexes and uniqueness
 
-| Collection              | Index / constraint                                         | Purpose                               | Status  |
-| ----------------------- | ---------------------------------------------------------- | ------------------------------------- | ------- |
-| `users`                 | `email` UNIQUE                                             | Login identity                        | Built   |
-| `auth_sessions`         | `userId`                                                   | Revoke all sessions                   | Built   |
-| `password_reset_tokens` | `tokenHash` UNIQUE                                         | Token lookup                          | Built   |
-| `wedding_memberships`   | `(userId, weddingId)` UNIQUE                               | No duplicate membership               | Built   |
-| `wedding_memberships`   | `userId` UNIQUE where `memberType = OWNER`                 | One owned wedding per user            | Built   |
-| `events`                | `(weddingId, date, startTime)`                             | Event listing and order               | Phase 4 |
-| `events`                | `(weddingId, deletedAt)`                                   | Active/deleted filtering              | Phase 4 |
-| `guests`                | `(weddingId, name)`                                        | Guest search                          | Phase 4 |
-| `guests`                | `(weddingId, mobile)`                                      | Lookup and duplicate warning          | Phase 4 |
-| `guests`                | `(weddingId, deletedAt)`                                   | Active/deleted filtering              | Phase 4 |
-| `guest_events`          | `(weddingId, guestId, eventId)` UNIQUE where `isActive = true` | One active assignment             | Phase 4 |
-| `guest_events`          | `(weddingId, eventId, rsvpStatus)`                         | Event RSVP counts and filters         | Phase 4 |
-| `guest_invitations`     | `guestId` UNIQUE                                           | One invitation per guest              | Phase 4 |
-| `guest_invitations`     | `tokenHash` UNIQUE (partial: when present)                 | Token lookup                          | Phase 4 |
-| `invitation_deliveries` | `(guestInvitationId, createdAt)`                           | Delivery history                      | Phase 4 |
-| `invitation_deliveries` | `idempotencyKey` UNIQUE                                    | Safe job retries                      | Phase 4 |
-| `invitation_deliveries` | `(status, createdAt)`                                      | Recent failures                       | Phase 4 |
-| `invitation_activities` | `(guestInvitationId, occurredAt)`                          | Activity history                      | Phase 4 |
-| `expenses`              | `(weddingId, expenseDate)`, `(weddingId, category)`, `(weddingId, paymentStatus)`, `(weddingId, createdAt)` | Reporting and filters | Planned |
-| `expense_payments`      | `(expenseId, paymentDate)`                                 | Payment history                       | Planned |
-| `tasks`                 | `(weddingId, status)`, `(weddingId, priority)`, `(weddingId, dueDate)`, `(weddingId, eventId)` | Board and filters | Planned |
-| `task_assignments`      | `(taskId, userId)` UNIQUE; `(userId, weddingId)`           | Assignees; my tasks                   | Planned |
-| `task_activities`       | `(taskId, createdAt)`                                      | History                               | Planned |
-| `wedding_vendors`       | `(weddingId, category)`, `(weddingId, status)`, `(weddingId, deletedAt)` | Filters             | Planned |
-| `wedding_websites`      | `publicIdentifier` UNIQUE; `weddingId` UNIQUE              | Public lookup; one per wedding        | Planned |
-| `memory_qrs`            | `tokenHash` UNIQUE; `(weddingId, status)`; `(eventId, status)` | QR lookup and management          | Planned |
-| `notifications`         | `(recipientUserId, isRead, createdAt)`; `(recipientUserId, createdAt)`; `(weddingId, createdAt)` | Feeds | Planned |
-| `live_streams`          | `(weddingId, eventId)`; `(weddingId, status)`              | Stream lookup                         | Planned |
-| `report_exports`        | `(weddingId, createdAt)`; `(requestedBy, createdAt)`; `(status, createdAt)` | History and processing | Planned |
+| Collection              | Index / constraint                                                                                          | Purpose                        | Status  |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------ | ------- |
+| `users`                 | `email` UNIQUE                                                                                              | Login identity                 | Built   |
+| `auth_sessions`         | `userId`                                                                                                    | Revoke all sessions            | Built   |
+| `password_reset_tokens` | `tokenHash` UNIQUE                                                                                          | Token lookup                   | Built   |
+| `wedding_memberships`   | `(userId, weddingId)` UNIQUE                                                                                | No duplicate membership        | Built   |
+| `wedding_memberships`   | `userId` UNIQUE where `memberType = OWNER`                                                                  | One owned wedding per user     | Built   |
+| `events`                | `(weddingId, date, startTime)`                                                                              | Event listing and order        | Phase 4 |
+| `events`                | `(weddingId, deletedAt)`                                                                                    | Active/deleted filtering       | Phase 4 |
+| `guests`                | `(weddingId, name)`                                                                                         | Guest search                   | Phase 4 |
+| `guests`                | `(weddingId, mobile)`                                                                                       | Lookup and duplicate warning   | Phase 4 |
+| `guests`                | `(weddingId, deletedAt)`                                                                                    | Active/deleted filtering       | Phase 4 |
+| `guest_events`          | `(weddingId, guestId, eventId)` UNIQUE where `isActive = true`                                              | One active assignment          | Phase 4 |
+| `guest_events`          | `(weddingId, eventId, rsvpStatus)`                                                                          | Event RSVP counts and filters  | Phase 4 |
+| `guest_invitations`     | `guestId` UNIQUE                                                                                            | One invitation per guest       | Phase 4 |
+| `guest_invitations`     | `tokenHash` UNIQUE (partial: when present)                                                                  | Token lookup                   | Phase 4 |
+| `invitation_deliveries` | `(guestInvitationId, createdAt)`                                                                            | Delivery history               | Phase 4 |
+| `invitation_deliveries` | `idempotencyKey` UNIQUE                                                                                     | Safe job retries               | Phase 4 |
+| `invitation_deliveries` | `(status, createdAt)`                                                                                       | Recent failures                | Phase 4 |
+| `invitation_activities` | `(guestInvitationId, occurredAt)`                                                                           | Activity history               | Phase 4 |
+| `expenses`              | `(weddingId, expenseDate)`, `(weddingId, category)`, `(weddingId, paymentStatus)`, `(weddingId, createdAt)` | Reporting and filters          | Planned |
+| `expense_payments`      | `(expenseId, paymentDate)`                                                                                  | Payment history                | Planned |
+| `tasks`                 | `(weddingId, status)`, `(weddingId, priority)`, `(weddingId, dueDate)`, `(weddingId, eventId)`              | Board and filters              | Planned |
+| `task_assignments`      | `(taskId, userId)` UNIQUE; `(userId, weddingId)`                                                            | Assignees; my tasks            | Planned |
+| `task_activities`       | `(taskId, createdAt)`                                                                                       | History                        | Planned |
+| `wedding_vendors`       | `(weddingId, category)`, `(weddingId, status)`, `(weddingId, deletedAt)`                                    | Filters                        | Planned |
+| `wedding_websites`      | `publicIdentifier` UNIQUE; `weddingId` UNIQUE                                                               | Public lookup; one per wedding | Planned |
+| `memory_qrs`            | `tokenHash` UNIQUE; `(weddingId, status)`; `(eventId, status)`                                              | QR lookup and management       | Planned |
+| `notifications`         | `(recipientUserId, isRead, createdAt)`; `(recipientUserId, createdAt)`; `(weddingId, createdAt)`            | Feeds                          | Planned |
+| `live_streams`          | `(weddingId, eventId)`; `(weddingId, status)`                                                               | Stream lookup                  | Planned |
+| `report_exports`        | `(weddingId, createdAt)`; `(requestedBy, createdAt)`; `(status, createdAt)`                                 | History and processing         | Planned |
 
 Indexes support a known access pattern, uniqueness rule or job; each adds write cost.
 
 ## 21. Soft deletion and data lifecycle
 
-| State            | Behaviour                                                         |
-| ---------------- | ----------------------------------------------------------------- |
-| Active           | Normal read and write, subject to authorization                   |
-| Soft-deleted     | Hidden from normal queries; kept for recovery and audit           |
-| Retention period | **Open** — to be set before production launch                     |
+| State              | Behaviour                                                       |
+| ------------------ | --------------------------------------------------------------- |
+| Active             | Normal read and write, subject to authorization                 |
+| Soft-deleted       | Hidden from normal queries; kept for recovery and audit         |
+| Retention period   | **Open** — to be set before production launch                   |
 | Permanent deletion | Remove MongoDB records and S3 objects under the approved policy |
 
 - Standard fields: `deletedAt`, `deletedBy`. Records created by a removed organizer or
@@ -882,49 +882,49 @@ invitation token revocation and regeneration), not every read. Retention is open
 
 ## 24. Transaction and consistency rules
 
-| Operation                         | Guidance                                                          |
-| --------------------------------- | ----------------------------------------------------------------- |
-| Simple CRUD                       | No transaction                                                    |
-| Create wedding + OWNER membership | Transaction (Built — 0016)                                        |
-| Accept partner invitation         | Transaction: membership and connection change together           |
-| Create expense + first payment    | Transaction if both must succeed or fail together                 |
-| Regenerate or revoke a token      | Single-document update                                            |
-| Upload photo                      | S3 and metadata coordinated with compensating cleanup             |
-| Publish website                   | Transaction only if several documents change together             |
-| RSVP update                       | Single-document update; audit per consistency requirement         |
+| Operation                         | Guidance                                                  |
+| --------------------------------- | --------------------------------------------------------- |
+| Simple CRUD                       | No transaction                                            |
+| Create wedding + OWNER membership | Transaction (Built — 0016)                                |
+| Accept partner invitation         | Transaction: membership and connection change together    |
+| Create expense + first payment    | Transaction if both must succeed or fail together         |
+| Regenerate or revoke a token      | Single-document update                                    |
+| Upload photo                      | S3 and metadata coordinated with compensating cleanup     |
+| Publish website                   | Transaction only if several documents change together     |
+| RSVP update                       | Single-document update; audit per consistency requirement |
 
 Transactions are a consistency tool, not a wrapper around every repository call.
 
 ## 25. Validation strategy
 
-| Layer                       | Responsibility                                                   |
-| --------------------------- | ---------------------------------------------------------------- |
-| DTO / application validation| Business rules, authorization-aware checks, user-facing errors   |
-| Repository / data layer     | Typed persistence and query boundaries                           |
-| MongoDB schema validation   | Critical field types, required fields, enum-like constraints     |
-| Indexes                     | Uniqueness and query performance                                 |
+| Layer                        | Responsibility                                                 |
+| ---------------------------- | -------------------------------------------------------------- |
+| DTO / application validation | Business rules, authorization-aware checks, user-facing errors |
+| Repository / data layer      | Typed persistence and query boundaries                         |
+| MongoDB schema validation    | Critical field types, required fields, enum-like constraints   |
+| Indexes                      | Uniqueness and query performance                               |
 
 ## 26. Primary access patterns
 
-| Use case             | Query                                                        |
-| -------------------- | ------------------------------------------------------------ |
-| Resolve user         | `users.email`                                                |
-| List my weddings     | `wedding_memberships.userId + status`                        |
-| Resolve wedding access | `wedding_memberships.userId + weddingId + status`          |
-| List events          | `events.weddingId` (not deleted) ordered by `date, startTime`|
-| Search guests        | `guests.weddingId + name/mobile`                             |
-| Duplicate mobile     | `guests.weddingId + mobile`                                  |
-| Guest RSVP           | `guest_events.weddingId + guestId + eventId` (active)        |
-| Open invitation      | `guest_invitations.tokenHash`                                |
-| Delivery history     | `invitation_deliveries.guestInvitationId + createdAt`        |
-| Unread notifications | `notifications.recipientUserId + isRead + createdAt`         |
-| Expense report       | `expenses.weddingId + date/category/status`                  |
-| My tasks             | `task_assignments.userId + weddingId`                        |
-| Vendor workflow      | `wedding_vendors.weddingId + status/category`                |
-| Public website       | `wedding_websites.publicIdentifier`                          |
-| QR upload entry      | `memory_qrs.tokenHash`                                       |
-| Event streams        | `live_streams.weddingId + eventId`                           |
-| Report history       | `report_exports.weddingId + createdAt`                       |
+| Use case               | Query                                                         |
+| ---------------------- | ------------------------------------------------------------- |
+| Resolve user           | `users.email`                                                 |
+| List my weddings       | `wedding_memberships.userId + status`                         |
+| Resolve wedding access | `wedding_memberships.userId + weddingId + status`             |
+| List events            | `events.weddingId` (not deleted) ordered by `date, startTime` |
+| Search guests          | `guests.weddingId + name/mobile`                              |
+| Duplicate mobile       | `guests.weddingId + mobile`                                   |
+| Guest RSVP             | `guest_events.weddingId + guestId + eventId` (active)         |
+| Open invitation        | `guest_invitations.tokenHash`                                 |
+| Delivery history       | `invitation_deliveries.guestInvitationId + createdAt`         |
+| Unread notifications   | `notifications.recipientUserId + isRead + createdAt`          |
+| Expense report         | `expenses.weddingId + date/category/status`                   |
+| My tasks               | `task_assignments.userId + weddingId`                         |
+| Vendor workflow        | `wedding_vendors.weddingId + status/category`                 |
+| Public website         | `wedding_websites.publicIdentifier`                           |
+| QR upload entry        | `memory_qrs.tokenHash`                                        |
+| Event streams          | `live_streams.weddingId + eventId`                            |
+| Report history         | `report_exports.weddingId + createdAt`                        |
 
 ## 27. Key data invariants
 
@@ -969,37 +969,37 @@ Then the remaining planned collections as their phases are approved.
 
 ## 32. Open technical decisions
 
-| Area          | Open decision                                                           |
-| ------------- | ----------------------------------------------------------------------- |
-| Invitations   | Immediate rejection → `FAILED`; deleted guest's link; webhook handling  |
-| QR            | Expiry policy and regeneration details                                  |
-| Permissions   | Default matrix per role                                                 |
-| Website       | `publicIdentifier` generation and collisions; sitemap and metadata      |
-| Google Places | Fields that may be stored or cached                                     |
-| Notifications | Templates and default schedules (product-deferred)                      |
-| Media         | S3 bucket and prefix layout; image processing; lifecycle                |
-| Retention     | Audit, delivery history, soft-deleted data, permanent purge             |
-| Backups       | RPO/RTO, retention, restore-test cadence                                |
-| Indexes       | Final production set after observing real query plans                   |
+| Area          | Open decision                                                          |
+| ------------- | ---------------------------------------------------------------------- |
+| Invitations   | Immediate rejection → `FAILED`; deleted guest's link; webhook handling |
+| QR            | Expiry policy and regeneration details                                 |
+| Permissions   | Default matrix per role                                                |
+| Website       | `publicIdentifier` generation and collisions; sitemap and metadata     |
+| Google Places | Fields that may be stored or cached                                    |
+| Notifications | Templates and default schedules (product-deferred)                     |
+| Media         | S3 bucket and prefix layout; image processing; lifecycle               |
+| Retention     | Audit, delivery history, soft-deleted data, permanent purge            |
+| Backups       | RPO/RTO, retention, restore-test cadence                               |
+| Indexes       | Final production set after observing real query plans                  |
 
 ## 33. Decision summary
 
-| Decision                | Baseline                                                      |
-| ----------------------- | ------------------------------------------------------------- |
-| Database                | MongoDB Atlas                                                 |
-| Tenant boundary         | Wedding                                                       |
-| User–wedding            | Owns 0..1 wedding; memberships 0..N                           |
-| Authorization           | Predefined roles + membership permission overrides            |
-| Guests                  | One guest per wedding + one active `GuestEvent` per event     |
-| Invitations             | One per guest; hashed token; no automatic expiry; opens as activity |
-| Expense sharing         | Shared with the connected partner; no visibility field        |
-| Files                   | S3 objects + MongoDB metadata                                 |
-| Website                 | One document per wedding, created by the Website phase        |
-| QR                      | Generic memory QR with WEDDING/EVENT scope                    |
-| Streaming               | YouTube Live association                                      |
-| Reports                 | Excel, generated on demand                                    |
-| Deletion                | Soft delete first; permanent deletion later                   |
-| Audit                   | Central `audit_logs`                                          |
+| Decision        | Baseline                                                            |
+| --------------- | ------------------------------------------------------------------- |
+| Database        | MongoDB Atlas                                                       |
+| Tenant boundary | Wedding                                                             |
+| User–wedding    | Owns 0..1 wedding; memberships 0..N                                 |
+| Authorization   | Predefined roles + membership permission overrides                  |
+| Guests          | One guest per wedding + one active `GuestEvent` per event           |
+| Invitations     | One per guest; hashed token; no automatic expiry; opens as activity |
+| Expense sharing | Shared with the connected partner; no visibility field              |
+| Files           | S3 objects + MongoDB metadata                                       |
+| Website         | One document per wedding, created by the Website phase              |
+| QR              | Generic memory QR with WEDDING/EVENT scope                          |
+| Streaming       | YouTube Live association                                            |
+| Reports         | Excel, generated on demand                                          |
+| Deletion        | Soft delete first; permanent deletion later                         |
+| Audit           | Central `audit_logs`                                                |
 
 ## 34. Summary
 
