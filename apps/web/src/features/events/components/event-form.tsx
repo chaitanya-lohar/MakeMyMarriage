@@ -226,7 +226,7 @@ function EventForm({ wedding, event }: { wedding: ApiWedding; event: ApiEvent | 
                   icon="delete"
                   onClick={() => setConfirming(true)}
                   disabled={pending}
-                  className="text-error hover:bg-error-container/40 hover:text-error"
+                  tone="danger"
                 >
                   {eventForm.delete}
                 </QuietButton>

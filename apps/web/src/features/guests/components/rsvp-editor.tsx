@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { PrimaryButton } from '@/components/ui/form';
 import { Icon } from '@/components/ui/icon';
+import { stepPeople } from '@/features/invitation/rsvp-model';
 import { rsvpEditor, rsvpLabels } from '../content';
 import { countFor, type RsvpStatus } from '../guest-model';
 
@@ -113,7 +114,7 @@ export function RsvpEditor({
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => setPeople(String(Math.max(1, (countValid ? count : 1) - 1)))}
+                onClick={() => setPeople((current) => stepPeople(current, -1))}
                 aria-label={rsvpEditor.fewer}
                 className="flex size-11 items-center justify-center rounded-lg border border-outline-variant/70 bg-white text-navy"
               >
@@ -130,7 +131,7 @@ export function RsvpEditor({
               />
               <button
                 type="button"
-                onClick={() => setPeople(String((countValid ? count : 0) + 1))}
+                onClick={() => setPeople((current) => stepPeople(current, 1))}
                 aria-label={rsvpEditor.more}
                 className="flex size-11 items-center justify-center rounded-lg border border-outline-variant/70 bg-white text-navy"
               >

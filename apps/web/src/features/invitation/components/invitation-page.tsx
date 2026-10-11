@@ -21,12 +21,16 @@ import {
   answersFrom,
   coupleLines,
   peopleValid,
+  stepPeople,
   toResponses,
   type Answer,
   type GuestChoice,
   type GuestView,
   type GuestViewEvent,
 } from '../rsvp-model';
+
+/** A change to one answer; a function reads the latest answer, so fast taps all count. */
+type AnswerChange = Partial<Answer> | ((answer: Answer) => Partial<Answer>);
 
 type State =
   | { status: 'loading' }
@@ -154,11 +158,12 @@ function Invitation({
   const [saved, setSaved] = useState(false);
   const firstName = view.guest.name.trim().split(/\s+/)[0] ?? view.guest.name;
 
-  function update(guestEventId: string, change: Partial<Answer>) {
-    setAnswers((current) => ({
-      ...current,
-      [guestEventId]: { ...(current[guestEventId] as Answer), ...change },
-    }));
+  function update(guestEventId: string, change: AnswerChange) {
+    setAnswers((current) => {
+      const answer = current[guestEventId] as Answer;
+      const next = typeof change === 'function' ? change(answer) : change;
+      return { ...current, [guestEventId]: { ...answer, ...next } };
+    });
     setError(null);
     setSaved(false);
   }
@@ -319,11 +324,10 @@ function EventCard({
   event: GuestViewEvent;
   answer: Answer;
   disabled: boolean;
-  onChange: (change: Partial<Answer>) => void;
+  onChange: (change: AnswerChange) => void;
 }) {
   const legendId = useId();
   const countId = useId();
-  const count = Number(answer.people);
   const valid = peopleValid(answer.people);
   const venue = [event.venue.name, event.venue.address].filter(Boolean).join(', ');
 
@@ -387,7 +391,7 @@ function EventCard({
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => onChange({ people: String(Math.max(1, (valid ? count : 1) - 1)) })}
+              onClick={() => onChange((current) => ({ people: stepPeople(current.people, -1) }))}
               disabled={disabled}
               aria-label={invitationPage.fewer}
               className="flex size-11 items-center justify-center rounded-lg border border-outline-variant/70 bg-white text-navy"
@@ -408,7 +412,7 @@ function EventCard({
             />
             <button
               type="button"
-              onClick={() => onChange({ people: String((valid ? count : 0) + 1) })}
+              onClick={() => onChange((current) => ({ people: stepPeople(current.people, 1) }))}
               disabled={disabled}
               aria-label={invitationPage.more}
               className="flex size-11 items-center justify-center rounded-lg border border-outline-variant/70 bg-white text-navy"

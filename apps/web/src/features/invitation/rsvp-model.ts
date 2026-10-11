@@ -32,6 +32,12 @@ export function peopleValid(people: string): boolean {
   return /^\d+$/.test(people) && Number.isInteger(count) && count >= 1;
 }
 
+/** The stepper: one more or one fewer person, never below 1 (no upper limit — 0017 #2). */
+export function stepPeople(people: string, delta: 1 | -1): string {
+  const current = peopleValid(people) ? Number(people) : delta > 0 ? 0 : 1;
+  return String(Math.max(1, current + delta));
+}
+
 /**
  * The RSVP request: one response per answered event, with the count its status requires
  * (0017 #2). Unanswered events are left out and stay awaiting a reply. Null when an attending

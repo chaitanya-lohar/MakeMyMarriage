@@ -181,13 +181,22 @@ export function DangerButton({
   );
 }
 
-/** A quiet text-style action, e.g. "Remove from event". */
-export function QuietButton({ icon, className = '', ...props }: ButtonProps) {
+/** A quiet text-style action, e.g. "Remove from event"; red for destructive ones. */
+export function QuietButton({
+  icon,
+  tone = 'neutral',
+  className = '',
+  ...props
+}: ButtonProps & { tone?: 'neutral' | 'danger' }) {
+  const colours =
+    tone === 'danger'
+      ? 'text-error hover:bg-error-container/40'
+      : 'text-on-surface-variant hover:bg-surface-container-low hover:text-navy';
   return (
     <button
       type="button"
       {...props}
-      className={`inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg px-3 text-label-md text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-navy focus-visible:outline-2 focus-visible:outline-secondary disabled:cursor-not-allowed disabled:text-outline ${className}`}
+      className={`inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg px-3 text-label-md ${colours} transition-colors focus-visible:outline-2 focus-visible:outline-secondary disabled:cursor-not-allowed disabled:text-outline ${className}`}
     >
       {icon && <Icon name={icon} className="size-5" />}
       {props.children}

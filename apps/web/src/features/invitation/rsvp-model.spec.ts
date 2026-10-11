@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { answersFrom, coupleLines, toResponses, type GuestView } from './rsvp-model';
+import { answersFrom, coupleLines, stepPeople, toResponses, type GuestView } from './rsvp-model';
 
 const event = (guestEventId: string, rsvpStatus: string, attendeeCount: number | null) =>
   ({
@@ -58,5 +58,14 @@ describe('toResponses', () => {
 describe('coupleLines', () => {
   it('splits the couple for the two-line heading', () => {
     expect(coupleLines('Meera Sharma & Arjun Patel')).toEqual(['Meera Sharma', 'Arjun Patel']);
+  });
+});
+
+describe('stepPeople', () => {
+  it('steps by one, never below 1, with no upper limit', () => {
+    expect(stepPeople('2', 1)).toBe('3');
+    expect(stepPeople('1', -1)).toBe('1');
+    expect(stepPeople('', 1)).toBe('1');
+    expect(stepPeople('999', 1)).toBe('1000');
   });
 });

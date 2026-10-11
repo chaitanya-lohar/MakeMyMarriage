@@ -311,11 +311,7 @@ export function InvitationPanel({
               <QuietButton icon="refresh" onClick={() => setDialog('regenerate')}>
                 {invitationPanel.regenerate}
               </QuietButton>
-              <QuietButton
-                icon="block"
-                onClick={() => setDialog('revoke')}
-                className="text-error hover:bg-error-container/40 hover:text-error"
-              >
+              <QuietButton icon="block" onClick={() => setDialog('revoke')} tone="danger">
                 {invitationPanel.revoke}
               </QuietButton>
             </div>
