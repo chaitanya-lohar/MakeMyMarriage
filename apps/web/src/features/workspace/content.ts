@@ -6,6 +6,9 @@
 export const workspaceNav = {
   dashboard: 'Dashboard',
   weddingDetails: 'Wedding details',
+  // Phase 4 adds Events and Guests & RSVP only (decision 0019 #3).
+  events: 'Events',
+  guests: 'Guests & RSVP',
   yourWedding: 'Your wedding',
   menu: 'Menu',
   openMenu: 'Open menu',
