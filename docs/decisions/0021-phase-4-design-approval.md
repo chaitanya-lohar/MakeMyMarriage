@@ -1,12 +1,13 @@
 # 0021 — Phase 4 design approval
 
-**Status:** Accepted (Stitch screens and wording approved by the product owner on
-2026-10-11).
+**Status:** Accepted (Stitch screens and the rules below approved by the product owner on
+2026-10-11). The wording is still a draft.
 
 This record approves the Phase 4 screens in Google Stitch project `11709379677369700007`,
-and the wording that decision 0019 #7 left to design review. Where an approved screen
-differs from the specifications or from the corrections below, the specifications win
-(0004).
+the dashboard display rule and the invitation-email rule for missing details. The wording
+that decision 0019 #7 leaves to design review is recorded as a draft and is not yet
+approved. Where an approved screen differs from the specifications or from the corrections
+below, the specifications win (0004).
 
 ## Approved screens
 
@@ -66,41 +67,65 @@ These Stitch inconsistencies are fixed during implementation; they need no new d
 8. **O10 Dashboard.**
    - Show real data, with 24-hour times.
    - Guest totals carry "Includes guests not yet invited to an event".
-   - Upcoming events lists at most five events, as in the approved design.
+   - Upcoming events follow the display rule below.
 9. **Sample data in the screens is illustrative only.** This covers names, numbers,
    venues, dress codes and descriptions; the real data comes from the API.
 
-## Approved wording
+## Approved rules
 
-The copy-drafts screen is approved as the Phase 4 wording, with the corrections above. It
-satisfies decision 0019 #7.
+### O10 dashboard: upcoming events (display rule)
 
-| Situation                       | Wording                                                                                                                                                                                                                                                                                                                                                             |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Invitation email subject        | You're invited: {Bride} & {Groom}                                                                                                                                                                                                                                                                                                                                   |
-| Invitation email body           | Dear {Guest name}, You're warmly invited to celebrate the wedding of {Bride} & {Groom} on {date} in {city}. This invitation covers your personalized ceremony schedule and RSVP details for all events you are invited to. [View invitation and RSVP] With love, {Bride first name} & {Groom first name}. The date and city are left out when the wedding has none. |
-| WhatsApp message                | Dear {Guest first name}, you're warmly invited to the wedding celebrations of {Bride} & {Groom}. Please view your invitation and RSVP here: {link}                                                                                                                                                                                                                  |
-| Duplicate mobile (after saving) | Saved. Another guest in your list has the same mobile number: {name}. Please check this isn't a duplicate.                                                                                                                                                                                                                                                          |
-| Delete event                    | Delete this event? {Event} will be removed from your events and guest lists. Its RSVP and invitation history is kept.                                                                                                                                                                                                                                               |
-| Delete guest                    | Delete {Guest}? {First name} will be removed from your guest list and their invitation link will stop working. Their RSVP and invitation history is kept.                                                                                                                                                                                                           |
-| Remove from event               | Remove {First name} from {Event}? {First name} will no longer be invited to {Event}. Their RSVP history is kept.                                                                                                                                                                                                                                                    |
-| Regenerate link                 | Create a new link? The current link will stop working, and the email status goes back to Draft until you send the new link to {First name}.                                                                                                                                                                                                                         |
-| Regenerate a revoked link       | Create a new link for {First name}? The revoked link stays invalid. The email status goes back to Draft until you send the new link.                                                                                                                                                                                                                                |
-| Revoke link                     | Revoke this link? The current link will stop working, and no new link is created.                                                                                                                                                                                                                                                                                   |
-| Guest RSVP saved                | Thank you, {First name}. Your RSVP has been saved. (with the saved answers; unanswered events show "Awaiting your reply") You can change your answers later.                                                                                                                                                                                                        |
-| Guest headcount missing         | Please tell us how many people are coming (at least 1).                                                                                                                                                                                                                                                                                                             |
-| Link not working                | This invitation link isn't working. It may have been replaced or withdrawn. Please contact the couple for a new link.                                                                                                                                                                                                                                               |
-| No events on the invitation     | No events on your invitation. There are no events on your invitation right now. Please check back later or contact the couple.                                                                                                                                                                                                                                      |
+Approved by the product owner on 2026-10-11. This is a presentation rule only. It does not
+limit event creation, storage, the API or access anywhere else.
 
-The remaining messages come from the approved screens: empty states, validation, loading,
-server and network errors, and rate limiting.
+- The dashboard shows at most five upcoming events. An upcoming event is dated today or
+  later in the wedding's timezone.
+- They are sorted by date, then start time; events without a start time come first on
+  their date.
+- If fewer than five exist, all are shown. If more exist, only the first five are shown.
+- There is no "View all" link, pagination or other navigation.
+
+### Invitation email: missing wedding details
+
+Approved by the product owner on 2026-10-11.
+
+- If the wedding has no date, the email leaves the date out; if it has no city, the email
+  leaves the city out.
+- No empty labels, blank placeholders or invented details. The subject and body stay
+  natural when either or both are missing.
+- The email always includes the couple's names, the invitation link and the other
+  available approved information.
+
+## Draft wording (not approved)
+
+The copy-drafts screen (`0459f8d7`) is approved as a visual design only. Its wording stays
+**DRAFT — for design review** and does not yet satisfy decision 0019 #7. The board is kept
+unchanged for a later wording review. The table records the drafts so they can be
+confirmed or changed in one place.
+
+| Situation                       | Draft wording                                                                                                                                                                                                                                                                                                                                  |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Invitation email subject        | You're invited: {Bride} & {Groom}                                                                                                                                                                                                                                                                                                              |
+| Invitation email body           | Dear {Guest name}, You're warmly invited to celebrate the wedding of {Bride} & {Groom} on {date} in {city}. This invitation covers your personalized ceremony schedule and RSVP details for all events you are invited to. [View invitation and RSVP] With love, {Bride first name} & {Groom first name}. Date and city follow the rule above. |
+| WhatsApp message                | Dear {Guest first name}, you're warmly invited to the wedding celebrations of {Bride} & {Groom}. Please view your invitation and RSVP here: {link}                                                                                                                                                                                             |
+| Duplicate mobile (after saving) | Saved. Another guest in your list has the same mobile number: {name}. Please check this isn't a duplicate.                                                                                                                                                                                                                                     |
+| Delete event                    | Delete this event? {Event} will be removed from your events and guest lists. Its RSVP and invitation history is kept.                                                                                                                                                                                                                          |
+| Delete guest                    | Delete {Guest}? {First name} will be removed from your guest list and their invitation link will stop working. Their RSVP and invitation history is kept.                                                                                                                                                                                      |
+| Remove from event               | Remove {First name} from {Event}? {First name} will no longer be invited to {Event}. Their RSVP history is kept.                                                                                                                                                                                                                               |
+| Regenerate link                 | Create a new link? The current link will stop working, and the email status goes back to Draft until you send the new link to {First name}.                                                                                                                                                                                                    |
+| Regenerate a revoked link       | Create a new link for {First name}? The revoked link stays invalid. The email status goes back to Draft until you send the new link.                                                                                                                                                                                                           |
+| Revoke link                     | Revoke this link? The current link will stop working, and no new link is created.                                                                                                                                                                                                                                                              |
+| Guest RSVP saved                | Thank you, {First name}. Your RSVP has been saved. (with the saved answers; unanswered events show "Awaiting your reply") You can change your answers later.                                                                                                                                                                                   |
+| Guest headcount missing         | Please tell us how many people are coming (at least 1).                                                                                                                                                                                                                                                                                        |
+| Link not working                | This invitation link isn't working. It may have been replaced or withdrawn. Please contact the couple for a new link.                                                                                                                                                                                                                          |
+| No events on the invitation     | No events on your invitation. There are no events on your invitation right now. Please check back later or contact the couple.                                                                                                                                                                                                                 |
+
+The other messages on the approved screens (empty states, validation, loading, server and
+network errors, rate limiting) are drafts too.
 
 ## Superseded statements
 
-| Source                 | Statement                                                  | Resolution                                |
-| ---------------------- | ---------------------------------------------------------- | ----------------------------------------- |
-| Phase 4 PRD v1.2 §10.1 | "None exist yet for Phase 4" (Stitch screens)              | Approved screens listed above.            |
-| Phase 4 PRD v1.2 §10.1 | Copy "to draft in Stitch and approve at design review"     | Approved wording above.                   |
-| Phase 4 PRD v1.2 §10.2 | Number of upcoming events listed "is set at design review" | At most five (correction 8).              |
-| Phase 4 PRD v1.2 §12   | Wording listed as deferred                                 | Approved; removed from the deferred list. |
-| 0019 #7                | No Phase 4 wording approved yet                            | Approved here.                            |
+| Source                 | Statement                                                  | Resolution                                     |
+| ---------------------- | ---------------------------------------------------------- | ---------------------------------------------- |
+| Phase 4 PRD v1.2 §10.1 | "None exist yet for Phase 4" (Stitch screens)              | Approved screens listed above.                 |
+| Phase 4 PRD v1.2 §10.2 | Number of upcoming events listed "is set at design review" | At most five, display only (O10 display rule). |

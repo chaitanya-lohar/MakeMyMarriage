@@ -240,9 +240,12 @@ Decisions 0019 and 0021.
   | Regenerate the link          | The old link stops working; the new link must be shared again.              |
   | Revoke the link              | The current link stops working; no replacement is created.                  |
 
-- **Wording** is approved in decision 0021: the invitation email, the WhatsApp prefilled
-  message, the duplicate-mobile warning, the confirmations and the guest messages. It never
-  says an email was delivered or an RSVP saved unless that operation succeeded.
+- **Wording** is drafted on the copy-drafts screen and recorded in decision 0021 as a
+  draft; it awaits product-owner approval (0019 #7). It never says an email was delivered or
+  an RSVP saved unless that operation succeeded.
+- **Invitation email with missing details** (0021): a missing wedding date or city is left
+  out, with no empty labels or invented details; the couple's names and the link are always
+  included.
 
 ### 10.2 Dashboard summaries
 
@@ -254,8 +257,9 @@ approved these rules on 2026-10-10, as written:
   events and guests and removed assignments are excluded from every summary but kept as
   history.
 - **Upcoming events:** counted events whose date is today or later in the wedding's
-  timezone, in date and start-time order (untimed first on their day). At most five are listed
-  (0021).
+  timezone, in date and start-time order (untimed first on their day). The dashboard shows
+  at most five, the first five in that order (0021). This is a display rule only: events are
+  not limited anywhere else, and there is no "View all" or pagination.
 - **Guest totals:** the number of counted guests, including guests not yet assigned to any
   event.
 - **RSVP breakdown:** the number of counted assignments in each status — Pending,
@@ -308,6 +312,7 @@ approved these rules on 2026-10-10, as written:
 ## 12. Deferred or open
 
 - Token expiry: none in Phase 4; revisit only by decision.
+- Wording drafted in Stitch, awaiting product-owner approval (0019 #7, 0021).
 - Delivery webhooks (`DELIVERED`, later `FAILED`); provider retry and backoff details.
 
 - Retention periods for audit and delivery history.
