@@ -1,14 +1,14 @@
 # MakeMyMarriage — Phase 4 PRD v1.2: events, guests, RSVP and invitations
 
-| Item         | Value                                                                                                                                                                                                             |
-| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status       | **Canonical** for Phase 4. Approved scope; **not implemented**.                                                                                                                                                   |
-| Date         | 2026-10-10                                                                                                                                                                                                        |
-| Parent       | [PRD v1.2](PRD_v1.2.md) (sections 9–13)                                                                                                                                                                           |
-| Decision     | [0017](../decisions/0017-phase-4-guests-and-invitations.md), [0018](../decisions/0018-invitation-token-storage-and-guest-access.md) and [0019](../decisions/0019-phase-4-design-decisions.md), with 0008 and 0010 |
-| Contracts    | [Database Design v1.1](DB_DESIGN_v1.1.md) §9–10, [API Design v1.1](API_DESIGN_v1.1.md) §8–10                                                                                                                      |
-| Supersedes   | Phase 4 PRD v1.1 FINAL and the earlier v1.0 draft (archived)                                                                                                                                                      |
-| Out of scope | Website records and public identifiers, partner connection and sharing, tasks, expenses, vendors, QR and gallery, live stream, reports, reminder scheduling, WhatsApp API, SMS                                    |
+| Item         | Value                                                                                                                                                                                                                                                                              |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status       | **Canonical** for Phase 4. Approved scope; **not implemented**.                                                                                                                                                                                                                    |
+| Date         | 2026-10-10                                                                                                                                                                                                                                                                         |
+| Parent       | [PRD v1.2](PRD_v1.2.md) (sections 9–13)                                                                                                                                                                                                                                            |
+| Decision     | [0017](../decisions/0017-phase-4-guests-and-invitations.md), [0018](../decisions/0018-invitation-token-storage-and-guest-access.md) and [0019](../decisions/0019-phase-4-design-decisions.md) and [0020](../decisions/0020-email-status-after-regeneration.md), with 0008 and 0010 |
+| Contracts    | [Database Design v1.1](DB_DESIGN_v1.1.md) §9–10, [API Design v1.1](API_DESIGN_v1.1.md) §8–10                                                                                                                                                                                       |
+| Supersedes   | Phase 4 PRD v1.1 FINAL and the earlier v1.0 draft (archived)                                                                                                                                                                                                                       |
+| Out of scope | Website records and public identifiers, partner connection and sharing, tasks, expenses, vendors, QR and gallery, live stream, reports, reminder scheduling, WhatsApp API, SMS                                                                                                     |
 
 | Version | Date       | Change                                                                                    |
 | ------- | ---------- | ----------------------------------------------------------------------------------------- |
@@ -164,13 +164,15 @@ invitations (answer Q3).
 
 ### 7.3 Delivery state and activity
 
-| Concept                 | Values                                      | Rules                                                                                                                                                                                                                                                  |
-| ----------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Current delivery status | `DRAFT`, `SENT`, `DELIVERED`, `FAILED`      | `DRAFT` when created. `SENT` when the provider accepts a send; `FAILED` when it rejects the request immediately (0018). Follows the latest attempt. `DELIVERED`, and failures reported after acceptance, only from provider webhooks (not in Phase 4). |
-| Activity history        | Timestamped events: sent, resent, opened    | Opens never overwrite the delivery status. The first-open time is kept. Whether repeated opens are all stored or de-duplicated is an implementation choice.                                                                                            |
-| RSVP status             | `PENDING`, `ATTENDING`, `DECLINED`, `MAYBE` | Per assignment; never inferred from delivery or opens.                                                                                                                                                                                                 |
+| Concept                 | Values                                      | Rules                                                                                                                                                                                                                                                                                                                                         |
+| ----------------------- | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Current delivery status | `DRAFT`, `SENT`, `DELIVERED`, `FAILED`      | `DRAFT` when created and again whenever the link is regenerated (0020). `SENT` when the provider accepts a send; `FAILED` when it rejects the request immediately (0018). Otherwise follows the latest attempt; revoking never changes it. `DELIVERED`, and failures reported after acceptance, only from provider webhooks (not in Phase 4). |
+| Activity history        | Timestamped events: sent, resent, opened    | Opens never overwrite the delivery status. The first-open time is kept. Whether repeated opens are all stored or de-duplicated is an implementation choice.                                                                                                                                                                                   |
+| RSVP status             | `PENDING`, `ATTENDING`, `DECLINED`, `MAYBE` | Per assignment; never inferred from delivery or opens.                                                                                                                                                                                                                                                                                        |
 
 - Every send and resend attempt is stored with its provider message ID when available.
+  History is never rewritten: regenerating, revoking or a failed resend leaves earlier
+  attempts and their results unchanged (0020).
 - Resending never creates duplicate guests or assignments; sends are idempotent jobs.
 - **Phase 4 shows `SENT` as the highest delivery status.** It never claims delivery the
   provider has not confirmed.
@@ -201,15 +203,16 @@ are in API Design v1.1 §8–10:
 - Invitations: `POST …/guests/{guestId}/invitation`, `…/regenerate`, `…/send`, `…/resend`,
   `…/revoke`; `GET …/invitation/link`, `GET …/invitation/deliveries`.
 - Guest: `GET /api/v1/guest/invitations/{token}`, `PATCH /api/v1/guest/invitations/{token}/rsvp`.
+- Dashboard: `GET /api/v1/weddings/{weddingId}/dashboard` (0022; contract in API Design
+  v1.1 §6).
 
 ## 10. UI
 
-Decision 0019.
+Decisions 0019 and 0021.
 
 ### 10.1 Screens and behaviour
 
-- New screens are designed in Google Stitch and approved before they are built (working
-  rule). None exist yet for Phase 4.
+- The approved Stitch screens and the corrections applied in code are listed in decision 0021. Only those screen IDs are used.
 - Screens show only the approved fields and actions, each with loading, empty, validation,
   error and success states, on desktop and mobile.
 - Navigation adds **Events** and **Guests & RSVP** only. There is no "Invitation" navigation
@@ -221,7 +224,7 @@ Decision 0019.
   | --------------------- | ------------------------------------------------------------------------------ |
   | None (no invitation)  | Create invitation                                                              |
   | Draft, Sent or Failed | Copy Link, WhatsApp, Send (Draft) or Resend (Sent, Failed), Regenerate, Revoke |
-  | Revoked               | Regenerate (creates a new link)                                                |
+  | Revoked               | Regenerate (creates a new link; email status becomes Draft — 0020)             |
 
   Send and Resend also need the guest's email address.
 
@@ -239,11 +242,12 @@ Decision 0019.
   | Regenerate the link          | The old link stops working; the new link must be shared again.              |
   | Revoke the link              | The current link stops working; no replacement is created.                  |
 
-- **Copy to draft in Stitch and approve at design review** (none is approved yet): the
-  invitation email subject and body, the WhatsApp prefilled message, the duplicate-mobile
-  warning, the guest confirmation message, the invalid or revoked link message, and the
-  no-events message. Wording is clear, respectful and suited to Indian wedding invitations,
-  and never says an email was delivered or an RSVP saved unless that operation succeeded.
+- **Wording** is drafted on the copy-drafts screen and recorded in decision 0021 as a
+  draft; it awaits product-owner approval (0019 #7). It never says an email was delivered or
+  an RSVP saved unless that operation succeeded.
+- **Invitation email with missing details** (0021): a missing wedding date or city is left
+  out, with no empty labels or invented details; the couple's names and the link are always
+  included.
 
 ### 10.2 Dashboard summaries
 
@@ -255,15 +259,19 @@ approved these rules on 2026-10-10, as written:
   events and guests and removed assignments are excluded from every summary but kept as
   history.
 - **Upcoming events:** counted events whose date is today or later in the wedding's
-  timezone, in date and start-time order (untimed first on their day). How many are listed
-  is set at design review.
+  timezone, in date and start-time order (untimed first on their day). The rule is date
+  only: an event dated today stays upcoming after its start or end time has passed (0022).
+  The dashboard shows at most five, the first five in that order; the dashboard API returns
+  only those five (0021, 0022). Events are not limited anywhere else, and there is no
+  "View all" or pagination.
 - **Guest totals:** the number of counted guests, including guests not yet assigned to any
   event.
 - **RSVP breakdown:** the number of counted assignments in each status — Pending,
   Attending, Declined and Maybe — across all counted events, past and future. A guest invited
   to three events counts three times, once per event.
-- **Expected attendees:** for each upcoming event, the sum of `attendeeCount` over its counted
-  Attending assignments. Declined (0), Pending and Maybe (no count) add nothing.
+- **Expected attendees:** for each upcoming event shown on the dashboard (the same up to
+  five — 0022), the sum of `attendeeCount` over its counted Attending assignments.
+  Declined (0), Pending and Maybe (no count) add nothing.
 - **Per event only.** There is no wedding-wide "expected attendees" total: it would count the
   same person once for every event they attend, so it would mislead as a count of people.
 
@@ -309,8 +317,8 @@ approved these rules on 2026-10-10, as written:
 ## 12. Deferred or open
 
 - Token expiry: none in Phase 4; revisit only by decision.
+- Wording drafted in Stitch, awaiting product-owner approval (0019 #7, 0021).
 - Delivery webhooks (`DELIVERED`, later `FAILED`); provider retry and backoff details.
-- Wording drafted in Stitch, approved at design review (0019 #7).
 
 - Retention periods for audit and delivery history.
 - De-duplication of repeated opens (first open always kept).

@@ -11,7 +11,7 @@ overrides a specification only for the scope it covers.
 | Document                                          | Defines                                                  |
 | ------------------------------------------------- | -------------------------------------------------------- |
 | [PROJECT_STATUS.md](PROJECT_STATUS.md)            | Current phase, branches, open decisions, working rules   |
-| [Decision records 0001–0019](decisions/README.md) | Approved decisions and what they supersede               |
+| [Decision records 0001–0022](decisions/README.md) | Approved decisions and what they supersede               |
 | [PRD v1.2](specs/PRD_v1.2.md)                     | Master product scope and behaviour                       |
 | [Phase 4 PRD v1.2](specs/PHASE_4_PRD_v1.2.md)     | Phase 4 requirements and acceptance criteria (not built) |
 | [System Design v1.3](specs/SYSTEM_DESIGN_v1.3.md) | Architecture, deployment, module boundaries              |
