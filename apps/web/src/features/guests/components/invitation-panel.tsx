@@ -131,6 +131,12 @@ export function InvitationPanel({
       }
       return result.data.invitationUrl;
     });
+    // The clipboard can fail before the link request settles; this keeps that later
+    // rejection from going unhandled. The catch below waits for it.
+    const settled = link.then(
+      () => undefined,
+      () => undefined,
+    );
     try {
       // Safari only allows clipboard writes started inside the click, so the write begins now
       // with the link still on its way (review M7). Elsewhere it falls back to writeText.
@@ -145,6 +151,8 @@ export function InvitationPanel({
       }
       setToast(invitationPanel.copied);
     } catch {
+      // Only once the link request has finished do we know whether the API refused it.
+      await settled;
       if (apiError) fail(apiError);
       else setError(invitationPanel.error);
     } finally {
@@ -215,6 +223,8 @@ export function InvitationPanel({
           );
     setDialog(null);
     if (!data) return;
+    // A kept send key belongs to the old link; reusing it would be ignored as a duplicate.
+    sendKey.current = null;
     setRegenerated(action === 'regenerate');
     onGuestChanged();
   }

@@ -1,6 +1,6 @@
 import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing';
-import { Queue } from 'bullmq';
+import { Queue, QueueEvents } from 'bullmq';
 import { Types } from 'mongoose';
 import request from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
@@ -479,17 +479,24 @@ describe('Invitations', () => {
     it('skips a queued email whose link was revoked and replaced before sending (review M2)', async () => {
       const { owner, guestId } = await weddingWithGuest();
       await createInvitation(owner, guestId);
-      const queue = new Queue(QueueName.Invitations, { connection: { url: TEST_REDIS_URL } });
+      const connection = { url: TEST_REDIS_URL };
+      const queue = new Queue(QueueName.Invitations, { connection });
+      const queueEvents = new QueueEvents(QueueName.Invitations, { connection });
       try {
+        await queueEvents.waitUntilReady();
         await queue.pause();
         await owner.agent.post(invitationUrl(owner, guestId, '/send')).expect(202);
+        const [job] = await queue.getJobs(['waiting']);
+        expect(job).toBeDefined();
         await owner.agent.post(invitationUrl(owner, guestId, '/revoke')).expect(200);
         await owner.agent.post(invitationUrl(owner, guestId, '/regenerate')).expect(200);
         await queue.resume();
-        // Give the worker time to pick the job up and skip it.
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        // Wait until the worker has actually run the job, so the checks below mean it skipped it.
+        await job?.waitUntilFinished(queueEvents, 15_000);
+        expect(await job?.getState()).toBe('completed');
       } finally {
         await queue.resume();
+        await queueEvents.close();
         await queue.close();
       }
       expect(sender.sent).toHaveLength(0);
