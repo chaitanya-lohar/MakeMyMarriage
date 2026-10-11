@@ -1075,7 +1075,7 @@
             "in": "query",
             "description": "Matches the name or the mobile number.",
             "schema": {
-              "$ref": "#/components/schemas/Object"
+              "type": "string"
             }
           },
           {
@@ -3464,10 +3464,6 @@
           "createdAt",
           "updatedAt"
         ]
-      },
-      "Object": {
-        "type": "object",
-        "properties": {}
       },
       "DuplicateMobileGuestDto": {
         "type": "object",

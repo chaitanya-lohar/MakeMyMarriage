@@ -113,7 +113,7 @@ export class UpdateGuestDto extends GuestOptionalFields {
 
 /** GET /weddings/{weddingId}/guests query (API Design §9, §24). */
 export class ListGuestsQueryDto {
-  @ApiPropertyOptional({ description: 'Matches the name or the mobile number.' })
+  @ApiPropertyOptional({ type: String, description: 'Matches the name or the mobile number.' })
   @Transform(trimToNull)
   @IsOptional()
   @IsString()

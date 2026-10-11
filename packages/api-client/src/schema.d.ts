@@ -717,7 +717,6 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
         };
-        Object: Record<string, never>;
         DuplicateMobileGuestDto: {
             id: string;
             /** @example Sunita Sharma */
@@ -1655,7 +1654,7 @@ export interface operations {
         parameters: {
             query?: {
                 /** @description Matches the name or the mobile number. */
-                search?: components["schemas"]["Object"];
+                search?: string;
                 /** @description Guests assigned to this event. */
                 eventId?: string;
                 /** @description Guests with an RSVP in this status (to the chosen event, or any event). */
