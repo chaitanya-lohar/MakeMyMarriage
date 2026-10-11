@@ -3,13 +3,17 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Icon } from '@/components/ui/icon';
+import { DashboardSummaries } from '@/features/dashboard/components/dashboard-summaries';
 import { WEDDING_DETAILS_PATH } from '@/features/workspace/components/shell-parts';
 import { useWorkspace } from '@/features/workspace/workspace-context';
 import { dashboard } from '../content';
 import { daysBetween, formatDate, formatLongDate, todayIn } from '../dates';
 import type { ApiWedding } from '../wedding-form-model';
 
-/** Stitch "P3 · S4 Dashboard": normal, just created and countdown states (decision 0016). */
+/**
+ * Stitch "P3 · S4 Dashboard": normal, just created and countdown states (decision 0016), with
+ * the Phase 4 summaries below ("P4 · O10", decision 0022).
+ */
 export function DashboardView({ wedding }: { wedding: ApiWedding }) {
   const { notice, setNotice } = useWorkspace();
   // The "created" toast belongs to this visit only: keep it here and clear the shared flag,
@@ -76,6 +80,7 @@ export function DashboardView({ wedding }: { wedding: ApiWedding }) {
 
       <CountdownCard startDate={wedding.startDate} timezone={wedding.timezone} />
       <DetailsCard wedding={wedding} />
+      <DashboardSummaries wedding={wedding} />
     </div>
   );
 }
