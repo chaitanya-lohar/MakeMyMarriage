@@ -1,5 +1,6 @@
 import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing';
+import { Queue } from 'bullmq';
 import { Types } from 'mongoose';
 import request from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
@@ -9,7 +10,9 @@ import {
   type EmailMessage,
   type EmailSendResult,
 } from '../src/infrastructure/email/email-message.js';
+import { QueueName } from '../src/infrastructure/queue/queue-names.js';
 import { WorkerModule } from '../src/worker/worker.module.js';
+import { TEST_REDIS_URL } from './support/test-environment.js';
 import { startWorkspaceApp, type Agent, type WorkspaceApp } from './support/workspace-app.js';
 
 /** Records sent messages; the next send can be told to reject. */
@@ -19,8 +22,19 @@ class FakeEmailSender extends EmailSender {
   rejectNext: string | null = null;
   /** While true, every send fails as if the email service could not be reached. */
   unreachable = false;
+  /** Runs while the provider is "sending", to change things mid-send. */
+  duringSend: (() => Promise<unknown>) | null = null;
 
-  send(message: EmailMessage): Promise<EmailSendResult> {
+  async send(message: EmailMessage): Promise<EmailSendResult> {
+    if (this.duringSend) {
+      const action = this.duringSend;
+      this.duringSend = null;
+      await action();
+    }
+    return this.deliver(message);
+  }
+
+  private deliver(message: EmailMessage): Promise<EmailSendResult> {
     if (this.unreachable) return Promise.reject(new Error('connect ECONNREFUSED'));
     if (this.rejectNext) {
       const reason = this.rejectNext;
@@ -439,6 +453,49 @@ describe('Invitations', () => {
         'INVITATION_TOKEN_REVOKED',
         'INVITATION_TOKEN_REGENERATED',
       ]);
+    });
+
+    it('does not mark a link regenerated during the send as Sent (review M1, 0020)', async () => {
+      const { owner, guestId } = await weddingWithGuest();
+      const created = await createInvitation(owner, guestId);
+      sender.duringSend = () =>
+        owner.agent.post(invitationUrl(owner, guestId, '/regenerate')).expect(200);
+
+      await owner.agent.post(invitationUrl(owner, guestId, '/send')).expect(202);
+      const deliveries = await waitForAttempts(owner, guestId, 1);
+
+      // The attempt happened and is recorded, with the old link…
+      expect(pluck(deliveries, 'status')).toEqual(['SENT']);
+      expect(sender.sent[0]?.text).toContain(created.invitationUrl);
+      await guestApi(tokenOf(created.invitationUrl)).expect(404);
+      // …but the current link was never emailed, so its status stays Draft.
+      const guest = await owner.agent.get(guestUrl(owner, guestId)).expect(200);
+      expect(guest.body.data.invitation).toMatchObject({
+        deliveryStatus: 'DRAFT',
+        lastSentAt: null,
+      });
+    });
+
+    it('skips a queued email whose link was revoked and replaced before sending (review M2)', async () => {
+      const { owner, guestId } = await weddingWithGuest();
+      await createInvitation(owner, guestId);
+      const queue = new Queue(QueueName.Invitations, { connection: { url: TEST_REDIS_URL } });
+      try {
+        await queue.pause();
+        await owner.agent.post(invitationUrl(owner, guestId, '/send')).expect(202);
+        await owner.agent.post(invitationUrl(owner, guestId, '/revoke')).expect(200);
+        await owner.agent.post(invitationUrl(owner, guestId, '/regenerate')).expect(200);
+        await queue.resume();
+        // Give the worker time to pick the job up and skip it.
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      } finally {
+        await queue.resume();
+        await queue.close();
+      }
+      expect(sender.sent).toHaveLength(0);
+      expect((await deliveriesOf(owner, guestId)).deliveries).toEqual([]);
+      const guest = await owner.agent.get(guestUrl(owner, guestId)).expect(200);
+      expect(guest.body.data.invitation.deliveryStatus).toBe('DRAFT');
     });
 
     it('revokes the token when the guest is deleted, keeping the history', async () => {

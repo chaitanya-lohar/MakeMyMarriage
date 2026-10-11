@@ -295,6 +295,11 @@ describe('Guests, assignments and RSVP', () => {
       const stale = await rsvp(owner, assignment.id, { rsvpStatus: 'MAYBE', attendeeCount: null });
       expect(stale.status).toBe(404);
       expect(stale.body.error.code).toBe('GUEST_EVENT_NOT_FOUND');
+      // Removing it is refused too, so its history stays as it was (review M3).
+      const removed = await owner.agent
+        .delete(`/api/v1/weddings/${owner.weddingId}/guest-events/${assignment.id}`)
+        .expect(404);
+      expect(removed.body.error.code).toBe('GUEST_EVENT_NOT_FOUND');
 
       // The assignment record itself is untouched (0017 #12).
       const stored = await workspace.connection

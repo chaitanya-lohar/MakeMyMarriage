@@ -180,17 +180,23 @@ export class GuestInvitationsRepository {
     );
   }
 
-  /** The current delivery status follows the latest attempt (0018 #8). */
+  /**
+   * The current delivery status follows the latest attempt (0018 #8) — but only while the link
+   * that attempt carried is still the current one. Returns false, changing nothing, when the
+   * link was revoked or regenerated meanwhile: its status stays as 0020 set it.
+   */
   async applyAttempt(
     invitationId: string,
+    tokenCreatedAt: Date,
     status: DeliveryStatus,
     sentAt: Date | null,
     transaction?: Transaction,
-  ): Promise<void> {
-    await this.invitations.updateOne(
-      { _id: oid(invitationId) },
+  ): Promise<boolean> {
+    const result = await this.invitations.updateOne(
+      { _id: oid(invitationId), tokenHash: exists(true), tokenCreatedAt },
       { $set: { deliveryStatus: status, ...(sentAt ? { lastSentAt: sentAt } : {}) } },
       { session: sessionOf(transaction) },
     );
+    return result.matchedCount === 1;
   }
 }
