@@ -5,6 +5,7 @@ import { ResponseEnvelopeInterceptor } from './common/http/response-envelope.int
 import { createValidationPipe } from './common/http/validation.pipe.js';
 import { CoreModule } from './core.module.js';
 import { AuthModule } from './modules/auth/index.js';
+import { DashboardModule } from './modules/dashboard/index.js';
 import { EventsModule } from './modules/events/index.js';
 import { GuestsModule } from './modules/guests/index.js';
 import { InvitationsModule } from './modules/invitations/index.js';
@@ -29,6 +30,7 @@ import { HealthModule } from './platform/health/health.module.js';
     EventsModule,
     GuestsModule,
     InvitationsModule,
+    DashboardModule,
   ],
   controllers: [HealthController],
   providers: [
