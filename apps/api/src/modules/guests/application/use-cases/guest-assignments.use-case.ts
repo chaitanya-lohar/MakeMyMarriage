@@ -39,8 +39,18 @@ export class GuestAssignmentsUseCase {
     return this.assignments.createOrGet(weddingId, guestId, eventId);
   }
 
+  /**
+   * Removes an active assignment. An assignment whose event or guest is deleted is no longer
+   * active and is left untouched as history (0017 #12, Database Design §10.2).
+   */
   async remove(weddingId: string, guestEventId: string, userId: string): Promise<void> {
-    if (!(await this.assignments.remove(weddingId, guestEventId, userId))) {
+    const current = await this.assignments.findActive(weddingId, guestEventId);
+    if (
+      !current ||
+      !(await this.guests.findActive(weddingId, current.guestId)) ||
+      !(await this.events.findActive(weddingId, current.eventId)) ||
+      !(await this.assignments.remove(weddingId, guestEventId, userId))
+    ) {
       throw GuestsErrors.assignmentNotFound();
     }
   }

@@ -1,5 +1,6 @@
 import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing';
+import { Queue, QueueEvents } from 'bullmq';
 import { Types } from 'mongoose';
 import request from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
@@ -9,7 +10,9 @@ import {
   type EmailMessage,
   type EmailSendResult,
 } from '../src/infrastructure/email/email-message.js';
+import { QueueName } from '../src/infrastructure/queue/queue-names.js';
 import { WorkerModule } from '../src/worker/worker.module.js';
+import { TEST_REDIS_URL } from './support/test-environment.js';
 import { startWorkspaceApp, type Agent, type WorkspaceApp } from './support/workspace-app.js';
 
 /** Records sent messages; the next send can be told to reject. */
@@ -17,8 +20,22 @@ class FakeEmailSender extends EmailSender {
   readonly providerName = 'TEST';
   readonly sent: EmailMessage[] = [];
   rejectNext: string | null = null;
+  /** While true, every send fails as if the email service could not be reached. */
+  unreachable = false;
+  /** Runs while the provider is "sending", to change things mid-send. */
+  duringSend: (() => Promise<unknown>) | null = null;
 
-  send(message: EmailMessage): Promise<EmailSendResult> {
+  async send(message: EmailMessage): Promise<EmailSendResult> {
+    if (this.duringSend) {
+      const action = this.duringSend;
+      this.duringSend = null;
+      await action();
+    }
+    return this.deliver(message);
+  }
+
+  private deliver(message: EmailMessage): Promise<EmailSendResult> {
+    if (this.unreachable) return Promise.reject(new Error('connect ECONNREFUSED'));
     if (this.rejectNext) {
       const reason = this.rejectNext;
       this.rejectNext = null;
@@ -438,6 +455,56 @@ describe('Invitations', () => {
       ]);
     });
 
+    it('does not mark a link regenerated during the send as Sent (review M1, 0020)', async () => {
+      const { owner, guestId } = await weddingWithGuest();
+      const created = await createInvitation(owner, guestId);
+      sender.duringSend = () =>
+        owner.agent.post(invitationUrl(owner, guestId, '/regenerate')).expect(200);
+
+      await owner.agent.post(invitationUrl(owner, guestId, '/send')).expect(202);
+      const deliveries = await waitForAttempts(owner, guestId, 1);
+
+      // The attempt happened and is recorded, with the old link…
+      expect(pluck(deliveries, 'status')).toEqual(['SENT']);
+      expect(sender.sent[0]?.text).toContain(created.invitationUrl);
+      await guestApi(tokenOf(created.invitationUrl)).expect(404);
+      // …but the current link was never emailed, so its status stays Draft.
+      const guest = await owner.agent.get(guestUrl(owner, guestId)).expect(200);
+      expect(guest.body.data.invitation).toMatchObject({
+        deliveryStatus: 'DRAFT',
+        lastSentAt: null,
+      });
+    });
+
+    it('skips a queued email whose link was revoked and replaced before sending (review M2)', async () => {
+      const { owner, guestId } = await weddingWithGuest();
+      await createInvitation(owner, guestId);
+      const connection = { url: TEST_REDIS_URL };
+      const queue = new Queue(QueueName.Invitations, { connection });
+      const queueEvents = new QueueEvents(QueueName.Invitations, { connection });
+      try {
+        await queueEvents.waitUntilReady();
+        await queue.pause();
+        await owner.agent.post(invitationUrl(owner, guestId, '/send')).expect(202);
+        const [job] = await queue.getJobs(['waiting']);
+        expect(job).toBeDefined();
+        await owner.agent.post(invitationUrl(owner, guestId, '/revoke')).expect(200);
+        await owner.agent.post(invitationUrl(owner, guestId, '/regenerate')).expect(200);
+        await queue.resume();
+        // Wait until the worker has actually run the job, so the checks below mean it skipped it.
+        await job?.waitUntilFinished(queueEvents, 15_000);
+        expect(await job?.getState()).toBe('completed');
+      } finally {
+        await queue.resume();
+        await queueEvents.close();
+        await queue.close();
+      }
+      expect(sender.sent).toHaveLength(0);
+      expect((await deliveriesOf(owner, guestId)).deliveries).toEqual([]);
+      const guest = await owner.agent.get(guestUrl(owner, guestId)).expect(200);
+      expect(guest.body.data.invitation.deliveryStatus).toBe('DRAFT');
+    });
+
     it('revokes the token when the guest is deleted, keeping the history', async () => {
       const { owner, guestId } = await weddingWithGuest();
       const token = tokenOf((await createInvitation(owner, guestId)).invitationUrl);
@@ -551,12 +618,59 @@ describe('Invitations', () => {
     });
   });
 
+  describe('an unreachable email service (0023)', () => {
+    it('records one FAILED attempt after every retry fails, touching nothing else', async () => {
+      const { owner, guestId, assignments } = await weddingWithGuest();
+      await createInvitation(owner, guestId);
+      await owner.agent
+        .patch(`/api/v1/weddings/${owner.weddingId}/guest-events/${assignments.haldi}`)
+        .send({ rsvpStatus: 'ATTENDING', attendeeCount: 2 })
+        .expect(200);
+
+      sender.unreachable = true;
+      try {
+        await owner.agent.post(invitationUrl(owner, guestId, '/send')).expect(202);
+        // The queue retries twice with backoff (1 s, then 2 s) before giving up.
+        const deliveries = await waitForAttempts(owner, guestId, 1);
+        expect(deliveries).toEqual([
+          expect.objectContaining({
+            attemptNumber: 1,
+            status: 'FAILED',
+            sentAt: null,
+            failedAt: expect.any(String),
+            failureReason: 'The email service could not be reached.',
+          }),
+        ]);
+      } finally {
+        sender.unreachable = false;
+      }
+
+      const guest = await owner.agent.get(guestUrl(owner, guestId)).expect(200);
+      expect(guest.body.data.invitation.deliveryStatus).toBe('FAILED');
+      const rsvps = await owner.agent.get(`${guestUrl(owner, guestId)}/events`).expect(200);
+      expect(pluck(rsvps.body.data, 'rsvpStatus')).toEqual(['ATTENDING', 'PENDING']);
+
+      // A later send works normally.
+      await owner.agent.post(invitationUrl(owner, guestId, '/resend')).expect(202);
+      const after = await waitForAttempts(owner, guestId, 2);
+      expect(pluck(after, 'status')).toEqual(['FAILED', 'SENT']);
+    });
+  });
+
   describe('protection', () => {
-    it('rate-limits the guest routes per link', async () => {
+    it('rate-limits the guest routes to 60 requests a minute per link (0023)', async () => {
       const { owner, guestId } = await weddingWithGuest();
       const token = tokenOf((await createInvitation(owner, guestId)).invitationUrl);
-      for (let i = 0; i < 30; i++) await guestApi(token).expect(200);
+      for (let i = 0; i < 60; i++) await guestApi(token).expect(200);
       const limited = await guestApi(token).expect(429);
+      expect(limited.body.error.code).toBe('RATE_LIMITED');
+    });
+
+    it('rate-limits to 120 requests a minute per IP, counting invalid links (0023)', async () => {
+      // Each request uses a different unknown link, so only the per-IP limit applies.
+      const unknown = (i: number) => `${String(i).padStart(43, 'a')}`;
+      for (let i = 0; i < 120; i++) await guestApi(unknown(i)).expect(404);
+      const limited = await guestApi(unknown(999)).expect(429);
       expect(limited.body.error.code).toBe('RATE_LIMITED');
     });
 

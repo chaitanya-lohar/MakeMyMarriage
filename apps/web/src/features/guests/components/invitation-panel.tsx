@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Chip } from '@/components/ui/chip';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { PrimaryButton, QuietButton, SecondaryButton } from '@/components/ui/form';
@@ -41,7 +41,13 @@ export function InvitationPanel({
   const path = { weddingId: wedding.id, guestId: guest.id };
   const firstName = firstNameOf(guest.name);
   const [history, setHistory] = useState<ApiInvitationHistory | null>(null);
-  const [busy, setBusy] = useState<string | null>(null);
+  // Each action has its own busy flag, so finishing one never re-enables another (review M5).
+  // The ref guards against a double click before the state has re-rendered.
+  const [busy, setBusy] = useState<ReadonlySet<string>>(new Set());
+  const inFlight = useRef(new Set<string>());
+  // One Idempotency-Key per intended send, kept until the API accepts it, so retrying after a
+  // network failure can never queue a second email (review M5).
+  const sendKey = useRef<{ kind: 'send' | 'resend'; key: string } | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [dialog, setDialog] = useState<Dialog>(null);
@@ -77,11 +83,19 @@ export function InvitationPanel({
     onGuestChanged();
   }
 
+  function markBusy(name: string, on: boolean) {
+    if (on) inFlight.current.add(name);
+    else inFlight.current.delete(name);
+    setBusy(new Set(inFlight.current));
+  }
+
+  /** Runs one action; returns null if it is already running or failed. */
   async function run<T>(name: string, request: () => Promise<{ data?: T; error?: ApiError }>) {
-    setBusy(name);
+    if (inFlight.current.has(name)) return null;
+    markBusy(name, true);
     setError(null);
     const result = await request();
-    setBusy(null);
+    markBusy(name, false);
     if (result.error) {
       fail(result.error);
       return null;
@@ -106,13 +120,43 @@ export function InvitationPanel({
     );
 
   async function copyLink() {
-    const data = await run('copy', fetchLink);
-    if (!data) return;
+    if (inFlight.current.has('copy')) return;
+    markBusy('copy', true);
+    setError(null);
+    let apiError: ApiError | undefined;
+    const link = fetchLink().then((result) => {
+      if (result.error) {
+        apiError = result.error;
+        throw new Error('link unavailable');
+      }
+      return result.data.invitationUrl;
+    });
+    // The clipboard can fail before the link request settles; this keeps that later
+    // rejection from going unhandled. The catch below waits for it.
+    const settled = link.then(
+      () => undefined,
+      () => undefined,
+    );
     try {
-      await navigator.clipboard.writeText(data.invitationUrl);
+      // Safari only allows clipboard writes started inside the click, so the write begins now
+      // with the link still on its way (review M7). Elsewhere it falls back to writeText.
+      if (typeof ClipboardItem !== 'undefined' && navigator.clipboard.write) {
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            'text/plain': link.then((url) => new Blob([url], { type: 'text/plain' })),
+          }),
+        ]);
+      } else {
+        await navigator.clipboard.writeText(await link);
+      }
       setToast(invitationPanel.copied);
     } catch {
-      setError(invitationPanel.error);
+      // Only once the link request has finished do we know whether the API refused it.
+      await settled;
+      if (apiError) fail(apiError);
+      else setError(invitationPanel.error);
+    } finally {
+      markBusy('copy', false);
     }
   }
 
@@ -134,14 +178,24 @@ export function InvitationPanel({
   }
 
   async function sendEmail(kind: 'send' | 'resend') {
-    const key = crypto.randomUUID();
+    if (inFlight.current.has('send') || inFlight.current.has('resend')) return;
+    if (sendKey.current?.kind !== kind) sendKey.current = { kind, key: crypto.randomUUID() };
+    const { key } = sendKey.current;
     const route =
       kind === 'send'
         ? ('/api/v1/weddings/{weddingId}/guests/{guestId}/invitation/send' as const)
         : ('/api/v1/weddings/{weddingId}/guests/{guestId}/invitation/resend' as const);
-    const data = await run(kind, () =>
-      call(() => api.POST(route, { params: { path, header: { 'Idempotency-Key': key } } })),
-    );
+    let refused = false;
+    const data = await run(kind, async () => {
+      const result = await call(() =>
+        api.POST(route, { params: { path, header: { 'Idempotency-Key': key } } }),
+      );
+      // A refusal (revoked link, missing email) means a later click is a new intent.
+      refused =
+        result.error !== undefined && result.error.status >= 400 && result.error.status < 500;
+      return result;
+    });
+    if (data || refused) sendKey.current = null;
     if (!data) return;
     setToast(invitationPanel.queued);
     // The worker records the attempt shortly; refresh twice to pick it up.
@@ -169,6 +223,8 @@ export function InvitationPanel({
           );
     setDialog(null);
     if (!data) return;
+    // A kept send key belongs to the old link; reusing it would be ignored as a duplicate.
+    sendKey.current = null;
     setRegenerated(action === 'regenerate');
     onGuestChanged();
   }
@@ -206,7 +262,7 @@ export function InvitationPanel({
           <PrimaryButton
             icon="add_link"
             onClick={() => void create()}
-            pending={busy === 'create'}
+            pending={busy.has('create')}
             pendingLabel={invitationPanel.creating}
           >
             {invitationPanel.create}
@@ -229,7 +285,7 @@ export function InvitationPanel({
           <PrimaryButton
             icon="refresh"
             onClick={() => setDialog('regenerate')}
-            pending={busy === 'regenerate'}
+            pending={busy.has('regenerate')}
           >
             {invitationPanel.regenerate}
           </PrimaryButton>
@@ -272,7 +328,7 @@ export function InvitationPanel({
                   icon="send"
                   className="w-full sm:w-auto"
                   onClick={() => void sendEmail('send')}
-                  pending={busy === 'send'}
+                  pending={busy.has('send')}
                   pendingLabel={invitationPanel.sending}
                 >
                   {invitationPanel.send}
@@ -282,7 +338,7 @@ export function InvitationPanel({
                   icon="forward_to_inbox"
                   className="w-full sm:w-auto"
                   onClick={() => void sendEmail('resend')}
-                  pending={busy === 'resend'}
+                  pending={busy.has('resend')}
                   pendingLabel={invitationPanel.sending}
                 >
                   {invitationPanel.resend}
@@ -295,14 +351,14 @@ export function InvitationPanel({
               <SecondaryButton
                 icon="chat"
                 onClick={() => void shareOnWhatsApp()}
-                pending={busy === 'whatsapp'}
+                pending={busy.has('whatsapp')}
               >
                 {invitationPanel.whatsapp}
               </SecondaryButton>
               <SecondaryButton
                 icon="content_copy"
                 onClick={() => void copyLink()}
-                pending={busy === 'copy'}
+                pending={busy.has('copy')}
               >
                 {invitationPanel.copy}
               </SecondaryButton>
@@ -346,7 +402,7 @@ export function InvitationPanel({
           cancelLabel={regenerateLink.cancel}
           pendingLabel={regenerateLink.pending}
           tone="primary"
-          pending={busy === 'regenerate'}
+          pending={busy.has('regenerate')}
           onConfirm={() => void confirmDialog()}
           onCancel={closeDialog}
         />
@@ -360,7 +416,7 @@ export function InvitationPanel({
           cancelLabel={revokeLink.cancel}
           pendingLabel={revokeLink.pending}
           tone="danger"
-          pending={busy === 'revoke'}
+          pending={busy.has('revoke')}
           onConfirm={() => void confirmDialog()}
           onCancel={closeDialog}
         />

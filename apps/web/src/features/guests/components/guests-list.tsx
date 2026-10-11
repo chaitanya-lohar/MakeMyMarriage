@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Chip } from '@/components/ui/chip';
 import { Banner, controlClasses, SecondaryButton } from '@/components/ui/form';
 import { Icon } from '@/components/ui/icon';
@@ -84,6 +84,9 @@ export function GuestsList({ wedding }: { wedding: ApiWedding }) {
   const [attempt, setAttempt] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
   const [showDeleted, dismissDeleted] = useOneOffNotice('guest-deleted');
+  // Bumped whenever the list reloads (new filters, retry), so a slower Load more that started
+  // earlier cannot add guests from the previous filters (review M4).
+  const listVersion = useRef(0);
 
   function applyFilters(next: Filters) {
     setState({ status: 'loading' });
@@ -113,6 +116,7 @@ export function GuestsList({ wedding }: { wedding: ApiWedding }) {
 
   useEffect(() => {
     let active = true;
+    listVersion.current += 1;
     void fetchPage(wedding.id, filters).then((result) => {
       if (!active) return;
       if ('guests' in result) {
@@ -132,15 +136,21 @@ export function GuestsList({ wedding }: { wedding: ApiWedding }) {
 
   async function loadMore() {
     if (state.status !== 'ready' || !state.nextCursor) return;
+    const version = listVersion.current;
     setLoadingMore(true);
     const result = await fetchPage(wedding.id, filters, state.nextCursor);
     setLoadingMore(false);
+    if (version !== listVersion.current) return;
     if ('guests' in result) {
-      setState({
-        status: 'ready',
-        guests: [...state.guests, ...result.guests],
-        nextCursor: result.nextCursor,
-      });
+      setState((current) =>
+        current.status === 'ready'
+          ? {
+              status: 'ready',
+              guests: [...current.guests, ...result.guests],
+              nextCursor: result.nextCursor,
+            }
+          : current,
+      );
     } else if (result.error.status === 401) router.replace(SESSION_ENDED_PATH);
     else setState({ status: 'error' });
   }

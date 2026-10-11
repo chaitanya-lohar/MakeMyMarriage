@@ -56,13 +56,18 @@ export class InvitationEmailProcessor extends WorkerHost {
 
     if (await this.history.hasAttempt(idempotencyKey)) return;
 
-    // Revoked, regenerated-away or deleted since queueing: nothing is sent or recorded.
+    // Revoked, regenerated or deleted since queueing: the link this email was queued for is no
+    // longer current, so nothing is sent or recorded (0020).
     const secret = await this.invitations.findSecretById(invitationId);
-    const guest = secret
-      ? await this.guests.findActive(weddingId, secret.invitation.guestId)
-      : null;
+    const linkTime = secret?.invitation.tokenCreatedAt;
+    const queuedFor = new Date(job.data.tokenCreatedAt);
+    const sameLink = linkTime?.getTime() === queuedFor.getTime();
+    const guest =
+      secret && sameLink
+        ? await this.guests.findActive(weddingId, secret.invitation.guestId)
+        : null;
     const wedding = await this.weddings.findById(weddingId);
-    if (!secret || !guest?.email || !wedding) {
+    if (!secret || !sameLink || !guest?.email || !wedding) {
       this.logger.info(log, 'Invitation email skipped: no longer sendable');
       return;
     }
@@ -95,7 +100,8 @@ export class InvitationEmailProcessor extends WorkerHost {
     }
 
     const at = new Date();
-    await this.transactions.run(async (transaction) => {
+    const applied = await this.transactions.run(async (transaction) => {
+      // The attempt happened, so it is always recorded; history is never rewritten (0020).
       await this.history.recordAttempt(
         {
           weddingId,
@@ -108,13 +114,19 @@ export class InvitationEmailProcessor extends WorkerHost {
         },
         transaction,
       );
-      await this.invitations.applyAttempt(
+      // The status follows it only if the emailed link is still current: a link regenerated or
+      // revoked during the send keeps the status 0020 gave it, so nobody is told it was sent.
+      return this.invitations.applyAttempt(
         invitationId,
+        queuedFor,
         outcome.status === AttemptStatus.Sent ? DeliveryStatus.Sent : DeliveryStatus.Failed,
         outcome.status === AttemptStatus.Sent ? at : null,
         transaction,
       );
     });
-    this.logger.info({ ...log, status: outcome.status }, 'Invitation email attempt recorded');
+    this.logger.info(
+      { ...log, status: outcome.status, statusUpdated: applied },
+      'Invitation email attempt recorded',
+    );
   }
 }

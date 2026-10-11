@@ -26,6 +26,11 @@ export interface InvitationEmailJob {
   invitationId: string;
   kind: DeliveryKind;
   idempotencyKey: string;
+  /**
+   * Which link the email was queued for: the token's creation time (ISO). The worker sends only
+   * while this link is still current, so a revoke or regenerate after queueing is respected.
+   */
+  tokenCreatedAt: string;
 }
 
 export interface InvitationWithLink {
@@ -144,7 +149,14 @@ export class ManageInvitationUseCase {
     const jobId = `invitation-${invitation.id}-${key}`;
     await this.queue.add(
       InvitationJob.Send,
-      { weddingId, invitationId: invitation.id, kind, idempotencyKey: jobId },
+      {
+        weddingId,
+        invitationId: invitation.id,
+        kind,
+        idempotencyKey: jobId,
+        // Set for every active link (only a revoked one lacks it, and that is refused above).
+        tokenCreatedAt: (invitation.tokenCreatedAt as Date).toISOString(),
+      },
       { jobId },
     );
     return invitation;

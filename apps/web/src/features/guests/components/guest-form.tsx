@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useId, useState, type FormEvent } from 'react';
+import { type FormEvent, useEffect, useId, useRef, useState } from 'react';
 import { Banner, controlClasses, describedBy, Field, PrimaryButton } from '@/components/ui/form';
 import { networkError } from '@/features/weddings/content';
 import type { ApiWedding } from '@/features/weddings/wedding-form-model';
@@ -89,6 +89,14 @@ function GuestForm({ wedding, guest }: { wedding: ApiWedding; guest: ApiGuest | 
   const [banner, setBanner] = useState<Banner>(null);
   const [duplicates, setDuplicates] = useState<string[]>([]);
   const [pending, setPending] = useState(false);
+  // Set synchronously, so a second submit is ignored even before the button re-renders as
+  // disabled — e.g. a quick second Enter (review M8).
+  const submitting = useRef(false);
+
+  function setSaving(value: boolean) {
+    submitting.current = value;
+    setPending(value);
+  }
   const [gone, setGone] = useState(false);
 
   function change(field: GuestFormField, value: string) {
@@ -98,12 +106,13 @@ function GuestForm({ wedding, guest }: { wedding: ApiWedding; guest: ApiGuest | 
 
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (submitting.current) return;
     setBanner(null);
     const found = validateGuestForm(values);
     setErrors(found);
     if (Object.keys(found).length > 0) return;
 
-    setPending(true);
+    setSaving(true);
     const body = toGuestPayload(values);
     const result = saved
       ? await call(() =>
@@ -118,20 +127,23 @@ function GuestForm({ wedding, guest }: { wedding: ApiWedding; guest: ApiGuest | 
             body,
           }),
         );
-    setPending(false);
-
     if (result.data) {
       const { guest: stored, duplicateMobileGuests } = result.data;
       if (duplicateMobileGuests.length === 0) {
+        // Stay busy until the page changes, so a quick second submit cannot create a
+        // duplicate guest (review M8).
         router.push(`${GUESTS_PATH}/${stored.id}`);
         return;
       }
-      // Saved, with a warning only (0017 #13): stay so the organizer can check.
+      // Saved, with a warning only (0017 #13): stay so the organizer can check. Later saves
+      // update this guest, never create another.
+      setSaving(false);
       setSaved(stored);
       setValues(formFromGuest(stored));
       setDuplicates(duplicateMobileGuests.map((other) => other.name));
       return;
     }
+    setSaving(false);
     const { status, code, fields } = result.error;
     if (status === 401) router.replace(SESSION_ENDED_PATH);
     else if (status === 404) setGone(true);

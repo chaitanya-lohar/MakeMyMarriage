@@ -194,9 +194,13 @@ function Invitation({
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
-    const { status } = result.error;
+    const { status, fields } = result.error;
+    // An event left the invitation while the page was open: say so, rather than a generic
+    // "try again" that can never succeed (review M6).
+    const notOnInvitation = fields.responses?.[0];
     if (status === 404) onLinkGone();
     else if (status === 429) setError(invitationErrors.rateLimited);
+    else if (status === 400 && notOnInvitation) setError(notOnInvitation);
     else setError(status === 0 ? invitationErrors.network : invitationErrors.server);
   }
 
