@@ -66,6 +66,37 @@ export function ApiEnvelopeResponse(
   return applyDecorators(...decorators);
 }
 
+export class PaginationMetaDto {
+  @ApiProperty({ type: String, nullable: true, description: 'Pass as `cursor` for the next page.' })
+  nextCursor!: string | null;
+
+  @ApiProperty()
+  hasNextPage!: boolean;
+}
+
+export class PaginatedMetaDto extends ResponseMetaDto {
+  @ApiProperty({ type: PaginationMetaDto })
+  pagination!: PaginationMetaDto;
+}
+
+/** Documents a cursor-paginated list: `data` is a list and `meta.pagination` is set. */
+export function ApiPaginatedResponse(model: Type<unknown>) {
+  return applyDecorators(
+    ApiExtraModels(PaginatedMetaDto, model),
+    ApiResponse({
+      status: 200,
+      schema: {
+        type: 'object',
+        required: ['data', 'meta'],
+        properties: {
+          data: { type: 'array', items: { $ref: getSchemaPath(model) } },
+          meta: { $ref: getSchemaPath(PaginatedMetaDto) },
+        },
+      },
+    }),
+  );
+}
+
 /** Documents error responses in the standard error contract (API Design §21). */
 export function ApiErrorResponses(
   ...responses: Pick<ApiResponseOptions, 'status' | 'description'>[]

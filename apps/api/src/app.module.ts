@@ -6,6 +6,7 @@ import { createValidationPipe } from './common/http/validation.pipe.js';
 import { CoreModule } from './core.module.js';
 import { AuthModule } from './modules/auth/index.js';
 import { EventsModule } from './modules/events/index.js';
+import { GuestsModule } from './modules/guests/index.js';
 import { UsersModule } from './modules/users/index.js';
 import { WeddingsModule } from './modules/weddings/index.js';
 import { WorkspaceModule } from './modules/workspace/index.js';
@@ -25,6 +26,7 @@ import { HealthModule } from './platform/health/health.module.js';
     WorkspaceModule,
     WeddingsModule,
     EventsModule,
+    GuestsModule,
   ],
   controllers: [HealthController],
   providers: [
