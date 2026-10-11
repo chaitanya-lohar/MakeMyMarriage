@@ -118,30 +118,31 @@ Decisions 0001, 0002 and 0005; answer Q1.
 
 ## 6. Backend modular monolith
 
-| Module           | Responsibility                                           |
-| ---------------- | -------------------------------------------------------- |
-| Auth             | Registration, login, password reset, sessions and tokens |
-| Users            | User accounts and the current-user endpoint              |
-| Weddings         | Wedding identity, couple details, settings               |
-| Workspace        | Memberships and the access check for wedding routes      |
-| Partner          | Partner connection                                       |
-| Sharing          | Resource-specific sharing                                |
-| Events           | Predefined and custom events                             |
-| Guests           | Guest records and event assignment                       |
-| Invitations      | Invitation tokens, delivery lifecycle and activity       |
-| RSVP             | Event-level RSVP and attendee count                      |
-| Notifications    | In-app and email notifications and reminders             |
-| Expenses         | Expense tracking, payments and receipts                  |
-| Tasks            | Wedding and event tasks                                  |
-| Vendors          | Managed wedding vendors                                  |
-| Vendor discovery | Provider abstraction and Google Places                   |
-| Website          | Website configuration and publication                    |
-| Gallery          | Albums and photos                                        |
-| QR               | Wedding and event QR lifecycle                           |
-| Live stream      | Event–stream association                                 |
-| Reports          | Reports and Excel export                                 |
-| Settings         | Account and wedding settings                             |
-| Audit            | Meaningful and security-sensitive history                |
+| Module           | Responsibility                                                                        |
+| ---------------- | ------------------------------------------------------------------------------------- |
+| Auth             | Registration, login, password reset, sessions and tokens                              |
+| Users            | User accounts and the current-user endpoint                                           |
+| Weddings         | Wedding identity, couple details, settings                                            |
+| Workspace        | Memberships and the access check for wedding routes                                   |
+| Partner          | Partner connection                                                                    |
+| Sharing          | Resource-specific sharing                                                             |
+| Events           | Predefined and custom events                                                          |
+| Guests           | Guest records and event assignment                                                    |
+| Invitations      | Invitation tokens, delivery lifecycle and activity                                    |
+| RSVP             | Event-level RSVP and attendee count (in the Guests module, which owns `guest_events`) |
+| Dashboard        | Wedding dashboard summaries; owns no data (0022)                                      |
+| Notifications    | In-app and email notifications and reminders                                          |
+| Expenses         | Expense tracking, payments and receipts                                               |
+| Tasks            | Wedding and event tasks                                                               |
+| Vendors          | Managed wedding vendors                                                               |
+| Vendor discovery | Provider abstraction and Google Places                                                |
+| Website          | Website configuration and publication                                                 |
+| Gallery          | Albums and photos                                                                     |
+| QR               | Wedding and event QR lifecycle                                                        |
+| Live stream      | Event–stream association                                                              |
+| Reports          | Reports and Excel export                                                              |
+| Settings         | Account and wedding settings                                                          |
+| Audit            | Meaningful and security-sensitive history                                             |
 
 Module layout (0006):
 
@@ -492,8 +493,10 @@ decision records in `docs/decisions/` (0001–0017), which are the authoritative
 ## 28. Remaining open technical decisions
 
 - Exact role names' default permission matrix.
-- Invitation-token encryption: algorithm details, key rotation procedure and the
-  configuration name of the key (added by the Invitations module; 0018).
+- Invitation-token key rotation procedure (re-encrypting stored copies under a new key).
+  Settled by the Invitations module (0018): AES-256-GCM, with the ciphertext bound to its
+  guest; keys in `INVITATION_TOKEN_KEYS` as `<version>:<base64 32-byte key>` entries, the
+  current key first and older keys after it so existing copies stay readable.
 - Public-identifier generation and collision strategy.
 - Google Places fields that may be stored or cached.
 - Notification templates and default reminder schedules (product-deferred).
