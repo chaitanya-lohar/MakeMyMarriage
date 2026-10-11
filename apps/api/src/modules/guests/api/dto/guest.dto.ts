@@ -20,6 +20,7 @@ import {
   normalizeMobile,
 } from '../../domain/rules/guest-rules.js';
 import { RSVP_STATUSES, type RsvpStatus } from '../../domain/rules/rsvp-rules.js';
+import type { GuestInvitationSummary } from '../../application/ports/guest-invitations.port.js';
 import type { DuplicateMobileGuest, Guest, GuestSaveResult } from '../../domain/types/guest.js';
 
 const MAX_PAGE_SIZE = 100;
@@ -163,6 +164,15 @@ export class GuestInvitationSummaryDto {
 
   @ApiProperty({ type: String, format: 'date-time', nullable: true })
   firstOpenedAt!: string | null;
+
+  static from(summary: GuestInvitationSummary): GuestInvitationSummaryDto {
+    return {
+      deliveryStatus: summary.deliveryStatus,
+      isRevoked: summary.isRevoked,
+      lastSentAt: summary.lastSentAt?.toISOString() ?? null,
+      firstOpenedAt: summary.firstOpenedAt?.toISOString() ?? null,
+    };
+  }
 }
 
 /** A guest as returned to organizers (API Design §9). */
@@ -236,9 +246,9 @@ export class GuestSaveResultDto {
   })
   duplicateMobileGuests!: DuplicateMobileGuestDto[];
 
-  static from(result: GuestSaveResult): GuestSaveResultDto {
+  static from(result: GuestSaveResult, guest: GuestDto): GuestSaveResultDto {
     return {
-      guest: GuestDto.from(result.guest),
+      guest,
       duplicateMobileGuests: result.duplicateMobileGuests.map((guest) =>
         DuplicateMobileGuestDto.from(guest),
       ),

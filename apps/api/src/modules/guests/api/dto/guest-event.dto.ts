@@ -10,9 +10,9 @@ import type { GuestEvent } from '../../domain/types/guest.js';
 
 /**
  * `attendeeCount` must be sent on every RSVP write (null where there is none) and must match
- * the status (0017 #2–3). Exported for the guest RSVP request, which allows fewer statuses.
+ * the status (0017 #2–3).
  */
-export function IsAttendeeCountFor(statusProperty = 'rsvpStatus'): PropertyDecorator {
+function IsAttendeeCountFor(statusProperty = 'rsvpStatus'): PropertyDecorator {
   return ValidateBy({
     name: 'isAttendeeCountFor',
     validator: {

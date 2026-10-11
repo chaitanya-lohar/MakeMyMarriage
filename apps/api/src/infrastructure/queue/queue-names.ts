@@ -7,6 +7,8 @@ export const QueueName = {
   System: 'system',
   /** Outgoing transactional email, sent by the worker (infrastructure/email). */
   Email: 'email',
+  /** Invitation emails: the worker builds each from the stored token (Phase 4, 0018). */
+  Invitations: 'invitations',
 } as const;
 
 export type QueueName = (typeof QueueName)[keyof typeof QueueName];
@@ -16,5 +18,9 @@ export const SystemJob = {
 } as const;
 
 export const EmailJob = {
+  Send: 'send',
+} as const;
+
+export const InvitationJob = {
   Send: 'send',
 } as const;

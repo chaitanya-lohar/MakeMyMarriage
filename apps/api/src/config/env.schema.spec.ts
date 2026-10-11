@@ -7,6 +7,7 @@ const validEnv = {
   MONGODB_URI: 'mongodb://localhost:27017/makemymarriage',
   REDIS_URL: 'redis://localhost:6379',
   JWT_ACCESS_SECRET: 'test-secret-that-is-at-least-32-characters-long',
+  INVITATION_TOKEN_KEYS: 'v1:AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=',
 };
 
 /** The minimum a staging or production deployment must set on top of validEnv. */
@@ -33,6 +34,32 @@ describe('parseEnv', () => {
     const env = parseEnv({ ...validEnv, PORT: '8080', OPENAPI_DOCS_ENABLED: 'true' });
     expect(env.PORT).toBe(8080);
     expect(env.OPENAPI_DOCS_ENABLED).toBe(true);
+  });
+
+  it('requires invitation-token keys of 32 bytes, each with a version', () => {
+    const k1 = Buffer.alloc(32, 1).toString('base64');
+    const short = Buffer.alloc(16, 1).toString('base64');
+    for (const value of ['', k1, `v1:${short}`, `v1:${k1},v1:${k1}`, 'v1:not base64!']) {
+      expect(() => parseEnv({ ...validEnv, INVITATION_TOKEN_KEYS: value })).toThrow(
+        /INVITATION_TOKEN_KEYS/,
+      );
+    }
+    const { INVITATION_TOKEN_KEYS: _omitted, ...withoutKeys } = validEnv;
+    expect(() => parseEnv(withoutKeys)).toThrow(/INVITATION_TOKEN_KEYS/);
+  });
+
+  it('reads the key ring with the first key as current', () => {
+    const k1 = Buffer.alloc(32, 1);
+    const k2 = Buffer.alloc(32, 2);
+    const config = new AppConfig(
+      parseEnv({
+        ...validEnv,
+        INVITATION_TOKEN_KEYS: `v2:${k2.toString('base64')}, v1:${k1.toString('base64')}`,
+      }),
+    );
+    expect(config.invitations.tokenKeys.currentVersion).toBe('v2');
+    expect(config.invitations.tokenKeys.keys.get('v1')).toEqual(k1);
+    expect(config.invitations.tokenKeys.keys.get('v2')).toEqual(k2);
   });
 
   it('requires a sufficiently long access-token secret', () => {

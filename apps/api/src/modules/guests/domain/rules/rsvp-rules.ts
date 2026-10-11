@@ -12,7 +12,9 @@ export type RsvpStatus = (typeof RsvpStatus)[keyof typeof RsvpStatus];
 export const RSVP_STATUSES = Object.values(RsvpStatus);
 
 /** What a guest may send: every status except PENDING (0017 #4). */
-export const GUEST_RSVP_STATUSES = RSVP_STATUSES.filter((status) => status !== RsvpStatus.Pending);
+export const GUEST_RSVP_STATUSES: readonly RsvpStatus[] = RSVP_STATUSES.filter(
+  (status) => status !== RsvpStatus.Pending,
+);
 
 export const RsvpMessages = {
   status: 'Choose a response.',

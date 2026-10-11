@@ -26,6 +26,7 @@ export async function startTestEnvironment(
     LOG_LEVEL: 'silent',
     OPENAPI_DOCS_ENABLED: 'false',
     JWT_ACCESS_SECRET: 'integration-test-secret-at-least-32-characters',
+    INVITATION_TOKEN_KEYS: 'v1:AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI=',
     ...overrides,
   });
 

@@ -22,14 +22,17 @@ import {
 } from '../../../../common/http/api-envelope.decorator.js';
 import { Paginated } from '../../../../common/http/paginated.js';
 import { WeddingAccessGuard } from '../../../workspace/index.js';
+import { GuestInvitations } from '../../application/ports/guest-invitations.port.js';
 import { GuestsService } from '../../application/services/guests.service.js';
 import { GuestAssignmentsUseCase } from '../../application/use-cases/guest-assignments.use-case.js';
 import { ListGuestsUseCase } from '../../application/use-cases/list-guests.use-case.js';
 import { SaveGuestUseCase } from '../../application/use-cases/save-guest.use-case.js';
 import { AssignGuestDto, GuestEventDto } from '../dto/guest-event.dto.js';
+import type { Guest, GuestSaveResult } from '../../domain/types/guest.js';
 import {
   CreateGuestDto,
   GuestDto,
+  GuestInvitationSummaryDto,
   GuestSaveResultDto,
   ListGuestsQueryDto,
   normalizedMobile,
@@ -52,7 +55,25 @@ export class GuestsController {
     private readonly saveGuest: SaveGuestUseCase,
     private readonly listGuests: ListGuestsUseCase,
     private readonly assignments: GuestAssignmentsUseCase,
+    private readonly invitations: GuestInvitations,
   ) {}
+
+  /** Guests with their invitation state, so organizers need no extra request (API §9). */
+  private async withInvitations(weddingId: string, guests: Guest[]): Promise<GuestDto[]> {
+    const summaries = await this.invitations.summariesFor(
+      weddingId,
+      guests.map((guest) => guest.id),
+    );
+    return guests.map((guest) => {
+      const summary = summaries.get(guest.id);
+      return GuestDto.from(guest, summary ? GuestInvitationSummaryDto.from(summary) : null);
+    });
+  }
+
+  private async saveResult(weddingId: string, result: GuestSaveResult) {
+    const [guest] = await this.withInvitations(weddingId, [result.guest]);
+    return GuestSaveResultDto.from(result, guest as GuestDto);
+  }
 
   @Get()
   @ApiOperation({ summary: 'List, search and filter guests, alphabetically' })
@@ -73,10 +94,7 @@ export class GuestsController {
       limit: query.limit,
       cursor: query.cursor,
     });
-    return new Paginated(
-      page.guests.map((guest) => GuestDto.from(guest)),
-      page.nextCursor,
-    );
+    return new Paginated(await this.withInvitations(weddingId, page.guests), page.nextCursor);
   }
 
   @Post()
@@ -100,7 +118,7 @@ export class GuestsController {
       relation: dto.relation ?? null,
       notes: dto.notes ?? null,
     });
-    return GuestSaveResultDto.from(result);
+    return this.saveResult(weddingId, result);
   }
 
   @Get(':guestId')
@@ -111,7 +129,10 @@ export class GuestsController {
     @Param('weddingId') weddingId: string,
     @Param('guestId') guestId: string,
   ): Promise<GuestDto> {
-    return GuestDto.from(await this.guests.getActive(weddingId, guestId));
+    const [guest] = await this.withInvitations(weddingId, [
+      await this.guests.getActive(weddingId, guestId),
+    ]);
+    return guest as GuestDto;
   }
 
   @Patch(':guestId')
@@ -127,7 +148,8 @@ export class GuestsController {
     @Param('guestId') guestId: string,
     @Body() body: UpdateGuestDto,
   ): Promise<GuestSaveResultDto> {
-    return GuestSaveResultDto.from(
+    return this.saveResult(
+      weddingId,
       await this.saveGuest.update(weddingId, guestId, normalizedMobile(body)),
     );
   }

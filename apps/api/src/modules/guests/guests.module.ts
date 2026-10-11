@@ -17,7 +17,8 @@ import { GuestEventRecord, GuestEventSchema } from './infrastructure/schemas/gue
 
 /**
  * Guest records, event assignments and their RSVPs (System Design §6: Guests and RSVP;
- * Database Design §10.1–10.2, decision 0017).
+ * Database Design §10.1–10.2, decision 0017). GuestInvitations is provided by the global
+ * invitations module.
  */
 @Module({
   imports: [
@@ -39,5 +40,6 @@ import { GuestEventRecord, GuestEventSchema } from './infrastructure/schemas/gue
     GuestAssignmentsUseCase,
     UpdateRsvpUseCase,
   ],
+  exports: [GuestsService],
 })
 export class GuestsModule {}
