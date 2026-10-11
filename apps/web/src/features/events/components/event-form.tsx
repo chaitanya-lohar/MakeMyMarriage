@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useId, useState, type FormEvent } from 'react';
+import { type FormEvent, useCallback, useEffect, useId, useRef, useState } from 'react';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import {
   Banner,
@@ -111,6 +111,14 @@ function EventForm({ wedding, event }: { wedding: ApiWedding; event: ApiEvent | 
   const [errors, setErrors] = useState<EventFormErrors>({});
   const [banner, setBanner] = useState<Banner>(null);
   const [pending, setPending] = useState(false);
+  // Set synchronously, so a second submit is ignored even before the button re-renders as
+  // disabled — e.g. a quick second Enter (review M8).
+  const submitting = useRef(false);
+
+  function setSaving(value: boolean) {
+    submitting.current = value;
+    setPending(value);
+  }
   const [gone, setGone] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -124,12 +132,13 @@ function EventForm({ wedding, event }: { wedding: ApiWedding; event: ApiEvent | 
 
   async function save(formEvent: FormEvent<HTMLFormElement>) {
     formEvent.preventDefault();
+    if (submitting.current) return;
     setBanner(null);
     const found = validateEventForm(values);
     setErrors(found);
     if (Object.keys(found).length > 0) return;
 
-    setPending(true);
+    setSaving(true);
     const body = toEventPayload(values);
     const result = current
       ? await call(() =>
@@ -144,18 +153,20 @@ function EventForm({ wedding, event }: { wedding: ApiWedding; event: ApiEvent | 
             body,
           }),
         );
-    setPending(false);
-
     if (result.data) {
       if (!current) {
+        // Stay busy until the page changes, so a quick second submit cannot create a
+        // duplicate event (review M8).
         router.push(EVENTS_PATH);
         return;
       }
+      setSaving(false);
       setCurrent(result.data);
       setValues(formFromEvent(result.data));
       setBanner('saved');
       return;
     }
+    setSaving(false);
     const { status, code, fields } = result.error;
     if (status === 401) router.replace(SESSION_ENDED_PATH);
     else if (status === 404) setGone(true);
