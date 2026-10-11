@@ -2,7 +2,7 @@
 
 The single place to see where MakeMyMarriage stands. Read this first.
 
-- **Updated:** 2026-10-11, with Phase 4 built on `feat/phase-4` (local, not pushed).
+- **Updated:** 2026-10-11, after merging Phase 4 (PR #12).
 - **Source of truth:** the canonical documents listed in the [documentation index](README.md)
   and the decision records in [`decisions/`](decisions/README.md). This page only summarises
   and links; where they differ, the decision record wins.
@@ -11,33 +11,33 @@ The single place to see where MakeMyMarriage stands. Read this first.
 
 ## Snapshot
 
-| Item            | State                                                                                                                                                                                         |
-| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Current phase   | Phase 3 (Wedding setup) — done and merged to `main` (PR #5, 0016)                                                                                                                             |
-| Next phase      | Phase 4 (Events, guests, RSVP and invitations) — **built on `feat/phase-4`** (local, not pushed), all checks pass; open: Phase 4 wording (the UI uses the DRAFT wording until it is approved) |
-| `main`          | Scaffold, Phases 1–3, code-review and manual-testing fixes (PRs #1–6); documentation and decisions 0017–0022 (PRs #8–10)                                                                      |
-| Open PRs        | None                                                                                                                                                                                          |
-| Live deployment | None yet                                                                                                                                                                                      |
+| Item            | State                                                                                                                                                       |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Current phase   | Phase 4 (Events, guests, RSVP and invitations) — built and merged to `main` (PR #12; 0017–0022)                                                             |
+| Next phase      | Not chosen yet — each phase starts only after approval. Open for Phase 4: approve the DRAFT wording and the engineering choices listed under open decisions |
+| `main`          | Scaffold, Phases 1–4, code-review and manual-testing fixes (PRs #1–6, #12); documentation and decisions 0017–0022 (PRs #8–11)                               |
+| Open PRs        | None                                                                                                                                                        |
+| Live deployment | None yet                                                                                                                                                    |
 
 ### Branches
 
-Every branch below except `feat/phase-4` is merged into `main`; new work starts from `main`.
+Every branch below is merged into `main`; new work starts from `main`.
 
-| Branch                          | Contains                                                                     | State           |
-| ------------------------------- | ---------------------------------------------------------------------------- | --------------- |
-| `main`                          | Everything below                                                             | Up to date      |
-| `feat/home-page`                | Phase 1: design system and home page                                         | Merged (PR #2)  |
-| `feat/auth`                     | Phase 2: authentication                                                      | Merged (PR #3)  |
-| `chore/pre-phase-3`             | The three branches below, `.mcp.json`, this page                             | Merged (PR #4)  |
-| ↳ `fix/auth-hardening`          | Code-review fixes (4 commits)                                                | Merged via #4   |
-| ↳ `fix/auth-test-findings`      | Manual-testing fixes (3 commits)                                             | Merged via #4   |
-| ↳ `docs/status-after-phase-2`   | This page after the Phase 1/2 merges (1 commit)                              | Merged via #4   |
-| `feat/weddings`                 | Phase 3: wedding setup and dashboard shell                                   | Merged (PR #5)  |
-| `fix/workspace-logo-home`       | Workspace logo opens the home page (manual-testing fix)                      | Merged (PR #6)  |
-| `docs/consolidation`            | Consolidated documentation, decisions 0017–0018                              | Merged (PR #8)  |
-| `docs/phase-4-design-decisions` | Decision 0019 and the matching spec updates                                  | Merged (PR #9)  |
-| `docs/regenerate-email-status`  | Decisions 0020–0022 and the matching spec updates                            | Merged (PR #10) |
-| `feat/phase-4`                  | Phase 4: events, guests, RSVP, invitations and dashboard (local, not pushed) | In progress     |
+| Branch                          | Contains                                                 | State           |
+| ------------------------------- | -------------------------------------------------------- | --------------- |
+| `main`                          | Everything below                                         | Up to date      |
+| `feat/home-page`                | Phase 1: design system and home page                     | Merged (PR #2)  |
+| `feat/auth`                     | Phase 2: authentication                                  | Merged (PR #3)  |
+| `chore/pre-phase-3`             | The three branches below, `.mcp.json`, this page         | Merged (PR #4)  |
+| ↳ `fix/auth-hardening`          | Code-review fixes (4 commits)                            | Merged via #4   |
+| ↳ `fix/auth-test-findings`      | Manual-testing fixes (3 commits)                         | Merged via #4   |
+| ↳ `docs/status-after-phase-2`   | This page after the Phase 1/2 merges (1 commit)          | Merged via #4   |
+| `feat/weddings`                 | Phase 3: wedding setup and dashboard shell               | Merged (PR #5)  |
+| `fix/workspace-logo-home`       | Workspace logo opens the home page (manual-testing fix)  | Merged (PR #6)  |
+| `docs/consolidation`            | Consolidated documentation, decisions 0017–0018          | Merged (PR #8)  |
+| `docs/phase-4-design-decisions` | Decision 0019 and the matching spec updates              | Merged (PR #9)  |
+| `docs/regenerate-email-status`  | Decisions 0020–0022 and the matching spec updates        | Merged (PR #10) |
+| `feat/phase-4`                  | Phase 4: events, guests, RSVP, invitations and dashboard | Merged (PR #12) |
 
 The merged branches can be deleted, on GitHub and locally.
 
@@ -48,25 +48,25 @@ approved combining events, guests and RSVP, and invitations into one Phase 4 (an
 later phases keep their numbers. Each phase is approved before it starts, and any open
 questions for it are raised then (0004).
 
-| #   | Phase                                | State                               | Records                                                         |
-| --- | ------------------------------------ | ----------------------------------- | --------------------------------------------------------------- |
-| 0   | Scaffold (monorepo, API/worker, CI)  | Done, merged                        | 0001–0013                                                       |
-| 1   | Design system and home page          | Done, merged                        | 0014                                                            |
-| 2   | Authentication                       | Done, merged                        | 0015                                                            |
-| 3   | Wedding setup and dashboard shell    | Done, merged                        | 0010, 0012, 0016                                                |
-| 4   | Events, guests, RSVP and invitations | Built on `feat/phase-4`, not merged | 0008, 0010, 0017–0022; [Phase 4 PRD](specs/PHASE_4_PRD_v1.2.md) |
-| 5   | (merged into Phase 4)                | —                                   | —                                                               |
-| 6   | (merged into Phase 4)                | —                                   | —                                                               |
-| 7   | Tasks                                | Not started                         | 0010, 0013                                                      |
-| 8   | Expenses                             | Not started                         | 0009, 0010                                                      |
-| 9   | Vendors                              | Not started                         | 0010                                                            |
-| 10  | Organizers and permissions           | Not started                         | 0012                                                            |
-| 11  | Wedding website                      | Not started                         | 0007                                                            |
-| 12  | Gallery and QR memories              | Not started                         | 0007                                                            |
-| 13  | Live stream                          | Not started                         | —                                                               |
-| 14  | Notifications                        | Not started                         | —                                                               |
-| 15  | Reports                              | Not started                         | 0013                                                            |
-| 16  | Partner connection and sharing       | Not started                         | 0011, 0012 — **blocked on A4/A5**                               |
+| #   | Phase                                | State        | Records                                                         |
+| --- | ------------------------------------ | ------------ | --------------------------------------------------------------- |
+| 0   | Scaffold (monorepo, API/worker, CI)  | Done, merged | 0001–0013                                                       |
+| 1   | Design system and home page          | Done, merged | 0014                                                            |
+| 2   | Authentication                       | Done, merged | 0015                                                            |
+| 3   | Wedding setup and dashboard shell    | Done, merged | 0010, 0012, 0016                                                |
+| 4   | Events, guests, RSVP and invitations | Done, merged | 0008, 0010, 0017–0022; [Phase 4 PRD](specs/PHASE_4_PRD_v1.2.md) |
+| 5   | (merged into Phase 4)                | —            | —                                                               |
+| 6   | (merged into Phase 4)                | —            | —                                                               |
+| 7   | Tasks                                | Not started  | 0010, 0013                                                      |
+| 8   | Expenses                             | Not started  | 0009, 0010                                                      |
+| 9   | Vendors                              | Not started  | 0010                                                            |
+| 10  | Organizers and permissions           | Not started  | 0012                                                            |
+| 11  | Wedding website                      | Not started  | 0007                                                            |
+| 12  | Gallery and QR memories              | Not started  | 0007                                                            |
+| 13  | Live stream                          | Not started  | —                                                               |
+| 14  | Notifications                        | Not started  | —                                                               |
+| 15  | Reports                              | Not started  | 0013                                                            |
+| 16  | Partner connection and sharing       | Not started  | 0011, 0012 — **blocked on A4/A5**                               |
 
 A staging deployment (Vercel for the web app, containers for the API and worker — 0005) was
 recommended after Phase 2. It is not scheduled yet and needs Vercel, AWS and MongoDB Atlas
@@ -76,18 +76,21 @@ accounts.
 
 ### Web pages
 
-| Route                | What it is                                                             |
-| -------------------- | ---------------------------------------------------------------------- |
-| `/`                  | Marketing home page (final approved copy)                              |
-| `/signup`            | Create an account                                                      |
-| `/login`             | Sign in, with "Remember me for 30 days"                                |
-| `/forgot-password`   | Request a reset email                                                  |
-| `/reset-password`    | Set a new password from the emailed link; expired-link state           |
-| `/dashboard`         | "No wedding yet" (S2), or the wedding dashboard with countdown (S4)    |
-| `/wedding/new`       | Create your wedding (S3)                                               |
-| `/wedding`           | Wedding details: edit and save (S5)                                    |
-| (workspace)          | Sidebar and user menu, mobile drawer, loading (S1), not available (S6) |
-| `/privacy`, `/terms` | Placeholders — legal text not yet provided                             |
+| Route                                                                   | What it is                                                                                          |
+| ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `/`                                                                     | Marketing home page (final approved copy)                                                           |
+| `/signup`                                                               | Create an account                                                                                   |
+| `/login`                                                                | Sign in, with "Remember me for 30 days"                                                             |
+| `/forgot-password`                                                      | Request a reset email                                                                               |
+| `/reset-password`                                                       | Set a new password from the emailed link; expired-link state                                        |
+| `/dashboard`                                                            | "No wedding yet" (S2), or the wedding dashboard with countdown (S4) and the Phase 4 summaries (O10) |
+| `/wedding/new`                                                          | Create your wedding (S3)                                                                            |
+| `/wedding`                                                              | Wedding details: edit and save (S5)                                                                 |
+| `/events`, `/events/new`, `/events/[eventId]`                           | Events list, add and edit, delete (O2–O4)                                                           |
+| `/guests`, `/guests/new`, `/guests/[guestId]`, `/guests/[guestId]/edit` | Guests list, add and edit, detail with RSVP and the invitation panel (O5–O9)                        |
+| `/invite/[token]`                                                       | A guest's private invitation and RSVP, no account (G1–G5)                                           |
+| (workspace)                                                             | Sidebar and user menu, mobile drawer, loading (S1), not available (S6)                              |
+| `/privacy`, `/terms`                                                    | Placeholders — legal text not yet provided                                                          |
 
 - A signed-in user who opens `/login`, `/signup` or `/forgot-password` goes to `/dashboard`;
   a malformed email shows "Please enter a valid email address." under the field (0015).
@@ -96,40 +99,49 @@ accounts.
 
 ### API endpoints (`/api/v1`)
 
-| Endpoint                      | Purpose                                          |
-| ----------------------------- | ------------------------------------------------ |
-| `POST /auth/register`         | Create account and sign in                       |
-| `POST /auth/login`            | Sign in                                          |
-| `POST /auth/refresh`          | Rotate the session                               |
-| `POST /auth/logout`           | Sign out                                         |
-| `POST /auth/forgot-password`  | Request a reset email                            |
-| `POST /auth/reset-password`   | Set a new password                               |
-| `GET /me`                     | Current user                                     |
-| `POST /weddings`              | Create the user's wedding; the user is its owner |
-| `GET /weddings`               | Weddings the user is an active member of         |
-| `GET /weddings/{weddingId}`   | One wedding (members only; otherwise 404)        |
-| `PATCH /weddings/{weddingId}` | Update the wedding's details                     |
+| Endpoint                                                                                                 | Purpose                                          |
+| -------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| `POST /auth/register`                                                                                    | Create account and sign in                       |
+| `POST /auth/login`                                                                                       | Sign in                                          |
+| `POST /auth/refresh`                                                                                     | Rotate the session                               |
+| `POST /auth/logout`                                                                                      | Sign out                                         |
+| `POST /auth/forgot-password`                                                                             | Request a reset email                            |
+| `POST /auth/reset-password`                                                                              | Set a new password                               |
+| `GET /me`                                                                                                | Current user                                     |
+| `POST /weddings`                                                                                         | Create the user's wedding; the user is its owner |
+| `GET /weddings`                                                                                          | Weddings the user is an active member of         |
+| `GET /weddings/{weddingId}`                                                                              | One wedding (members only; otherwise 404)        |
+| `PATCH /weddings/{weddingId}`                                                                            | Update the wedding's details                     |
+| `GET /weddings/{weddingId}/dashboard`                                                                    | Phase 4 summaries (0022)                         |
+| `…/events`, `…/events/{eventId}`                                                                         | Events (API Design §8)                           |
+| `…/guests`, `…/guests/{guestId}`, `…/guests/{guestId}/events`, `…/guest-events/{id}`                     | Guests, assignments, RSVP (§9)                   |
+| `…/guests/{guestId}/invitation` (+ `/regenerate`, `/send`, `/resend`, `/revoke`, `/link`, `/deliveries`) | Invitations (§10)                                |
+| `GET`/`PATCH /guest/invitations/{token}` (+ `/rsvp`)                                                     | Guest invitation and RSVP, no account (§10)      |
 
 Health checks: `GET /health/live` and `/health/ready` on the API (3001) and worker (3002).
 
 ### Backend modules
 
 `users`, `auth`, `weddings` (`weddings` collection) and `workspace` (`wedding_memberships`,
-the membership check for wedding routes), in `apps/api/src/modules/`. Creating a wedding
+the membership check for wedding routes), in `apps/api/src/modules/`. Phase 4 adds `events`,
+`guests` (`guests`, `guest_events`), `invitations` (`guest_invitations`,
+`invitation_deliveries`, `invitation_activities`; the worker sends the email), `audit`
+(`audit_logs`) and `dashboard`. Creating a wedding
 writes the wedding and its owner membership in one transaction. Shared infrastructure:
 config, logging, MongoDB, Redis, BullMQ queues, rate limiting, email outbox (worker sends via
 Mailpit locally, Resend later).
 
 ### Designs (Google Stitch project `11709379677369700007`)
 
-| Screen                                               | Built as                                            |
-| ---------------------------------------------------- | --------------------------------------------------- |
-| Premium Modern Indian Wedding Platform (V1 Approved) | `/`                                                 |
-| Sign In (V1) (`13df968e…`)                           | `/login`, `/forgot-password`                        |
-| Sign Up                                              | `/signup`                                           |
-| Reset Password, Reset Link Expired                   | `/reset-password`                                   |
-| "P3 · S1"–"P3 · S6" (corrected as listed in 0016)    | Workspace, `/dashboard`, `/wedding/new`, `/wedding` |
-| Wedding Command Center Dashboard                     | Not built                                           |
+| Screen                                               | Built as                                                                 |
+| ---------------------------------------------------- | ------------------------------------------------------------------------ |
+| Premium Modern Indian Wedding Platform (V1 Approved) | `/`                                                                      |
+| Sign In (V1) (`13df968e…`)                           | `/login`, `/forgot-password`                                             |
+| Sign Up                                              | `/signup`                                                                |
+| Reset Password, Reset Link Expired                   | `/reset-password`                                                        |
+| "P3 · S1"–"P3 · S6" (corrected as listed in 0016)    | Workspace, `/dashboard`, `/wedding/new`, `/wedding`                      |
+| "P4 ·" screens listed in 0021 (with its corrections) | Events, guests, invitation panel, dashboard summaries, `/invite/[token]` |
+| Wedding Command Center Dashboard                     | Not built                                                                |
 
 Design system "Regal Modernity" (0014) applies to every screen.
 
@@ -146,19 +158,20 @@ mobile navigation drawer, a states board and the copy-drafts board.
 
 ## Open decisions and blockers
 
-| Item                                                                                                                     | Blocks              | Owner         |
-| ------------------------------------------------------------------------------------------------------------------------ | ------------------- | ------------- |
-| A4 — what partners share by default (0011)                                                                               | Phase 16            | Product       |
-| A5 — what happens on partner disconnect (0011)                                                                           | Phase 16            | Product       |
-| Usage rights for the Stitch-generated photos                                                                             | Public launch       | Product       |
-| Privacy Policy and Terms of Service text                                                                                 | Public launch       | Legal         |
-| Resend account and DNS for `makemymarriage.com`                                                                          | Real email delivery | Ops           |
-| Delete the outdated first "Sign In (V1)" screen in Stitch                                                                | Housekeeping        | Product       |
-| Staging deployment accounts (Vercel, AWS, Atlas)                                                                         | Staging             | Ops           |
-| Forgot-password response time hints whether an email is registered (code review, deferred)                               | Public launch       | Engineering   |
-| Reset email says "signs you out on all your devices", but access tokens live ≤15 min (0015) — reword or revoke instantly | Public launch       | Product       |
-| Phase 4 wording on the copy-drafts screen: confirm or change (0019 #7, 0021)                                             | Phase 4 UI          | Product       |
-| Delivery webhooks for DELIVERED/FAILED (Sent is the highest status until then)                                           | Delivery statuses   | Product / Ops |
+| Item                                                                                                                                                                                                                                               | Blocks              | Owner         |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- | ------------- |
+| A4 — what partners share by default (0011)                                                                                                                                                                                                         | Phase 16            | Product       |
+| A5 — what happens on partner disconnect (0011)                                                                                                                                                                                                     | Phase 16            | Product       |
+| Usage rights for the Stitch-generated photos                                                                                                                                                                                                       | Public launch       | Product       |
+| Privacy Policy and Terms of Service text                                                                                                                                                                                                           | Public launch       | Legal         |
+| Resend account and DNS for `makemymarriage.com`                                                                                                                                                                                                    | Real email delivery | Ops           |
+| Delete the outdated first "Sign In (V1)" screen in Stitch                                                                                                                                                                                          | Housekeeping        | Product       |
+| Staging deployment accounts (Vercel, AWS, Atlas)                                                                                                                                                                                                   | Staging             | Ops           |
+| Forgot-password response time hints whether an email is registered (code review, deferred)                                                                                                                                                         | Public launch       | Engineering   |
+| Reset email says "signs you out on all your devices", but access tokens live ≤15 min (0015) — reword or revoke instantly                                                                                                                           | Public launch       | Product       |
+| Phase 4 wording on the copy-drafts screen: confirm or change (0019 #7, 0021)                                                                                                                                                                       | Phase 4 UI          | Product       |
+| Phase 4 engineering choices to confirm: a send that exhausts retries is recorded FAILED ("The email service could not be reached"); guest-route rate limits 60/min per IP and 30/min per link; guest list sorted alphabetically; every open stored | Product review      | Product       |
+| Delivery webhooks for DELIVERED/FAILED (Sent is the highest status until then)                                                                                                                                                                     | Delivery statuses   | Product / Ops |
 
 ## Working rules
 
@@ -209,6 +222,7 @@ checked only for loading the saved values.
 
 | Date       | Change                                                                                                                                                                                                                                                                                                                                                            |
 | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-11 | Phase 4 merged to `main` (PR #12).                                                                                                                                                                                                                                                                                                                                |
 | 2026-10-11 | Phase 4 built on `feat/phase-4`: API modules for events, guests and RSVP, invitations (token hash plus AES-256-GCM copy, worker email, guest routes), audit and dashboard; web screens for events, guests and RSVP, the invitation panel, dashboard summaries and `/invite/[token]`. Not pushed.                                                                  |
 | 2026-10-11 | Decisions 0020–0022 merged to `main` (PR #10).                                                                                                                                                                                                                                                                                                                    |
 | 2026-10-11 | Decision 0022: dashboard API contract for `GET /weddings/{weddingId}/dashboard`. The API returns at most five upcoming events (dashboard response only); expected attendees only for those events; upcoming is date-only in the wedding's timezone. API Design §6 and the Phase 4 PRD were updated to match.                                                      |
