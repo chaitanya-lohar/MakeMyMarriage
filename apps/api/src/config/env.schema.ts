@@ -36,6 +36,13 @@ export const envSchema = z
     SMTP_HOST: z.string().min(1).default('localhost'),
     SMTP_PORT: z.coerce.number().int().min(1).max(65535).default(1025),
     RESEND_API_KEY: z.string().min(1).optional(),
+
+    // Invitation-token encryption keys (decision 0018), current key first, older keys after
+    // it for rotation: `v2:<base64 key>,v1:<base64 key>`. Each key is 32 random bytes:
+    //   openssl rand -base64 32
+    INVITATION_TOKEN_KEYS: z.string().refine((value) => parseKeyRing(value) !== null, {
+      message: 'must be comma-separated <version>:<base64 32-byte key> entries',
+    }),
   })
   .superRefine((env, ctx) => {
     if (env.EMAIL_TRANSPORT === 'resend' && !env.RESEND_API_KEY) {
@@ -48,6 +55,27 @@ export const envSchema = z
   });
 
 export type Env = z.infer<typeof envSchema>;
+
+/** A versioned encryption key ring; the first entry is the current key. */
+export interface KeyRing {
+  currentVersion: string;
+  keys: ReadonlyMap<string, Buffer>;
+}
+
+/** Parses `v2:<base64>,v1:<base64>`; null when an entry is malformed, repeated or not 32 bytes. */
+export function parseKeyRing(value: string): KeyRing | null {
+  const keys = new Map<string, Buffer>();
+  for (const entry of value.split(',')) {
+    const match = /^([A-Za-z0-9_-]{1,16}):([A-Za-z0-9+/_-]+={0,2})$/.exec(entry.trim());
+    if (!match) return null;
+    const [, version, encoded] = match as unknown as [string, string, string];
+    const key = Buffer.from(encoded, 'base64');
+    if (key.length !== 32 || keys.has(version)) return null;
+    keys.set(version, key);
+  }
+  const currentVersion = keys.keys().next().value;
+  return currentVersion === undefined ? null : { currentVersion, keys };
+}
 
 export class EnvValidationError extends Error {
   constructor(public readonly issues: string[]) {

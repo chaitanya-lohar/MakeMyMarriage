@@ -2,7 +2,7 @@
 
 The single place to see where MakeMyMarriage stands. Read this first.
 
-- **Updated:** 2026-10-11, after merging decisions 0020–0022 (PR #10).
+- **Updated:** 2026-10-11, with Phase 4 built on `feat/phase-4` (local, not pushed).
 - **Source of truth:** the canonical documents listed in the [documentation index](README.md)
   and the decision records in [`decisions/`](decisions/README.md). This page only summarises
   and links; where they differ, the decision record wins.
@@ -11,32 +11,33 @@ The single place to see where MakeMyMarriage stands. Read this first.
 
 ## Snapshot
 
-| Item            | State                                                                                                                                                                                                     |
-| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Current phase   | Phase 3 (Wedding setup) — done and merged to `main` (PR #5, 0016)                                                                                                                                         |
-| Next phase      | Phase 4 (Events, guests, RSVP and invitations) — requirements, design decisions, Stitch screens and dashboard API contract approved (0017–0022, Phase 4 PRD v1.2); **not started**; open: Phase 4 wording |
-| `main`          | Scaffold, Phases 1–3, code-review and manual-testing fixes (PRs #1–6); documentation and decisions 0017–0022 (PRs #8–10)                                                                                  |
-| Open PRs        | None                                                                                                                                                                                                      |
-| Live deployment | None yet                                                                                                                                                                                                  |
+| Item            | State                                                                                                                                                                                         |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Current phase   | Phase 3 (Wedding setup) — done and merged to `main` (PR #5, 0016)                                                                                                                             |
+| Next phase      | Phase 4 (Events, guests, RSVP and invitations) — **built on `feat/phase-4`** (local, not pushed), all checks pass; open: Phase 4 wording (the UI uses the DRAFT wording until it is approved) |
+| `main`          | Scaffold, Phases 1–3, code-review and manual-testing fixes (PRs #1–6); documentation and decisions 0017–0022 (PRs #8–10)                                                                      |
+| Open PRs        | None                                                                                                                                                                                          |
+| Live deployment | None yet                                                                                                                                                                                      |
 
 ### Branches
 
-Every branch below is merged into `main`; new work starts from `main`.
+Every branch below except `feat/phase-4` is merged into `main`; new work starts from `main`.
 
-| Branch                          | Contains                                                | State           |
-| ------------------------------- | ------------------------------------------------------- | --------------- |
-| `main`                          | Everything below                                        | Up to date      |
-| `feat/home-page`                | Phase 1: design system and home page                    | Merged (PR #2)  |
-| `feat/auth`                     | Phase 2: authentication                                 | Merged (PR #3)  |
-| `chore/pre-phase-3`             | The three branches below, `.mcp.json`, this page        | Merged (PR #4)  |
-| ↳ `fix/auth-hardening`          | Code-review fixes (4 commits)                           | Merged via #4   |
-| ↳ `fix/auth-test-findings`      | Manual-testing fixes (3 commits)                        | Merged via #4   |
-| ↳ `docs/status-after-phase-2`   | This page after the Phase 1/2 merges (1 commit)         | Merged via #4   |
-| `feat/weddings`                 | Phase 3: wedding setup and dashboard shell              | Merged (PR #5)  |
-| `fix/workspace-logo-home`       | Workspace logo opens the home page (manual-testing fix) | Merged (PR #6)  |
-| `docs/consolidation`            | Consolidated documentation, decisions 0017–0018         | Merged (PR #8)  |
-| `docs/phase-4-design-decisions` | Decision 0019 and the matching spec updates             | Merged (PR #9)  |
-| `docs/regenerate-email-status`  | Decisions 0020–0022 and the matching spec updates       | Merged (PR #10) |
+| Branch                          | Contains                                                                     | State           |
+| ------------------------------- | ---------------------------------------------------------------------------- | --------------- |
+| `main`                          | Everything below                                                             | Up to date      |
+| `feat/home-page`                | Phase 1: design system and home page                                         | Merged (PR #2)  |
+| `feat/auth`                     | Phase 2: authentication                                                      | Merged (PR #3)  |
+| `chore/pre-phase-3`             | The three branches below, `.mcp.json`, this page                             | Merged (PR #4)  |
+| ↳ `fix/auth-hardening`          | Code-review fixes (4 commits)                                                | Merged via #4   |
+| ↳ `fix/auth-test-findings`      | Manual-testing fixes (3 commits)                                             | Merged via #4   |
+| ↳ `docs/status-after-phase-2`   | This page after the Phase 1/2 merges (1 commit)                              | Merged via #4   |
+| `feat/weddings`                 | Phase 3: wedding setup and dashboard shell                                   | Merged (PR #5)  |
+| `fix/workspace-logo-home`       | Workspace logo opens the home page (manual-testing fix)                      | Merged (PR #6)  |
+| `docs/consolidation`            | Consolidated documentation, decisions 0017–0018                              | Merged (PR #8)  |
+| `docs/phase-4-design-decisions` | Decision 0019 and the matching spec updates                                  | Merged (PR #9)  |
+| `docs/regenerate-email-status`  | Decisions 0020–0022 and the matching spec updates                            | Merged (PR #10) |
+| `feat/phase-4`                  | Phase 4: events, guests, RSVP, invitations and dashboard (local, not pushed) | In progress     |
 
 The merged branches can be deleted, on GitHub and locally.
 
@@ -47,25 +48,25 @@ approved combining events, guests and RSVP, and invitations into one Phase 4 (an
 later phases keep their numbers. Each phase is approved before it starts, and any open
 questions for it are raised then (0004).
 
-| #   | Phase                                | State                 | Records                                                         |
-| --- | ------------------------------------ | --------------------- | --------------------------------------------------------------- |
-| 0   | Scaffold (monorepo, API/worker, CI)  | Done, merged          | 0001–0013                                                       |
-| 1   | Design system and home page          | Done, merged          | 0014                                                            |
-| 2   | Authentication                       | Done, merged          | 0015                                                            |
-| 3   | Wedding setup and dashboard shell    | Done, merged          | 0010, 0012, 0016                                                |
-| 4   | Events, guests, RSVP and invitations | Approved, not started | 0008, 0010, 0017–0022; [Phase 4 PRD](specs/PHASE_4_PRD_v1.2.md) |
-| 5   | (merged into Phase 4)                | —                     | —                                                               |
-| 6   | (merged into Phase 4)                | —                     | —                                                               |
-| 7   | Tasks                                | Not started           | 0010, 0013                                                      |
-| 8   | Expenses                             | Not started           | 0009, 0010                                                      |
-| 9   | Vendors                              | Not started           | 0010                                                            |
-| 10  | Organizers and permissions           | Not started           | 0012                                                            |
-| 11  | Wedding website                      | Not started           | 0007                                                            |
-| 12  | Gallery and QR memories              | Not started           | 0007                                                            |
-| 13  | Live stream                          | Not started           | —                                                               |
-| 14  | Notifications                        | Not started           | —                                                               |
-| 15  | Reports                              | Not started           | 0013                                                            |
-| 16  | Partner connection and sharing       | Not started           | 0011, 0012 — **blocked on A4/A5**                               |
+| #   | Phase                                | State                               | Records                                                         |
+| --- | ------------------------------------ | ----------------------------------- | --------------------------------------------------------------- |
+| 0   | Scaffold (monorepo, API/worker, CI)  | Done, merged                        | 0001–0013                                                       |
+| 1   | Design system and home page          | Done, merged                        | 0014                                                            |
+| 2   | Authentication                       | Done, merged                        | 0015                                                            |
+| 3   | Wedding setup and dashboard shell    | Done, merged                        | 0010, 0012, 0016                                                |
+| 4   | Events, guests, RSVP and invitations | Built on `feat/phase-4`, not merged | 0008, 0010, 0017–0022; [Phase 4 PRD](specs/PHASE_4_PRD_v1.2.md) |
+| 5   | (merged into Phase 4)                | —                                   | —                                                               |
+| 6   | (merged into Phase 4)                | —                                   | —                                                               |
+| 7   | Tasks                                | Not started                         | 0010, 0013                                                      |
+| 8   | Expenses                             | Not started                         | 0009, 0010                                                      |
+| 9   | Vendors                              | Not started                         | 0010                                                            |
+| 10  | Organizers and permissions           | Not started                         | 0012                                                            |
+| 11  | Wedding website                      | Not started                         | 0007                                                            |
+| 12  | Gallery and QR memories              | Not started                         | 0007                                                            |
+| 13  | Live stream                          | Not started                         | —                                                               |
+| 14  | Notifications                        | Not started                         | —                                                               |
+| 15  | Reports                              | Not started                         | 0013                                                            |
+| 16  | Partner connection and sharing       | Not started                         | 0011, 0012 — **blocked on A4/A5**                               |
 
 A staging deployment (Vercel for the web app, containers for the API and worker — 0005) was
 recommended after Phase 2. It is not scheduled yet and needs Vercel, AWS and MongoDB Atlas
@@ -183,7 +184,14 @@ pnpm infra:up      # MongoDB, Redis, Mailpit
 pnpm dev           # web :3000, API :3001, worker :3002
 ```
 
+Phase 4 adds the required `INVITATION_TOKEN_KEYS` variable to `apps/api/.env` (see
+`apps/api/.env.example`).
+
 Checks: `pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm test:integration && pnpm build`.
+On 2026-10-11 `feat/phase-4` passed format, lint, typecheck, 237 web unit, 65 API unit and
+93 integration tests, both builds and the contract check. A browser run with sample data
+checked every Phase 4 screen at 1440px and 390px (no horizontal scrolling), a guest RSVP, the
+duplicate-mobile notice and the invitation email in Mailpit.
 Last full run (fresh worktree of `chore/pre-phase-3`, 2026-10-05): all green — 76 web unit,
 21 API unit, 33 integration tests; build passes. On 2026-10-07 `fix/workspace-logo-home`
 (`main` with Phase 3) passed format, lint, typecheck and 113 web unit tests; the API unit,
@@ -201,6 +209,7 @@ checked only for loading the saved values.
 
 | Date       | Change                                                                                                                                                                                                                                                                                                                                                            |
 | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-11 | Phase 4 built on `feat/phase-4`: API modules for events, guests and RSVP, invitations (token hash plus AES-256-GCM copy, worker email, guest routes), audit and dashboard; web screens for events, guests and RSVP, the invitation panel, dashboard summaries and `/invite/[token]`. Not pushed.                                                                  |
 | 2026-10-11 | Decisions 0020–0022 merged to `main` (PR #10).                                                                                                                                                                                                                                                                                                                    |
 | 2026-10-11 | Decision 0022: dashboard API contract for `GET /weddings/{weddingId}/dashboard`. The API returns at most five upcoming events (dashboard response only); expected attendees only for those events; upcoming is date-only in the wedding's timezone. API Design §6 and the Phase 4 PRD were updated to match.                                                      |
 | 2026-10-11 | Decision 0021: Phase 4 Stitch screens approved, with corrections to apply in code; the dashboard shows at most five upcoming events (display only); the invitation email leaves out a missing date or city. The wording stays draft. The Phase 4 PRD was updated to match.                                                                                        |

@@ -2,12 +2,14 @@ import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nes
 import { Reflector } from '@nestjs/core';
 import type { Request } from 'express';
 import { map, type Observable } from 'rxjs';
+import { Paginated } from './paginated.js';
 import { requestIdOf } from './request-id.js';
 import { SKIP_ENVELOPE } from './skip-envelope.decorator.js';
 
 export interface ResponseMeta {
   requestId: string;
   timestamp: string;
+  pagination?: { nextCursor: string | null; hasNextPage: boolean };
 }
 
 export interface SuccessEnvelope<T> {
@@ -17,7 +19,7 @@ export interface SuccessEnvelope<T> {
 
 /**
  * Wraps successful responses in the standard envelope (API Design §20).
- * List/pagination metadata is added when the first paginated endpoint is built.
+ * A Paginated result puts its items in `data` and its cursor in `meta.pagination`.
  */
 @Injectable()
 export class ResponseEnvelopeInterceptor implements NestInterceptor {
@@ -34,10 +36,17 @@ export class ResponseEnvelopeInterceptor implements NestInterceptor {
 
     const request = context.switchToHttp().getRequest<Request>();
     return next.handle().pipe(
-      map((data: unknown): SuccessEnvelope<unknown> => ({
-        data: data ?? null,
-        meta: { requestId: requestIdOf(request), timestamp: new Date().toISOString() },
-      })),
+      map((data: unknown): SuccessEnvelope<unknown> => {
+        const meta: ResponseMeta = {
+          requestId: requestIdOf(request),
+          timestamp: new Date().toISOString(),
+        };
+        if (data instanceof Paginated) {
+          meta.pagination = { nextCursor: data.nextCursor, hasNextPage: data.nextCursor !== null };
+          return { data: data.items, meta };
+        }
+        return { data: data ?? null, meta };
+      }),
     );
   }
 }

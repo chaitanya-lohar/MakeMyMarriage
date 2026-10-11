@@ -755,7 +755,7 @@ notes absent from guest responses.
 | Uploads | File size and type limits; image processing |
 | Vendor discovery | Google fields and caching rules |
 | Website | Public payload, caching and revalidation; sitemap and metadata |
-| Rate limits | Numeric thresholds beyond 0015 |
+| Rate limits | Numeric thresholds beyond 0015 (Phase 4 guest invitation routes use engineering defaults: 60 requests per IP and 30 per link per minute) |
 | Reports | Filter contract; download retention |
 
 Resolved since v1.0: invitee-already-owns-a-wedding acceptance (0012, N1); attendee-count

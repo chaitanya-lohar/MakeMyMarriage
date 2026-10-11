@@ -15,6 +15,7 @@ const config = new AppConfig(
     MONGODB_URI: 'mongodb://localhost:27017/test',
     REDIS_URL: 'redis://localhost:6379',
     JWT_ACCESS_SECRET: 'unit-test-secret-that-is-at-least-32-characters',
+    INVITATION_TOKEN_KEYS: `v1:${Buffer.alloc(32, 1).toString('base64')}`,
   }),
 );
 
@@ -53,6 +54,7 @@ describe('TokenService', () => {
           MONGODB_URI: 'mongodb://localhost:27017/test',
           REDIS_URL: 'redis://localhost:6379',
           JWT_ACCESS_SECRET: 'a-completely-different-secret-of-32-characters',
+          INVITATION_TOKEN_KEYS: `v1:${Buffer.alloc(32, 1).toString('base64')}`,
         }),
       ),
     );

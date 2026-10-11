@@ -1,4 +1,4 @@
-import type { Env } from './env.schema.js';
+import { parseKeyRing, type Env, type KeyRing } from './env.schema.js';
 
 /**
  * Typed, grouped view of the validated environment. Injected by class so consumers
@@ -25,6 +25,8 @@ export class AppConfig {
     readonly smtp: { readonly host: string; readonly port: number };
     readonly resendApiKey: string | undefined;
   };
+  /** Encryption keys for the stored invitation-token copy (decision 0018). */
+  readonly invitations: { readonly tokenKeys: KeyRing };
 
   constructor(env: Env) {
     this.nodeEnv = env.NODE_ENV;
@@ -56,6 +58,8 @@ export class AppConfig {
       smtp: { host: env.SMTP_HOST, port: env.SMTP_PORT },
       resendApiKey: env.RESEND_API_KEY,
     };
+    // Validated by the environment schema.
+    this.invitations = { tokenKeys: parseKeyRing(env.INVITATION_TOKEN_KEYS) as KeyRing };
   }
 
   get isProduction(): boolean {

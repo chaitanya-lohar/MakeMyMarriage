@@ -6,6 +6,7 @@ import { CreateWeddingUseCase } from './application/use-cases/create-wedding.use
 import { GetWeddingUseCase } from './application/use-cases/get-wedding.use-case.js';
 import { ListWeddingsUseCase } from './application/use-cases/list-weddings.use-case.js';
 import { UpdateWeddingUseCase } from './application/use-cases/update-wedding.use-case.js';
+import { WeddingsService } from './application/services/weddings.service.js';
 import { WeddingsRepository } from './infrastructure/repositories/weddings.repository.js';
 import { WeddingRecord, WeddingSchema } from './infrastructure/schemas/wedding.schema.js';
 
@@ -22,6 +23,8 @@ import { WeddingRecord, WeddingSchema } from './infrastructure/schemas/wedding.s
     ListWeddingsUseCase,
     GetWeddingUseCase,
     UpdateWeddingUseCase,
+    WeddingsService,
   ],
+  exports: [WeddingsService],
 })
 export class WeddingsModule {}

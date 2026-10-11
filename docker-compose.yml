@@ -66,6 +66,7 @@ services:
       OPENAPI_DOCS_ENABLED: 'true'
       # Local-only values; never reuse outside this compose file.
       JWT_ACCESS_SECRET: local-compose-secret-not-for-real-use-0000000000
+      INVITATION_TOKEN_KEYS: v1:oXmc9dHGZI+Yt8x/MW9Y57PgcCbod8wEI6PFZAn9Iyo=
       WEB_APP_URL: http://localhost:3000
       EMAIL_TRANSPORT: smtp
       SMTP_HOST: mailpit

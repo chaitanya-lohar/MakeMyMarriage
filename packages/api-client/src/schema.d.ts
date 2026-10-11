@@ -162,6 +162,286 @@ export interface paths {
         patch: operations["WeddingsController_update"];
         trace?: never;
     };
+    "/api/v1/weddings/{weddingId}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List active events, by date then start time (untimed first) */
+        get: operations["EventsController_list"];
+        put?: never;
+        /** Create an event */
+        post: operations["EventsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/events/{eventId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get an event */
+        get: operations["EventsController_get"];
+        put?: never;
+        post?: never;
+        /** Soft-delete an event; its RSVP and invitation history is kept */
+        delete: operations["EventsController_delete"];
+        options?: never;
+        head?: never;
+        /** Update an event; null clears an optional field */
+        patch: operations["EventsController_update"];
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/guests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List, search and filter guests, alphabetically */
+        get: operations["GuestsController_list"];
+        put?: never;
+        /** Create a guest; warns about other guests with the same mobile */
+        post: operations["GuestsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/guests/{guestId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a guest */
+        get: operations["GuestsController_get"];
+        put?: never;
+        post?: never;
+        /** Soft-delete a guest; their RSVP and invitation history is kept */
+        delete: operations["GuestsController_delete"];
+        options?: never;
+        head?: never;
+        /** Update a guest; null clears an optional field */
+        patch: operations["GuestsController_update"];
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/guests/{guestId}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The guest's active assignments, in event order */
+        get: operations["GuestsController_listAssignments"];
+        put?: never;
+        /** Assign the guest to an event (201), or return the existing assignment (200) */
+        post: operations["GuestsController_assign"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/guest-events/{guestEventId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove the assignment; it is kept as history with its RSVP */
+        delete: operations["GuestEventsController_remove"];
+        options?: never;
+        head?: never;
+        /** Organizer RSVP update; any of the four combinations, including a reset to PENDING */
+        patch: operations["GuestEventsController_update"];
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/guests/{guestId}/invitation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create the invitation and its first link */
+        post: operations["InvitationsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/guests/{guestId}/invitation/regenerate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Replace the link (also when revoked); the old one stops working; status DRAFT */
+        post: operations["InvitationsController_regenerate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/guests/{guestId}/invitation/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Queue the invitation email */
+        post: operations["InvitationsController_send"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/guests/{guestId}/invitation/resend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Queue the invitation email again, with the same link */
+        post: operations["InvitationsController_resend"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/guests/{guestId}/invitation/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revoke the link; no new link is created; email status unchanged */
+        post: operations["InvitationsController_revoke"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/guests/{guestId}/invitation/link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The current link, for Copy Link and WhatsApp (audited) */
+        get: operations["InvitationsController_link"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/guests/{guestId}/invitation/deliveries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Email attempts and activity (opens), oldest first */
+        get: operations["InvitationsController_deliveries"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/guest/invitations/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Open the invitation: the guest’s own events and RSVPs */
+        get: operations["GuestInvitationController_open"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/guest/invitations/{token}/rsvp": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Submit or update RSVPs — all apply, or none */
+        patch: operations["GuestInvitationController_respond"];
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Upcoming events (at most five), guest totals and RSVP breakdown */
+        get: operations["DashboardController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -284,6 +564,404 @@ export interface components {
             venueName?: string | null;
             primaryCity?: string | null;
             description?: string | null;
+        };
+        EventVenueDto: {
+            /** @example Garden Palace */
+            name: string | null;
+            /** @example Amer Road, Jaipur */
+            address: string | null;
+        };
+        EventDto: {
+            /** @example 6650f0c2a1b2c3d4e5f60719 */
+            id: string;
+            /** @example Mehendi */
+            name: string;
+            /**
+             * @example MEHENDI
+             * @enum {string}
+             */
+            type: "ENGAGEMENT" | "MEHENDI" | "HALDI" | "SANGEET" | "WEDDING" | "RECEPTION" | "CUSTOM";
+            /**
+             * Format: date
+             * @example 2027-02-16
+             */
+            date: string;
+            /**
+             * @description HH:mm in the wedding timezone.
+             * @example 16:00
+             */
+            startTime: string | null;
+            /**
+             * @description HH:mm in the wedding timezone.
+             * @example 20:00
+             */
+            endTime: string | null;
+            /** @example Asia/Kolkata */
+            timezone: string;
+            description: string | null;
+            venue: components["schemas"]["EventVenueDto"];
+            /** @example Pastels */
+            dressCode: string | null;
+            /** @description Organizer-only. */
+            notes: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        EventVenueInputDto: {
+            /** @example Garden Palace */
+            name?: string | null;
+            /** @example Amer Road, Jaipur */
+            address?: string | null;
+        };
+        CreateEventDto: {
+            /**
+             * @description HH:mm in the wedding timezone.
+             * @example 16:00
+             */
+            startTime?: string | null;
+            /**
+             * @description HH:mm in the wedding timezone.
+             * @example 20:00
+             */
+            endTime?: string | null;
+            description?: string | null;
+            venue?: components["schemas"]["EventVenueInputDto"] | null;
+            /** @example Pastels */
+            dressCode?: string | null;
+            /** @description Organizer-only; never shown to guests. */
+            notes?: string | null;
+            /** @example Mehendi */
+            name: string;
+            /**
+             * @example MEHENDI
+             * @enum {string}
+             */
+            type: "ENGAGEMENT" | "MEHENDI" | "HALDI" | "SANGEET" | "WEDDING" | "RECEPTION" | "CUSTOM";
+            /**
+             * Format: date
+             * @description YYYY-MM-DD in the wedding timezone. Past dates are allowed.
+             * @example 2027-02-16
+             */
+            date: string;
+        };
+        UpdateEventDto: {
+            /**
+             * @description HH:mm in the wedding timezone.
+             * @example 16:00
+             */
+            startTime?: string | null;
+            /**
+             * @description HH:mm in the wedding timezone.
+             * @example 20:00
+             */
+            endTime?: string | null;
+            description?: string | null;
+            venue?: components["schemas"]["EventVenueInputDto"] | null;
+            /** @example Pastels */
+            dressCode?: string | null;
+            /** @description Organizer-only; never shown to guests. */
+            notes?: string | null;
+            /** @example Mehendi */
+            name?: string;
+            /** @enum {string} */
+            type?: "ENGAGEMENT" | "MEHENDI" | "HALDI" | "SANGEET" | "WEDDING" | "RECEPTION" | "CUSTOM";
+            /**
+             * Format: date
+             * @example 2027-02-16
+             */
+            date?: string;
+        };
+        PaginationMetaDto: {
+            /** @description Pass as `cursor` for the next page. */
+            nextCursor: string | null;
+            hasNextPage: boolean;
+        };
+        PaginatedMetaDto: {
+            /** @example req_3f2a… */
+            requestId: string;
+            /** Format: date-time */
+            timestamp: string;
+            pagination: components["schemas"]["PaginationMetaDto"];
+        };
+        GuestInvitationSummaryDto: {
+            /** @enum {string} */
+            deliveryStatus: "DRAFT" | "SENT" | "DELIVERED" | "FAILED";
+            isRevoked: boolean;
+            /** Format: date-time */
+            lastSentAt: string | null;
+            /** Format: date-time */
+            firstOpenedAt: string | null;
+        };
+        GuestDto: {
+            /** @example 6650f0c2a1b2c3d4e5f6071a */
+            id: string;
+            /** @example Raju Sharma */
+            name: string;
+            /**
+             * @description Normalized.
+             * @example +919876543210
+             */
+            mobile: string;
+            /** @example raju.sharma@example.com */
+            email: string | null;
+            /** @example Cousin */
+            relation: string | null;
+            /** @description Organizer-only. */
+            notes: string | null;
+            /** @description null until the invitation is created. */
+            invitation: components["schemas"]["GuestInvitationSummaryDto"] | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        DuplicateMobileGuestDto: {
+            id: string;
+            /** @example Sunita Sharma */
+            name: string;
+        };
+        GuestSaveResultDto: {
+            guest: components["schemas"]["GuestDto"];
+            /** @description Other active guests with the same normalized mobile. A warning only. */
+            duplicateMobileGuests: components["schemas"]["DuplicateMobileGuestDto"][];
+        };
+        CreateGuestDto: {
+            /** @example raju.sharma@example.com */
+            email?: string | null;
+            /** @example Cousin */
+            relation?: string | null;
+            /** @description Organizer-only; never in guest-facing responses. */
+            notes?: string | null;
+            /** @example Raju Sharma */
+            name: string;
+            /**
+             * @description 7–15 digits, optional leading "+", spaces and hyphens allowed. Stored and returned with the separators removed.
+             * @example +91 98765-43210
+             */
+            mobile: string;
+        };
+        UpdateGuestDto: {
+            /** @example raju.sharma@example.com */
+            email?: string | null;
+            /** @example Cousin */
+            relation?: string | null;
+            /** @description Organizer-only; never in guest-facing responses. */
+            notes?: string | null;
+            /** @example Raju Sharma */
+            name?: string;
+            /**
+             * @description 7–15 digits, optional leading "+", spaces and hyphens allowed. Stored and returned with the separators removed.
+             * @example +91 98765-43210
+             */
+            mobile?: string;
+        };
+        GuestEventDto: {
+            id: string;
+            guestId: string;
+            eventId: string;
+            /** @enum {string} */
+            rsvpStatus: "PENDING" | "ATTENDING" | "DECLINED" | "MAYBE";
+            attendeeCount: number | null;
+            /** Format: date-time */
+            respondedAt: string | null;
+            /** Format: date-time */
+            rsvpUpdatedAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        AssignGuestDto: {
+            /** @example 6650f0c2a1b2c3d4e5f60719 */
+            eventId: string;
+        };
+        UpdateRsvpDto: {
+            /**
+             * @example ATTENDING
+             * @enum {string}
+             */
+            rsvpStatus: "PENDING" | "ATTENDING" | "DECLINED" | "MAYBE";
+            /**
+             * @description PENDING/MAYBE: null; DECLINED: 0; ATTENDING: an integer ≥ 1. Always sent.
+             * @example 4
+             */
+            attendeeCount: number | null;
+        };
+        InvitationWithLinkDto: {
+            guestId: string;
+            /**
+             * @description The email delivery state. SENT is the highest status in Phase 4.
+             * @enum {string}
+             */
+            deliveryStatus: "DRAFT" | "SENT" | "DELIVERED" | "FAILED";
+            /** @description The link has been revoked and no longer works. */
+            isRevoked: boolean;
+            /** Format: date-time */
+            tokenCreatedAt: string | null;
+            /** Format: date-time */
+            lastSentAt: string | null;
+            /**
+             * Format: date-time
+             * @description Activity only: the link was opened — not proof that the email was delivered.
+             */
+            firstOpenedAt: string | null;
+            /** @example https://makemymarriage.com/invite/3q2-… */
+            invitationUrl: string;
+        };
+        InvitationDto: {
+            guestId: string;
+            /**
+             * @description The email delivery state. SENT is the highest status in Phase 4.
+             * @enum {string}
+             */
+            deliveryStatus: "DRAFT" | "SENT" | "DELIVERED" | "FAILED";
+            /** @description The link has been revoked and no longer works. */
+            isRevoked: boolean;
+            /** Format: date-time */
+            tokenCreatedAt: string | null;
+            /** Format: date-time */
+            lastSentAt: string | null;
+            /**
+             * Format: date-time
+             * @description Activity only: the link was opened — not proof that the email was delivered.
+             */
+            firstOpenedAt: string | null;
+        };
+        InvitationLinkDto: {
+            /** @example https://makemymarriage.com/invite/3q2-… */
+            invitationUrl: string;
+        };
+        InvitationDeliveryDto: {
+            /** @example 1 */
+            attemptNumber: number;
+            /** @enum {string} */
+            kind: "SEND" | "RESEND";
+            /** @enum {string} */
+            status: "SENT" | "DELIVERED" | "FAILED";
+            /** Format: date-time */
+            sentAt: string | null;
+            /** Format: date-time */
+            failedAt: string | null;
+            /** @description The provider's reason. */
+            failureReason: string | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        InvitationActivityDto: {
+            /** @enum {string} */
+            type: "OPENED";
+            /** Format: date-time */
+            occurredAt: string;
+        };
+        InvitationHistoryDto: {
+            deliveries: components["schemas"]["InvitationDeliveryDto"][];
+            activities: components["schemas"]["InvitationActivityDto"][];
+        };
+        GuestViewNameDto: {
+            /** @example Raju Sharma */
+            name: string;
+        };
+        GuestViewWeddingDto: {
+            /** @example Meera Sharma & Arjun Patel */
+            displayName: string;
+            /**
+             * Format: date
+             * @example 2027-02-18
+             */
+            startDate: string | null;
+            /** @example Asia/Kolkata */
+            timezone: string;
+        };
+        GuestViewVenueDto: {
+            name: string | null;
+            address: string | null;
+        };
+        GuestViewEventDto: {
+            /** @description The guest's own assignment, for the RSVP request. */
+            guestEventId: string;
+            /** @example Haldi */
+            name: string;
+            /** @enum {string} */
+            type: "ENGAGEMENT" | "MEHENDI" | "HALDI" | "SANGEET" | "WEDDING" | "RECEPTION" | "CUSTOM";
+            /**
+             * Format: date
+             * @example 2027-02-17
+             */
+            date: string;
+            /** @example 10:00 */
+            startTime: string | null;
+            endTime: string | null;
+            venue: components["schemas"]["GuestViewVenueDto"];
+            dressCode: string | null;
+            description: string | null;
+            /** @enum {string} */
+            rsvpStatus: "PENDING" | "ATTENDING" | "DECLINED" | "MAYBE";
+            attendeeCount: number | null;
+        };
+        GuestInvitationViewDto: {
+            guest: components["schemas"]["GuestViewNameDto"];
+            wedding: components["schemas"]["GuestViewWeddingDto"];
+            events: components["schemas"]["GuestViewEventDto"][];
+        };
+        GuestRsvpResponseDto: {
+            guestEventId: string;
+            /**
+             * @description A guest can never send PENDING (0017 #4).
+             * @enum {string}
+             */
+            rsvpStatus: "ATTENDING" | "DECLINED" | "MAYBE";
+            /** @description MAYBE: null; DECLINED: 0; ATTENDING: an integer ≥ 1, including the guest. */
+            attendeeCount: number | null;
+        };
+        GuestRsvpDto: {
+            responses: components["schemas"]["GuestRsvpResponseDto"][];
+        };
+        DashboardEventDto: {
+            id: string;
+            /** @example Mehendi */
+            name: string;
+            /** @enum {string} */
+            type: "ENGAGEMENT" | "MEHENDI" | "HALDI" | "SANGEET" | "WEDDING" | "RECEPTION" | "CUSTOM";
+            /**
+             * Format: date
+             * @example 2027-02-16
+             */
+            date: string;
+            /** @example 16:00 */
+            startTime: string | null;
+            /** @example 20:00 */
+            endTime: string | null;
+            /** @example Garden Palace */
+            venueName: string | null;
+            /**
+             * @description Sum of attendeeCount over counted ATTENDING assignments for this event.
+             * @example 38
+             */
+            expectedAttendees: number;
+        };
+        GuestTotalsDto: {
+            /**
+             * @description Including guests not assigned to any event.
+             * @example 86
+             */
+            guests: number;
+        };
+        RsvpBreakdownDto: {
+            /** @example 58 */
+            pending: number;
+            /** @example 96 */
+            attending: number;
+            /** @example 21 */
+            declined: number;
+            /** @example 9 */
+            maybe: number;
+        };
+        DashboardDto: {
+            /** @description At most five events dated today or later (wedding timezone), by date then start time, untimed first. A dashboard limit only. */
+            upcomingEvents: components["schemas"]["DashboardEventDto"][];
+            guestTotals: components["schemas"]["GuestTotalsDto"];
+            /** @description Counted assignments per status across all counted events, past and future. */
+            rsvpBreakdown: components["schemas"]["RsvpBreakdownDto"];
         };
     };
     responses: never;
@@ -707,6 +1385,1244 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND — missing, or not a member */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    EventsController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["EventDto"][];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND or EVENT_NOT_FOUND — missing, deleted or not a member */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    EventsController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateEventDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["EventDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description VALIDATION_FAILED */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND or EVENT_NOT_FOUND — missing, deleted or not a member */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    EventsController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["EventDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND or EVENT_NOT_FOUND — missing, deleted or not a member */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    EventsController_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @description Always null.
+                         * @example null
+                         */
+                        data: unknown;
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND or EVENT_NOT_FOUND — missing, deleted or not a member */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    EventsController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateEventDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["EventDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description VALIDATION_FAILED */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND or EVENT_NOT_FOUND — missing, deleted or not a member */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    GuestsController_list: {
+        parameters: {
+            query?: {
+                /** @description Matches the name or the mobile number. */
+                search?: string;
+                /** @description Guests assigned to this event. */
+                eventId?: string;
+                /** @description Guests with an RSVP in this status (to the chosen event, or any event). */
+                rsvpStatus?: "PENDING" | "ATTENDING" | "DECLINED" | "MAYBE";
+                limit?: number;
+                /** @description `meta.pagination.nextCursor` of the previous page. */
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                weddingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["GuestDto"][];
+                        meta: components["schemas"]["PaginatedMetaDto"];
+                    };
+                };
+            };
+            /** @description VALIDATION_FAILED — invalid query or cursor */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND, or EVENT_NOT_FOUND for the event filter */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    GuestsController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateGuestDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["GuestSaveResultDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description VALIDATION_FAILED */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND or GUEST_NOT_FOUND — missing, deleted or not a member */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    GuestsController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                guestId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["GuestDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND or GUEST_NOT_FOUND — missing, deleted or not a member */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    GuestsController_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                guestId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @description Always null.
+                         * @example null
+                         */
+                        data: unknown;
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND or GUEST_NOT_FOUND — missing, deleted or not a member */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    GuestsController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                guestId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateGuestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["GuestSaveResultDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description VALIDATION_FAILED */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND or GUEST_NOT_FOUND — missing, deleted or not a member */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    GuestsController_listAssignments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                guestId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["GuestEventDto"][];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND or GUEST_NOT_FOUND — missing, deleted or not a member */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    GuestsController_assign: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                guestId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignGuestDto"];
+            };
+        };
+        responses: {
+            /** @description The guest was already assigned; returned unchanged */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["GuestEventDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Assignment created with RSVP PENDING */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["GuestEventDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description VALIDATION_FAILED */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND, GUEST_NOT_FOUND or EVENT_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    GuestEventsController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                guestEventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @description Always null.
+                         * @example null
+                         */
+                        data: unknown;
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND or GUEST_EVENT_NOT_FOUND — missing, removed or not a member */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    GuestEventsController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                guestEventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateRsvpDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["GuestEventDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description VALIDATION_FAILED — status and count do not match */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND or GUEST_EVENT_NOT_FOUND — missing, removed or not a member */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    InvitationsController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                guestId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InvitationWithLinkDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND, GUEST_NOT_FOUND or INVITATION_NOT_FOUND (not created yet) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description INVITATION_ALREADY_EXISTS */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    InvitationsController_regenerate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                guestId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InvitationWithLinkDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND, GUEST_NOT_FOUND or INVITATION_NOT_FOUND (not created yet) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    InvitationsController_send: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description The same key queues the email at most once. */
+                "Idempotency-Key"?: string;
+            };
+            path: {
+                weddingId: string;
+                guestId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InvitationDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description VALIDATION_FAILED — invalid Idempotency-Key */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND, GUEST_NOT_FOUND or INVITATION_NOT_FOUND (not created yet) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description INVITATION_REVOKED — regenerate the link first */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description GUEST_EMAIL_REQUIRED */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    InvitationsController_resend: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description The same key queues the email at most once. */
+                "Idempotency-Key"?: string;
+            };
+            path: {
+                weddingId: string;
+                guestId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InvitationDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description VALIDATION_FAILED — invalid Idempotency-Key */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND, GUEST_NOT_FOUND or INVITATION_NOT_FOUND (not created yet) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description INVITATION_REVOKED — regenerate the link first */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description GUEST_EMAIL_REQUIRED */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    InvitationsController_revoke: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                guestId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InvitationDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND, GUEST_NOT_FOUND or INVITATION_NOT_FOUND (not created yet) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    InvitationsController_link: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                guestId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InvitationLinkDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND, GUEST_NOT_FOUND or INVITATION_NOT_FOUND (not created yet) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description INVITATION_REVOKED — regenerate the link first */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    InvitationsController_deliveries: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                guestId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InvitationHistoryDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND, GUEST_NOT_FOUND or INVITATION_NOT_FOUND (not created yet) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    GuestInvitationController_open: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["GuestInvitationViewDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description INVITATION_NOT_FOUND — unknown, revoked or replaced link, or a deleted guest */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description RATE_LIMITED — per link and per IP */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    GuestInvitationController_respond: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GuestRsvpDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["GuestInvitationViewDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description VALIDATION_FAILED */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description INVITATION_NOT_FOUND — unknown, revoked or replaced link, or a deleted guest */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description RATE_LIMITED — per link and per IP */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    DashboardController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["DashboardDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
                 };
             };
             /** @description Not signed in */

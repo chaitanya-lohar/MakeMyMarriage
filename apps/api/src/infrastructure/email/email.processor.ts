@@ -2,7 +2,7 @@ import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { UnrecoverableError, type Job } from 'bullmq';
 import { PinoLogger } from 'nestjs-pino';
 import { EmailJob, QueueName } from '../queue/queue-names.js';
-import { EmailSender, type EmailMessage } from './email-message.js';
+import { EmailRejectedError, EmailSender, type EmailMessage } from './email-message.js';
 
 /** Worker-side delivery of queued email. Retries use the queue's default backoff. */
 @Processor(QueueName.Email)
@@ -20,7 +20,13 @@ export class EmailProcessor extends WorkerHost {
       // Retrying cannot help an unknown job, so it fails permanently.
       throw new UnrecoverableError(`Unknown job "${job.name}" on queue "${job.queueName}"`);
     }
-    await this.sender.send(job.data);
+    try {
+      await this.sender.send(job.data);
+    } catch (error) {
+      // A permanent rejection cannot succeed on retry.
+      if (error instanceof EmailRejectedError) throw new UnrecoverableError(error.message);
+      throw error;
+    }
     // Never log the recipient or content: messages can carry one-time links.
     this.logger.info({ jobId: job.id }, 'Email sent');
   }

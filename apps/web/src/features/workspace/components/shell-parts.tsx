@@ -11,12 +11,24 @@ import { workspaceFooter, workspaceNav } from '../content';
 export const DASHBOARD_PATH = '/dashboard';
 export const CREATE_WEDDING_PATH = '/wedding/new';
 export const WEDDING_DETAILS_PATH = '/wedding';
+export const EVENTS_PATH = '/events';
+export const GUESTS_PATH = '/guests';
 
-/** The workspace navigation: only Dashboard and Wedding details in Phase 3 (0016). */
+/** The workspace navigation (0016); Phase 4 adds Events and Guests & RSVP only (0019 #3). */
 const navItems: { href: string; label: string; icon: IconName }[] = [
   { href: DASHBOARD_PATH, label: workspaceNav.dashboard, icon: 'space_dashboard' },
   { href: WEDDING_DETAILS_PATH, label: workspaceNav.weddingDetails, icon: 'edit_note' },
+  { href: EVENTS_PATH, label: workspaceNav.events, icon: 'festival' },
+  { href: GUESTS_PATH, label: workspaceNav.guests, icon: 'group' },
 ];
+
+/** Events and guests stay highlighted on their sub-pages, e.g. a guest's detail page. */
+function isActive(pathname: string, href: string): boolean {
+  if (href === EVENTS_PATH || href === GUESTS_PATH) {
+    return pathname === href || pathname.startsWith(`${href}/`);
+  }
+  return pathname === href;
+}
 
 export function initialsOf(name: string): string {
   return name
@@ -44,7 +56,7 @@ export function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <nav aria-label="Workspace" className="space-y-1">
       {navItems.map((item) => {
-        const active = pathname === item.href;
+        const active = isActive(pathname, item.href);
         return (
           <Link
             key={item.href}

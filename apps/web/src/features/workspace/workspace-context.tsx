@@ -18,8 +18,8 @@ export type WorkspaceState =
   | { status: 'error' }
   | { status: 'ready'; user: ApiUser; wedding: ApiWedding | null };
 
-/** A one-off message for the next dashboard view, e.g. after creating the wedding. */
-export type WorkspaceNotice = 'wedding-created' | null;
+/** A one-off message for the next page view, e.g. after creating the wedding or deleting. */
+export type WorkspaceNotice = 'wedding-created' | 'event-deleted' | 'guest-deleted' | null;
 
 interface WorkspaceContextValue {
   state: WorkspaceState;

@@ -10,5 +10,7 @@ import { createEmailSender } from './senders.js';
     { provide: EmailSender, inject: [AppConfig], useFactory: createEmailSender },
     EmailProcessor,
   ],
+  // The invitations worker sends through the same provider (Phase 4).
+  exports: [EmailSender],
 })
 export class EmailWorkerModule {}
