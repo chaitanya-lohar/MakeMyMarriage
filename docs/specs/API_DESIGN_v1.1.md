@@ -321,6 +321,9 @@ firstOpenedAt }`. Create and regenerate also return `invitationUrl`
   revoked) returns the invitation with `deliveryStatus: "DRAFT"` and `isRevoked: false`, and
   revoke leaves `deliveryStatus` unchanged (0020);
   `422 GUEST_EMAIL_REQUIRED` for send or resend without a guest email.
+- A queued email carries only the link current when it was queued: revoked or regenerated
+  before sending, it is skipped (nothing sent or recorded); changed during sending, the
+  attempt is recorded but the status is not updated (0020).
 - Send and resend accept an optional `Idempotency-Key` header; each attempt becomes an
   `invitation_deliveries` record and the email is sent by the worker, which decrypts the
   stored token copy to build the link. Resends reuse the same token. The attempt and the

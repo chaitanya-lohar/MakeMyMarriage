@@ -428,6 +428,10 @@ The limits here and in §9 are approved (0019 #6).
   revoked link) sets it back to `DRAFT` and clears `revokedAt`; revoking never changes it
   (0020). `invitation_deliveries` records are never changed by either. `DELIVERED`, and failures reported after
   acceptance, need provider webhooks (not in Phase 4). Opens never change it.
+- A queued email is tied to the link it was queued for (`tokenCreatedAt`). If that link is
+  revoked or regenerated before the worker sends it, the email is skipped and nothing is
+  sent or recorded. If the link changes during the send, the attempt is still recorded in
+  `invitation_deliveries`, but `deliveryStatus` is left unchanged (0020).
 
 ### 10.4 `invitation_deliveries`
 

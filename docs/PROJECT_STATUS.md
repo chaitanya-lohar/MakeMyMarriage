@@ -15,29 +15,30 @@ The single place to see where MakeMyMarriage stands. Read this first.
 | --------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | Current phase   | Phase 4 (Events, guests, RSVP and invitations) — built and merged to `main` (PR #12; 0017–0023)                               |
 | Next phase      | Not chosen yet — each phase starts only after approval. Open for Phase 4: approve the DRAFT wording                           |
-| `main`          | Scaffold, Phases 1–4, code-review and manual-testing fixes (PRs #1–6, #12); documentation and decisions 0017–0023 (PRs #8–11) |
+| `main`          | Scaffold, Phases 1–4, code-review and manual-testing fixes (PRs #1–6, #12); documentation and decisions 0017–0022 (PRs #8–11) |
 | Open PRs        | None                                                                                                                          |
 | Live deployment | None yet                                                                                                                      |
 
 ### Branches
 
-Every branch below is merged into `main`; new work starts from `main`.
+Every branch below except `fix/phase-4-review` is merged into `main`; new work starts from `main`.
 
-| Branch                          | Contains                                                 | State           |
-| ------------------------------- | -------------------------------------------------------- | --------------- |
-| `main`                          | Everything below                                         | Up to date      |
-| `feat/home-page`                | Phase 1: design system and home page                     | Merged (PR #2)  |
-| `feat/auth`                     | Phase 2: authentication                                  | Merged (PR #3)  |
-| `chore/pre-phase-3`             | The three branches below, `.mcp.json`, this page         | Merged (PR #4)  |
-| ↳ `fix/auth-hardening`          | Code-review fixes (4 commits)                            | Merged via #4   |
-| ↳ `fix/auth-test-findings`      | Manual-testing fixes (3 commits)                         | Merged via #4   |
-| ↳ `docs/status-after-phase-2`   | This page after the Phase 1/2 merges (1 commit)          | Merged via #4   |
-| `feat/weddings`                 | Phase 3: wedding setup and dashboard shell               | Merged (PR #5)  |
-| `fix/workspace-logo-home`       | Workspace logo opens the home page (manual-testing fix)  | Merged (PR #6)  |
-| `docs/consolidation`            | Consolidated documentation, decisions 0017–0018          | Merged (PR #8)  |
-| `docs/phase-4-design-decisions` | Decision 0019 and the matching spec updates              | Merged (PR #9)  |
-| `docs/regenerate-email-status`  | Decisions 0020–0022 and the matching spec updates        | Merged (PR #10) |
-| `feat/phase-4`                  | Phase 4: events, guests, RSVP, invitations and dashboard | Merged (PR #12) |
+| Branch                          | Contains                                                                                | State              |
+| ------------------------------- | --------------------------------------------------------------------------------------- | ------------------ |
+| `main`                          | Everything below                                                                        | Up to date         |
+| `feat/home-page`                | Phase 1: design system and home page                                                    | Merged (PR #2)     |
+| `feat/auth`                     | Phase 2: authentication                                                                 | Merged (PR #3)     |
+| `chore/pre-phase-3`             | The three branches below, `.mcp.json`, this page                                        | Merged (PR #4)     |
+| ↳ `fix/auth-hardening`          | Code-review fixes (4 commits)                                                           | Merged via #4      |
+| ↳ `fix/auth-test-findings`      | Manual-testing fixes (3 commits)                                                        | Merged via #4      |
+| ↳ `docs/status-after-phase-2`   | This page after the Phase 1/2 merges (1 commit)                                         | Merged via #4      |
+| `feat/weddings`                 | Phase 3: wedding setup and dashboard shell                                              | Merged (PR #5)     |
+| `fix/workspace-logo-home`       | Workspace logo opens the home page (manual-testing fix)                                 | Merged (PR #6)     |
+| `docs/consolidation`            | Consolidated documentation, decisions 0017–0018                                         | Merged (PR #8)     |
+| `docs/phase-4-design-decisions` | Decision 0019 and the matching spec updates                                             | Merged (PR #9)     |
+| `docs/regenerate-email-status`  | Decisions 0020–0022 and the matching spec updates                                       | Merged (PR #10)    |
+| `feat/phase-4`                  | Phase 4: events, guests, RSVP, invitations and dashboard                                | Merged (PR #12)    |
+| `fix/phase-4-review`            | Decision 0023 and the code-review fixes (includes `feat/phase-4-engineering-decisions`) | Pushed, not merged |
 
 The merged branches can be deleted, on GitHub and locally.
 
