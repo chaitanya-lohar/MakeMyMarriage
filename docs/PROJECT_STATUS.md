@@ -2,7 +2,7 @@
 
 The single place to see where MakeMyMarriage stands. Read this first.
 
-- **Updated:** 2026-10-11, with the Phase 4 design approval (0021).
+- **Updated:** 2026-10-11, after merging decisions 0020–0022 (PR #10).
 - **Source of truth:** the canonical documents listed in the [documentation index](README.md)
   and the decision records in [`decisions/`](decisions/README.md). This page only summarises
   and links; where they differ, the decision record wins.
@@ -15,28 +15,28 @@ The single place to see where MakeMyMarriage stands. Read this first.
 | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Current phase   | Phase 3 (Wedding setup) — done and merged to `main` (PR #5, 0016)                                                                                                                                         |
 | Next phase      | Phase 4 (Events, guests, RSVP and invitations) — requirements, design decisions, Stitch screens and dashboard API contract approved (0017–0022, Phase 4 PRD v1.2); **not started**; open: Phase 4 wording |
-| `main`          | Scaffold, Phases 1–3, code-review and manual-testing fixes (PRs #1–6)                                                                                                                                     |
-| Open PRs        | None (`docs/regenerate-email-status` is local)                                                                                                                                                            |
+| `main`          | Scaffold, Phases 1–3, code-review and manual-testing fixes (PRs #1–6); documentation and decisions 0017–0022 (PRs #8–10)                                                                                  |
+| Open PRs        | None                                                                                                                                                                                                      |
 | Live deployment | None yet                                                                                                                                                                                                  |
 
 ### Branches
 
-Every branch below except `docs/regenerate-email-status` is merged into `main`; new work starts from `main`.
+Every branch below is merged into `main`; new work starts from `main`.
 
-| Branch                          | Contains                                                              | State          |
-| ------------------------------- | --------------------------------------------------------------------- | -------------- |
-| `main`                          | Everything below                                                      | Up to date     |
-| `feat/home-page`                | Phase 1: design system and home page                                  | Merged (PR #2) |
-| `feat/auth`                     | Phase 2: authentication                                               | Merged (PR #3) |
-| `chore/pre-phase-3`             | The three branches below, `.mcp.json`, this page                      | Merged (PR #4) |
-| ↳ `fix/auth-hardening`          | Code-review fixes (4 commits)                                         | Merged via #4  |
-| ↳ `fix/auth-test-findings`      | Manual-testing fixes (3 commits)                                      | Merged via #4  |
-| ↳ `docs/status-after-phase-2`   | This page after the Phase 1/2 merges (1 commit)                       | Merged via #4  |
-| `feat/weddings`                 | Phase 3: wedding setup and dashboard shell                            | Merged (PR #5) |
-| `fix/workspace-logo-home`       | Workspace logo opens the home page (manual-testing fix)               | Merged (PR #6) |
-| `docs/consolidation`            | Consolidated documentation, decisions 0017–0018                       | Merged (PR #8) |
-| `docs/phase-4-design-decisions` | Decision 0019 and the matching spec updates                           | Merged (PR #9) |
-| `docs/regenerate-email-status`  | Decisions 0020–0022 and the matching spec updates (local, not pushed) | In progress    |
+| Branch                          | Contains                                                | State           |
+| ------------------------------- | ------------------------------------------------------- | --------------- |
+| `main`                          | Everything below                                        | Up to date      |
+| `feat/home-page`                | Phase 1: design system and home page                    | Merged (PR #2)  |
+| `feat/auth`                     | Phase 2: authentication                                 | Merged (PR #3)  |
+| `chore/pre-phase-3`             | The three branches below, `.mcp.json`, this page        | Merged (PR #4)  |
+| ↳ `fix/auth-hardening`          | Code-review fixes (4 commits)                           | Merged via #4   |
+| ↳ `fix/auth-test-findings`      | Manual-testing fixes (3 commits)                        | Merged via #4   |
+| ↳ `docs/status-after-phase-2`   | This page after the Phase 1/2 merges (1 commit)         | Merged via #4   |
+| `feat/weddings`                 | Phase 3: wedding setup and dashboard shell              | Merged (PR #5)  |
+| `fix/workspace-logo-home`       | Workspace logo opens the home page (manual-testing fix) | Merged (PR #6)  |
+| `docs/consolidation`            | Consolidated documentation, decisions 0017–0018         | Merged (PR #8)  |
+| `docs/phase-4-design-decisions` | Decision 0019 and the matching spec updates             | Merged (PR #9)  |
+| `docs/regenerate-email-status`  | Decisions 0020–0022 and the matching spec updates       | Merged (PR #10) |
 
 The merged branches can be deleted, on GitHub and locally.
 
@@ -201,6 +201,7 @@ checked only for loading the saved values.
 
 | Date       | Change                                                                                                                                                                                                                                                                                                                                                            |
 | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-11 | Decisions 0020–0022 merged to `main` (PR #10).                                                                                                                                                                                                                                                                                                                    |
 | 2026-10-11 | Decision 0022: dashboard API contract for `GET /weddings/{weddingId}/dashboard`. The API returns at most five upcoming events (dashboard response only); expected attendees only for those events; upcoming is date-only in the wedding's timezone. API Design §6 and the Phase 4 PRD were updated to match.                                                      |
 | 2026-10-11 | Decision 0021: Phase 4 Stitch screens approved, with corrections to apply in code; the dashboard shows at most five upcoming events (display only); the invitation email leaves out a missing date or city. The wording stays draft. The Phase 4 PRD was updated to match.                                                                                        |
 | 2026-10-11 | Phase 4 Stitch screens generated and reviewed twice. Not yet approved: three mobile screens need rebuilding, some screens still break approved rules, and duplicate screens need deleting. Round-3 fixes in progress.                                                                                                                                             |
