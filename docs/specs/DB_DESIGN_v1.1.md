@@ -424,7 +424,7 @@ The limits here and in §9 are approved (0019 #6).
 - **No `expiresAt`:** no automatic expiry in Phase 4 (0017 #8). v1.0's `status` is now
   `deliveryStatus` (without `OPENED`), and its `openedAt` is now `firstOpenedAt`.
 - `deliveryStatus` follows the latest send attempt: `SENT` on provider acceptance, `FAILED`
-  on an immediate provider rejection (0018). Regenerating the link (from an active or a
+  on an immediate provider rejection (0018) or when every automatic retry fails (0023). Regenerating the link (from an active or a
   revoked link) sets it back to `DRAFT` and clears `revokedAt`; revoking never changes it
   (0020). `invitation_deliveries` records are never changed by either. `DELIVERED`, and failures reported after
   acceptance, need provider webhooks (not in Phase 4). Opens never change it.
@@ -470,8 +470,7 @@ The limits here and in §9 are approved (0019 #6).
 ```
 
 - Opens are history, never a delivery status (0017 #9). The first open is also kept on the
-  invitation (`firstOpenedAt`). Whether every repeated open is stored or de-duplicated is an
-  implementation choice; the first open is always preserved.
+  invitation (`firstOpenedAt`). Every open is stored (0023); the first open is always preserved.
 
 ## 11. Notifications and reminders (Planned)
 

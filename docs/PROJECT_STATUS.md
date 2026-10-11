@@ -2,7 +2,7 @@
 
 The single place to see where MakeMyMarriage stands. Read this first.
 
-- **Updated:** 2026-10-11, after merging Phase 4 (PR #12).
+- **Updated:** 2026-10-11, with the Phase 4 engineering decisions (0023).
 - **Source of truth:** the canonical documents listed in the [documentation index](README.md)
   and the decision records in [`decisions/`](decisions/README.md). This page only summarises
   and links; where they differ, the decision record wins.
@@ -11,13 +11,13 @@ The single place to see where MakeMyMarriage stands. Read this first.
 
 ## Snapshot
 
-| Item            | State                                                                                                                                                       |
-| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Current phase   | Phase 4 (Events, guests, RSVP and invitations) — built and merged to `main` (PR #12; 0017–0022)                                                             |
-| Next phase      | Not chosen yet — each phase starts only after approval. Open for Phase 4: approve the DRAFT wording and the engineering choices listed under open decisions |
-| `main`          | Scaffold, Phases 1–4, code-review and manual-testing fixes (PRs #1–6, #12); documentation and decisions 0017–0022 (PRs #8–11)                               |
-| Open PRs        | None                                                                                                                                                        |
-| Live deployment | None yet                                                                                                                                                    |
+| Item            | State                                                                                                                         |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Current phase   | Phase 4 (Events, guests, RSVP and invitations) — built and merged to `main` (PR #12; 0017–0023)                               |
+| Next phase      | Not chosen yet — each phase starts only after approval. Open for Phase 4: approve the DRAFT wording                           |
+| `main`          | Scaffold, Phases 1–4, code-review and manual-testing fixes (PRs #1–6, #12); documentation and decisions 0017–0023 (PRs #8–11) |
+| Open PRs        | None                                                                                                                          |
+| Live deployment | None yet                                                                                                                      |
 
 ### Branches
 
@@ -54,7 +54,7 @@ questions for it are raised then (0004).
 | 1   | Design system and home page          | Done, merged | 0014                                                            |
 | 2   | Authentication                       | Done, merged | 0015                                                            |
 | 3   | Wedding setup and dashboard shell    | Done, merged | 0010, 0012, 0016                                                |
-| 4   | Events, guests, RSVP and invitations | Done, merged | 0008, 0010, 0017–0022; [Phase 4 PRD](specs/PHASE_4_PRD_v1.2.md) |
+| 4   | Events, guests, RSVP and invitations | Done, merged | 0008, 0010, 0017–0023; [Phase 4 PRD](specs/PHASE_4_PRD_v1.2.md) |
 | 5   | (merged into Phase 4)                | —            | —                                                               |
 | 6   | (merged into Phase 4)                | —            | —                                                               |
 | 7   | Tasks                                | Not started  | 0010, 0013                                                      |
@@ -158,20 +158,19 @@ mobile navigation drawer, a states board and the copy-drafts board.
 
 ## Open decisions and blockers
 
-| Item                                                                                                                                                                                                                                               | Blocks              | Owner         |
-| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- | ------------- |
-| A4 — what partners share by default (0011)                                                                                                                                                                                                         | Phase 16            | Product       |
-| A5 — what happens on partner disconnect (0011)                                                                                                                                                                                                     | Phase 16            | Product       |
-| Usage rights for the Stitch-generated photos                                                                                                                                                                                                       | Public launch       | Product       |
-| Privacy Policy and Terms of Service text                                                                                                                                                                                                           | Public launch       | Legal         |
-| Resend account and DNS for `makemymarriage.com`                                                                                                                                                                                                    | Real email delivery | Ops           |
-| Delete the outdated first "Sign In (V1)" screen in Stitch                                                                                                                                                                                          | Housekeeping        | Product       |
-| Staging deployment accounts (Vercel, AWS, Atlas)                                                                                                                                                                                                   | Staging             | Ops           |
-| Forgot-password response time hints whether an email is registered (code review, deferred)                                                                                                                                                         | Public launch       | Engineering   |
-| Reset email says "signs you out on all your devices", but access tokens live ≤15 min (0015) — reword or revoke instantly                                                                                                                           | Public launch       | Product       |
-| Phase 4 wording on the copy-drafts screen: confirm or change (0019 #7, 0021)                                                                                                                                                                       | Phase 4 UI          | Product       |
-| Phase 4 engineering choices to confirm: a send that exhausts retries is recorded FAILED ("The email service could not be reached"); guest-route rate limits 60/min per IP and 30/min per link; guest list sorted alphabetically; every open stored | Product review      | Product       |
-| Delivery webhooks for DELIVERED/FAILED (Sent is the highest status until then)                                                                                                                                                                     | Delivery statuses   | Product / Ops |
+| Item                                                                                                                     | Blocks              | Owner         |
+| ------------------------------------------------------------------------------------------------------------------------ | ------------------- | ------------- |
+| A4 — what partners share by default (0011)                                                                               | Phase 16            | Product       |
+| A5 — what happens on partner disconnect (0011)                                                                           | Phase 16            | Product       |
+| Usage rights for the Stitch-generated photos                                                                             | Public launch       | Product       |
+| Privacy Policy and Terms of Service text                                                                                 | Public launch       | Legal         |
+| Resend account and DNS for `makemymarriage.com`                                                                          | Real email delivery | Ops           |
+| Delete the outdated first "Sign In (V1)" screen in Stitch                                                                | Housekeeping        | Product       |
+| Staging deployment accounts (Vercel, AWS, Atlas)                                                                         | Staging             | Ops           |
+| Forgot-password response time hints whether an email is registered (code review, deferred)                               | Public launch       | Engineering   |
+| Reset email says "signs you out on all your devices", but access tokens live ≤15 min (0015) — reword or revoke instantly | Public launch       | Product       |
+| Phase 4 wording on the copy-drafts screen: confirm or change (0019 #7, 0021)                                             | Phase 4 UI          | Product       |
+| Delivery webhooks for DELIVERED/FAILED (Sent is the highest status until then)                                           | Delivery statuses   | Product / Ops |
 
 ## Working rules
 
@@ -222,6 +221,7 @@ checked only for loading the saved values.
 
 | Date       | Change                                                                                                                                                                                                                                                                                                                                                            |
 | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-11 | Decision 0023: Phase 4 engineering decisions — a send that exhausts its retries is recorded FAILED; guest-route rate limits raised to 120 per IP and 60 per link a minute; guest list alphabetical; every open stored as activity. Specifications updated to match.                                                                                               |
 | 2026-10-11 | Phase 4 merged to `main` (PR #12).                                                                                                                                                                                                                                                                                                                                |
 | 2026-10-11 | Phase 4 built on `feat/phase-4`: API modules for events, guests and RSVP, invitations (token hash plus AES-256-GCM copy, worker email, guest routes), audit and dashboard; web screens for events, guests and RSVP, the invitation panel, dashboard summaries and `/invite/[token]`. Not pushed.                                                                  |
 | 2026-10-11 | Decisions 0020–0022 merged to `main` (PR #10).                                                                                                                                                                                                                                                                                                                    |

@@ -265,6 +265,7 @@ POST /api/v1/weddings/{weddingId}/guests
   so organizers see invitation state without another endpoint.
 - `GET …/guests` query: `search` (name or mobile), `eventId`, `rsvpStatus`, `limit` (max 100),
   `cursor`. Returns `data: GuestDto[]` and `meta.pagination: { nextCursor, hasNextPage }`.
+  Sorted alphabetically by name, ignoring case, with the guest ID as tie-breaker (0023).
 - `POST …/guests/{guestId}/events` body `{ "eventId": "…" }`. Creates an active assignment
   with `rsvpStatus: "PENDING"`, `attendeeCount: null` and returns `201 GuestEventDto`. If an
   active assignment already exists it is returned unchanged with `200` — never a duplicate.
@@ -324,7 +325,8 @@ firstOpenedAt }`. Create and regenerate also return `invitationUrl`
   `invitation_deliveries` record and the email is sent by the worker, which decrypts the
   stored token copy to build the link. Resends reuse the same token. The attempt and the
   invitation's status become `SENT` when the provider accepts the request and `FAILED`, with
-  the provider's reason, when it rejects it immediately (0018). `DELIVERED`, and failures
+  the provider's reason, when it rejects it immediately (0018) — or with "The email service
+  could not be reached." when every automatic retry fails (0023). `DELIVERED`, and failures
   reported after acceptance, need provider webhooks (not in Phase 4).
 - `GET …/deliveries` returns
   `{ deliveries: [{ attemptNumber, kind, status, sentAt, failedAt, failureReason, createdAt }],
@@ -361,7 +363,8 @@ PATCH /api/v1/guest/invitations/{token}/rsvp
   is rejected if any response is invalid or names an assignment that is not the guest's.
 - Unknown, revoked and regenerated tokens, and tokens of deleted guests, all return the same
   `404 INVITATION_NOT_FOUND`.
-  Both guest routes are rate-limited per token and IP (`429`).
+  Both guest routes are rate-limited: 120 requests a minute per IP and 60 per token
+  (`429 RATE_LIMITED`); every request counts, including invalid tokens (0023).
 - No automatic token expiry in Phase 4 (0017 #8).
 
 **Token storage (0018).** The token is stored as a hash, used to look up guest requests,
@@ -755,7 +758,7 @@ notes absent from guest responses.
 | Uploads | File size and type limits; image processing |
 | Vendor discovery | Google fields and caching rules |
 | Website | Public payload, caching and revalidation; sitemap and metadata |
-| Rate limits | Numeric thresholds beyond 0015 (Phase 4 guest invitation routes use engineering defaults: 60 requests per IP and 30 per link per minute) |
+| Rate limits | Numeric thresholds beyond 0015 and the Phase 4 guest routes (0023: 120 per IP, 60 per link per minute) |
 | Reports | Filter contract; download retention |
 
 Resolved since v1.0: invitee-already-owns-a-wedding acceptance (0012, N1); attendee-count
