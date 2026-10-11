@@ -203,6 +203,8 @@ are in API Design v1.1 §8–10:
 - Invitations: `POST …/guests/{guestId}/invitation`, `…/regenerate`, `…/send`, `…/resend`,
   `…/revoke`; `GET …/invitation/link`, `GET …/invitation/deliveries`.
 - Guest: `GET /api/v1/guest/invitations/{token}`, `PATCH /api/v1/guest/invitations/{token}/rsvp`.
+- Dashboard: `GET /api/v1/weddings/{weddingId}/dashboard` (0022; contract in API Design
+  v1.1 §6).
 
 ## 10. UI
 
@@ -257,16 +259,19 @@ approved these rules on 2026-10-10, as written:
   events and guests and removed assignments are excluded from every summary but kept as
   history.
 - **Upcoming events:** counted events whose date is today or later in the wedding's
-  timezone, in date and start-time order (untimed first on their day). The dashboard shows
-  at most five, the first five in that order (0021). This is a display rule only: events are
-  not limited anywhere else, and there is no "View all" or pagination.
+  timezone, in date and start-time order (untimed first on their day). The rule is date
+  only: an event dated today stays upcoming after its start or end time has passed (0022).
+  The dashboard shows at most five, the first five in that order; the dashboard API returns
+  only those five (0021, 0022). Events are not limited anywhere else, and there is no
+  "View all" or pagination.
 - **Guest totals:** the number of counted guests, including guests not yet assigned to any
   event.
 - **RSVP breakdown:** the number of counted assignments in each status — Pending,
   Attending, Declined and Maybe — across all counted events, past and future. A guest invited
   to three events counts three times, once per event.
-- **Expected attendees:** for each upcoming event, the sum of `attendeeCount` over its counted
-  Attending assignments. Declined (0), Pending and Maybe (no count) add nothing.
+- **Expected attendees:** for each upcoming event shown on the dashboard (the same up to
+  five — 0022), the sum of `attendeeCount` over its counted Attending assignments.
+  Declined (0), Pending and Maybe (no count) add nothing.
 - **Per event only.** There is no wedding-wide "expected attendees" total: it would count the
   same person once for every event they attend, so it would mislead as a count of people.
 

@@ -14,7 +14,7 @@ The single place to see where MakeMyMarriage stands. Read this first.
 | Item            | State                                                                                                                                                                                                     |
 | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Current phase   | Phase 3 (Wedding setup) — done and merged to `main` (PR #5, 0016)                                                                                                                                         |
-| Next phase      | Phase 4 (Events, guests, RSVP and invitations) — requirements, design decisions and Stitch screens approved (0017–0021, Phase 4 PRD v1.2); **not started**; open: Phase 4 wording, dashboard API contract |
+| Next phase      | Phase 4 (Events, guests, RSVP and invitations) — requirements, design decisions, Stitch screens and dashboard API contract approved (0017–0022, Phase 4 PRD v1.2); **not started**; open: Phase 4 wording |
 | `main`          | Scaffold, Phases 1–3, code-review and manual-testing fixes (PRs #1–6)                                                                                                                                     |
 | Open PRs        | None (`docs/regenerate-email-status` is local)                                                                                                                                                            |
 | Live deployment | None yet                                                                                                                                                                                                  |
@@ -36,7 +36,7 @@ Every branch below except `docs/regenerate-email-status` is merged into `main`; 
 | `fix/workspace-logo-home`       | Workspace logo opens the home page (manual-testing fix)               | Merged (PR #6) |
 | `docs/consolidation`            | Consolidated documentation, decisions 0017–0018                       | Merged (PR #8) |
 | `docs/phase-4-design-decisions` | Decision 0019 and the matching spec updates                           | Merged (PR #9) |
-| `docs/regenerate-email-status`  | Decisions 0020–0021 and the matching spec updates (local, not pushed) | In progress    |
+| `docs/regenerate-email-status`  | Decisions 0020–0022 and the matching spec updates (local, not pushed) | In progress    |
 
 The merged branches can be deleted, on GitHub and locally.
 
@@ -53,7 +53,7 @@ questions for it are raised then (0004).
 | 1   | Design system and home page          | Done, merged          | 0014                                                            |
 | 2   | Authentication                       | Done, merged          | 0015                                                            |
 | 3   | Wedding setup and dashboard shell    | Done, merged          | 0010, 0012, 0016                                                |
-| 4   | Events, guests, RSVP and invitations | Approved, not started | 0008, 0010, 0017–0021; [Phase 4 PRD](specs/PHASE_4_PRD_v1.2.md) |
+| 4   | Events, guests, RSVP and invitations | Approved, not started | 0008, 0010, 0017–0022; [Phase 4 PRD](specs/PHASE_4_PRD_v1.2.md) |
 | 5   | (merged into Phase 4)                | —                     | —                                                               |
 | 6   | (merged into Phase 4)                | —                     | —                                                               |
 | 7   | Tasks                                | Not started           | 0010, 0013                                                      |
@@ -156,7 +156,6 @@ mobile navigation drawer, a states board and the copy-drafts board.
 | Staging deployment accounts (Vercel, AWS, Atlas)                                                                         | Staging             | Ops           |
 | Forgot-password response time hints whether an email is registered (code review, deferred)                               | Public launch       | Engineering   |
 | Reset email says "signs you out on all your devices", but access tokens live ≤15 min (0015) — reword or revoke instantly | Public launch       | Product       |
-| Dashboard summaries API contract (`GET …/dashboard` is still Planned in API §6)                                          | Phase 4 dashboard   | Engineering   |
 | Phase 4 wording on the copy-drafts screen: confirm or change (0019 #7, 0021)                                             | Phase 4 UI          | Product       |
 | Delivery webhooks for DELIVERED/FAILED (Sent is the highest status until then)                                           | Delivery statuses   | Product / Ops |
 
@@ -202,6 +201,7 @@ checked only for loading the saved values.
 
 | Date       | Change                                                                                                                                                                                                                                                                                                                                                            |
 | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-11 | Decision 0022: dashboard API contract for `GET /weddings/{weddingId}/dashboard`. The API returns at most five upcoming events (dashboard response only); expected attendees only for those events; upcoming is date-only in the wedding's timezone. API Design §6 and the Phase 4 PRD were updated to match.                                                      |
 | 2026-10-11 | Decision 0021: Phase 4 Stitch screens approved, with corrections to apply in code; the dashboard shows at most five upcoming events (display only); the invitation email leaves out a missing date or city. The wording stays draft. The Phase 4 PRD was updated to match.                                                                                        |
 | 2026-10-11 | Phase 4 Stitch screens generated and reviewed twice. Not yet approved: three mobile screens need rebuilding, some screens still break approved rules, and duplicate screens need deleting. Round-3 fixes in progress.                                                                                                                                             |
 | 2026-10-10 | Phase 4 design decisions merged (PR #9). Decision 0020: regenerating an invitation link resets the current email status to Draft; revoking leaves it unchanged; email history is never rewritten.                                                                                                                                                                 |

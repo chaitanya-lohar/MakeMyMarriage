@@ -110,7 +110,7 @@ guest, QR or public URLs. Unversioned paths such as `/api/auth/*` are never used
 | GET    | `/weddings/{weddingId}`           | One wedding                                         | Member                        | Built   |
 | PATCH  | `/weddings/{weddingId}`           | Update wedding details                              | Member (OWNER until Phase 10) | Built   |
 | DELETE | `/weddings/{weddingId}`           | Archive / soft-delete the wedding                   | Owner                         | Planned |
-| GET    | `/weddings/{weddingId}/dashboard` | Dashboard summary                                   | Permission                    | Planned |
+| GET    | `/weddings/{weddingId}/dashboard` | Dashboard summary (0019, 0021, 0022)                | Member                        | Phase 4 |
 
 ```json
 POST /api/v1/weddings
@@ -132,6 +132,49 @@ POST /api/v1/weddings
   request). `404 WEDDING_NOT_FOUND` for a wedding the user is not an active member of, or an
   invalid ID.
 - Registration never creates a wedding, and wedding creation never creates a website.
+
+### Dashboard (Phase 4 — decisions 0019, 0021, 0022)
+
+```json
+GET /api/v1/weddings/{weddingId}/dashboard
+
+200
+{ "data": {
+    "upcomingEvents": [
+      { "id": "…", "name": "Mehendi", "type": "MEHENDI", "date": "2027-02-16",
+        "startTime": "16:00", "endTime": "20:00", "venueName": "Garden Palace",
+        "expectedAttendees": 38 },
+      { "id": "…", "name": "Wedding", "type": "WEDDING", "date": "2027-02-18",
+        "startTime": null, "endTime": null, "venueName": "Lakeside Garden",
+        "expectedAttendees": 78 }
+    ],
+    "guestTotals": { "guests": 86 },
+    "rsvpBreakdown": { "pending": 58, "attending": 96, "declined": 21, "maybe": 9 } },
+  "meta": { "requestId": "…", "timestamp": "…" } }
+```
+
+- **Counted records** follow Phase 4 PRD §10.2: events and guests that are not deleted, and
+  active assignments whose event and guest both count.
+- **`upcomingEvents`**:
+  - Counted events dated today or later in the wedding's timezone. Date only: an event dated
+    today stays upcoming after its times have passed (0022 #3).
+  - Sorted by `date`, then `startTime`, untimed first on their date.
+  - **At most five**, the first five in that order (0022 #1). This limits the dashboard
+    response only; the events list (§8) is unchanged. There is no total, "more" flag or
+    pagination.
+  - An empty array when there are none.
+  - `startTime`, `endTime` and `venueName` are `null` when absent.
+- **`expectedAttendees`** (on each returned event only — 0022 #2): the sum of
+  `attendeeCount` over the event's counted Attending assignments. There is no wedding-wide
+  total.
+- **`guestTotals.guests`**: counted guests, including guests not assigned to any event.
+- **`rsvpBreakdown`**: counted assignments per status across all counted events, past and
+  future. A guest counts once per event.
+- Computed from current data on every request. No query parameters.
+- **Errors:** `401 UNAUTHENTICATED`; `404 WEDDING_NOT_FOUND` for a wedding the user is not
+  an active member of, or an invalid ID.
+- The countdown and wedding details come from `GET /weddings/{weddingId}`. Later modules add
+  their own summaries when they are built (PRD §18).
 
 ## 7. Membership, partner and sharing API (Planned)
 

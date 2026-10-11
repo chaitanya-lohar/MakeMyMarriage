@@ -26,7 +26,8 @@ in a specification, the record names that statement.
 | [0018](0018-invitation-token-storage-and-guest-access.md) | Invitation token storage and guest-access rules             | Accepted; amended by 0019, 0020 |
 | [0019](0019-phase-4-design-decisions.md)                  | Phase 4 design decisions                                    | Accepted                        |
 | [0020](0020-email-status-after-regeneration.md)           | Email status after regenerating an invitation link          | Accepted                        |
-| [0021](0021-phase-4-design-approval.md)                   | Phase 4 design approval: screens and rules; wording draft   | Accepted                        |
+| [0021](0021-phase-4-design-approval.md)                   | Phase 4 design approval: screens and rules; wording draft   | Accepted; amended by 0022       |
+| [0022](0022-dashboard-api-contract.md)                    | Dashboard API contract (Phase 4)                            | Accepted                        |
 
 Conflicts between specifications or decision records are handled with the protocol in
 [0004](0004-specification-authority.md) — never resolved silently in code.
