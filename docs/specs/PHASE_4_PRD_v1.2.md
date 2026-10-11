@@ -206,12 +206,11 @@ are in API Design v1.1 §8–10:
 
 ## 10. UI
 
-Decision 0019.
+Decisions 0019 and 0021.
 
 ### 10.1 Screens and behaviour
 
-- New screens are designed in Google Stitch and approved before they are built (working
-  rule). None exist yet for Phase 4.
+- The approved Stitch screens and the corrections applied in code are listed in decision 0021. Only those screen IDs are used.
 - Screens show only the approved fields and actions, each with loading, empty, validation,
   error and success states, on desktop and mobile.
 - Navigation adds **Events** and **Guests & RSVP** only. There is no "Invitation" navigation
@@ -241,11 +240,9 @@ Decision 0019.
   | Regenerate the link          | The old link stops working; the new link must be shared again.              |
   | Revoke the link              | The current link stops working; no replacement is created.                  |
 
-- **Copy to draft in Stitch and approve at design review** (none is approved yet): the
-  invitation email subject and body, the WhatsApp prefilled message, the duplicate-mobile
-  warning, the guest confirmation message, the invalid or revoked link message, and the
-  no-events message. Wording is clear, respectful and suited to Indian wedding invitations,
-  and never says an email was delivered or an RSVP saved unless that operation succeeded.
+- **Wording** is approved in decision 0021: the invitation email, the WhatsApp prefilled
+  message, the duplicate-mobile warning, the confirmations and the guest messages. It never
+  says an email was delivered or an RSVP saved unless that operation succeeded.
 
 ### 10.2 Dashboard summaries
 
@@ -257,8 +254,8 @@ approved these rules on 2026-10-10, as written:
   events and guests and removed assignments are excluded from every summary but kept as
   history.
 - **Upcoming events:** counted events whose date is today or later in the wedding's
-  timezone, in date and start-time order (untimed first on their day). How many are listed
-  is set at design review.
+  timezone, in date and start-time order (untimed first on their day). At most five are listed
+  (0021).
 - **Guest totals:** the number of counted guests, including guests not yet assigned to any
   event.
 - **RSVP breakdown:** the number of counted assignments in each status — Pending,
@@ -312,7 +309,6 @@ approved these rules on 2026-10-10, as written:
 
 - Token expiry: none in Phase 4; revisit only by decision.
 - Delivery webhooks (`DELIVERED`, later `FAILED`); provider retry and backoff details.
-- Wording drafted in Stitch, approved at design review (0019 #7).
 
 - Retention periods for audit and delivery history.
 - De-duplication of repeated opens (first open always kept).
