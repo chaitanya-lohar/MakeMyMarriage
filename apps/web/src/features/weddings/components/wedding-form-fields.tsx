@@ -59,12 +59,12 @@ function Field({
 function TextInput({
   field,
   icon,
-  inputMode,
+  type = 'text',
   props,
 }: {
   field: Exclude<WeddingFormField, 'description'>;
   icon: IconName;
-  inputMode?: 'numeric';
+  type?: 'text' | 'date';
   props: FieldsProps;
 }) {
   const id = useId();
@@ -79,8 +79,7 @@ function TextInput({
         <input
           id={id}
           name={field}
-          type="text"
-          inputMode={inputMode}
+          type={type}
           autoComplete="off"
           value={props.values[field]}
           onChange={(event) => props.onChange(field, event.target.value)}
@@ -117,7 +116,7 @@ export function WeddingFormFields(props: FieldsProps) {
         )}
       </div>
 
-      <TextInput field="startDate" icon="calendar_month" inputMode="numeric" props={props} />
+      <TextInput field="startDate" icon="calendar_month" type="date" props={props} />
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <TextInput field="venueName" icon="location_on" props={props} />
