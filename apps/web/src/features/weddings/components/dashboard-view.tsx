@@ -17,9 +17,12 @@ import type { ApiWedding } from '../wedding-form-model';
 export function DashboardView({ wedding }: { wedding: ApiWedding }) {
   const { notice, setNotice } = useWorkspace();
   // The "created" and "saved" toasts belong to this visit only: keep them here and clear the
-  // shared flag, so returning to the dashboard later does not show them again.
+  // shared flag, so returning to the dashboard later does not show them again. Saving the
+  // wedding or an event both confirm with "Your changes have been saved."
   const [shownNotice, setShownNotice] = useState(() =>
-    notice === 'wedding-created' || notice === 'wedding-saved' ? notice : null,
+    notice === 'wedding-created' || notice === 'wedding-saved' || notice === 'event-saved'
+      ? notice
+      : null,
   );
   useEffect(() => setNotice(null), [setNotice]);
   const place = [wedding.venueName, wedding.primaryCity].filter(Boolean).join(', ');
@@ -33,7 +36,7 @@ export function DashboardView({ wedding }: { wedding: ApiWedding }) {
         >
           <p className="flex items-center gap-2.5 text-body-sm font-semibold text-[#2d5a3f]">
             <Icon name="check_circle" className="size-5" />
-            {shownNotice === 'wedding-saved' ? weddingDetailsPage.saved : dashboard.created}
+            {shownNotice === 'wedding-created' ? dashboard.created : weddingDetailsPage.saved}
           </p>
           <button
             type="button"

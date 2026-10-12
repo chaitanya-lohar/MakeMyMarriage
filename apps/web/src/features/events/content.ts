@@ -68,7 +68,6 @@ export const eventForm = {
   save: 'Save event',
   saving: 'Saving…',
   cancel: 'Cancel',
-  saved: 'Your changes have been saved.',
   serverError: "We couldn't save the event. Please try again.",
   delete: 'Delete event',
 };

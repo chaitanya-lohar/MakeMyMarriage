@@ -20,7 +20,7 @@ export type WorkspaceState =
 
 /** A one-off message for the next page view, e.g. after creating the wedding or deleting. */
 export type WorkspaceNotice =
-  'wedding-created' | 'wedding-saved' | 'event-deleted' | 'guest-deleted' | null;
+  'wedding-created' | 'wedding-saved' | 'event-saved' | 'event-deleted' | 'guest-deleted' | null;
 
 interface WorkspaceContextValue {
   state: WorkspaceState;
