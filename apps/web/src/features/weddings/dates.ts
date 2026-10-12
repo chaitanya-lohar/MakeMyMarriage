@@ -37,6 +37,11 @@ export function parseTypedDate(text: string): string | null {
   return isRealDate(year, month, day) ? `${pad(year, 4)}-${pad(month)}-${pad(day)}` : null;
 }
 
+/** True for a real calendar date written as YYYY-MM-DD (as a date picker returns it). */
+export function isCalendarDate(iso: string): boolean {
+  return toCalendarDate(iso) !== null;
+}
+
 /** YYYY-MM-DD as typed in the form: "18 / 02 / 2027". */
 export function toTypedDate(iso: string | null): string {
   const date = iso ? toCalendarDate(iso) : null;

@@ -302,6 +302,7 @@ function TextField({
   aside,
   required,
   inputMode,
+  type = 'text',
   props,
 }: {
   field: Exclude<EventFormField, 'type' | 'description' | 'notes'>;
@@ -312,6 +313,8 @@ function TextField({
   aside?: string;
   required?: boolean;
   inputMode?: 'numeric';
+  /** "date" opens the browser's calendar; it still accepts typing, and allows past dates. */
+  type?: 'text' | 'date';
   props: FieldsProps;
 }) {
   const id = useId();
@@ -333,7 +336,7 @@ function TextField({
         <input
           id={id}
           name={field}
-          type="text"
+          type={type}
           inputMode={inputMode}
           autoComplete="off"
           value={props.values[field]}
@@ -446,8 +449,7 @@ function EventFields(props: FieldsProps) {
         label={eventFields.date.label}
         placeholder={eventFields.date.placeholder}
         hint={eventFields.date.hint}
-        icon="calendar_month"
-        inputMode="numeric"
+        type="date"
         required
         props={props}
       />

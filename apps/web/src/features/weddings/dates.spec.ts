@@ -3,6 +3,7 @@ import {
   daysBetween,
   formatDate,
   formatLongDate,
+  isCalendarDate,
   parseTypedDate,
   toTypedDate,
   todayIn,
@@ -41,5 +42,15 @@ describe('wedding dates', () => {
     expect(daysBetween('2027-02-17', '2027-02-18')).toBe(1);
     expect(daysBetween('2026-10-04', '2027-02-18')).toBe(137);
     expect(daysBetween('2027-02-19', '2027-02-18')).toBe(-1);
+  });
+});
+
+describe('isCalendarDate', () => {
+  it('accepts real YYYY-MM-DD dates, past or future, as a date picker returns them', () => {
+    expect(isCalendarDate('2027-02-16')).toBe(true);
+    expect(isCalendarDate('2020-01-05')).toBe(true);
+    expect(isCalendarDate('2027-02-30')).toBe(false);
+    expect(isCalendarDate('16 / 02 / 2027')).toBe(false);
+    expect(isCalendarDate('')).toBe(false);
   });
 });

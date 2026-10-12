@@ -1,6 +1,6 @@
 import type { components } from '@makemymarriage/api-client';
 import type { IconName } from '@/components/ui/icon';
-import { formatLongDate, parseTypedDate, toTypedDate } from '@/features/weddings/dates';
+import { formatLongDate, isCalendarDate } from '@/features/weddings/dates';
 import { eventErrors } from './content';
 
 export type ApiEvent = components['schemas']['EventDto'];
@@ -37,7 +37,7 @@ export const EventLimits = {
   notes: 1000,
 } as const;
 
-/** What the event form holds; the date is kept as typed ("DD / MM / YYYY"). */
+/** What the event form holds; the date is YYYY-MM-DD, as the date picker returns it. */
 export interface EventFormValues {
   name: string;
   type: EventType | '';
@@ -71,7 +71,7 @@ export function formFromEvent(event: ApiEvent): EventFormValues {
   return {
     name: event.name,
     type: event.type,
-    date: toTypedDate(event.date),
+    date: event.date,
     startTime: event.startTime ?? '',
     endTime: event.endTime ?? '',
     description: event.description ?? '',
@@ -108,7 +108,7 @@ export function validateEventForm(values: EventFormValues): EventFormErrors {
         ? eventErrors.nameTooLong
         : undefined,
     type: values.type ? undefined : eventErrors.type,
-    date: parseTypedDate(values.date) ? undefined : eventErrors.date,
+    date: isCalendarDate(values.date) ? undefined : eventErrors.date,
     startTime: start && !isLocalTime(start) ? eventErrors.time : undefined,
     endTime,
     description: tooLong(values.description, EventLimits.description),
@@ -127,7 +127,7 @@ export function toEventPayload(values: EventFormValues) {
   return {
     name: values.name.trim(),
     type: values.type as EventType,
-    date: parseTypedDate(values.date) as string,
+    date: values.date,
     startTime: orNull(values.startTime),
     endTime: orNull(values.endTime),
     description: orNull(values.description),
