@@ -19,7 +19,8 @@ export type WorkspaceState =
   | { status: 'ready'; user: ApiUser; wedding: ApiWedding | null };
 
 /** A one-off message for the next page view, e.g. after creating the wedding or deleting. */
-export type WorkspaceNotice = 'wedding-created' | 'event-deleted' | 'guest-deleted' | null;
+export type WorkspaceNotice =
+  'wedding-created' | 'wedding-saved' | 'event-deleted' | 'guest-deleted' | null;
 
 interface WorkspaceContextValue {
   state: WorkspaceState;
