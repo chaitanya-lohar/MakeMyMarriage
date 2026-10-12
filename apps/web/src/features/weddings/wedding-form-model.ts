@@ -1,10 +1,10 @@
 import type { components } from '@makemymarriage/api-client';
 import { fieldErrors } from './content';
-import { parseTypedDate, toTypedDate } from './dates';
+import { isCalendarDate } from './dates';
 
 export type ApiWedding = components['schemas']['WeddingDto'];
 
-/** What the wedding form holds; the date is kept as typed ("DD / MM / YYYY"). */
+/** What the wedding form holds; the date is YYYY-MM-DD from the date picker, or empty. */
 export interface WeddingFormValues {
   brideName: string;
   groomName: string;
@@ -33,7 +33,7 @@ export function formFromWedding(wedding: ApiWedding): WeddingFormValues {
   return {
     brideName: wedding.brideName,
     groomName: wedding.groomName,
-    startDate: toTypedDate(wedding.startDate),
+    startDate: wedding.startDate ?? '',
     venueName: wedding.venueName ?? '',
     primaryCity: wedding.primaryCity ?? '',
     description: wedding.description ?? '',
@@ -59,9 +59,7 @@ export function validateWeddingForm(values: WeddingFormValues): WeddingFormError
     brideName: nameError(values.brideName, fieldErrors.brideRequired),
     groomName: nameError(values.groomName, fieldErrors.groomRequired),
     startDate:
-      values.startDate.trim() && !parseTypedDate(values.startDate)
-        ? fieldErrors.invalidDate
-        : undefined,
+      values.startDate && !isCalendarDate(values.startDate) ? fieldErrors.invalidDate : undefined,
     venueName:
       values.venueName.trim().length > WeddingLimits.place ? fieldErrors.placeTooLong : undefined,
     primaryCity:
@@ -81,7 +79,7 @@ export function toWeddingPayload(values: WeddingFormValues) {
   return {
     brideName: values.brideName.trim(),
     groomName: values.groomName.trim(),
-    startDate: values.startDate.trim() ? parseTypedDate(values.startDate) : null,
+    startDate: values.startDate || null,
     venueName: orNull(values.venueName),
     primaryCity: orNull(values.primaryCity),
     description: orNull(values.description),

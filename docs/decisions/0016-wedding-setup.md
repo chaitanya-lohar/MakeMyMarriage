@@ -84,7 +84,8 @@ corrected as listed below.
   same for signed-in users. (Approved 2026-10-07 after manual testing.)
 - After creating, the user lands on the dashboard with the toast "Your wedding has been
   created."
-- Saving wedding details stays on the page and shows "Your changes have been saved.";
+- Saving wedding details returns to the dashboard, which shows the toast "Your changes have
+  been saved." (changed by the product owner on 2026-10-12; it first stayed on the page).
   Cancel restores the saved values, with no confirmation dialog.
 - The display-name preview ("Your wedding will appear as: …") shows only when both names
   are filled in.

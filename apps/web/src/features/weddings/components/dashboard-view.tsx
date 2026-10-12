@@ -6,7 +6,7 @@ import { Icon } from '@/components/ui/icon';
 import { DashboardSummaries } from '@/features/dashboard/components/dashboard-summaries';
 import { WEDDING_DETAILS_PATH } from '@/features/workspace/components/shell-parts';
 import { useWorkspace } from '@/features/workspace/workspace-context';
-import { dashboard } from '../content';
+import { dashboard, weddingDetailsPage } from '../content';
 import { daysBetween, formatDate, formatLongDate, todayIn } from '../dates';
 import type { ApiWedding } from '../wedding-form-model';
 
@@ -16,26 +16,31 @@ import type { ApiWedding } from '../wedding-form-model';
  */
 export function DashboardView({ wedding }: { wedding: ApiWedding }) {
   const { notice, setNotice } = useWorkspace();
-  // The "created" toast belongs to this visit only: keep it here and clear the shared flag,
-  // so returning to the dashboard later does not show it again.
-  const [showCreated, setShowCreated] = useState(() => notice === 'wedding-created');
+  // The "created" and "saved" toasts belong to this visit only: keep them here and clear the
+  // shared flag, so returning to the dashboard later does not show them again. Saving the
+  // wedding or an event both confirm with "Your changes have been saved."
+  const [shownNotice, setShownNotice] = useState(() =>
+    notice === 'wedding-created' || notice === 'wedding-saved' || notice === 'event-saved'
+      ? notice
+      : null,
+  );
   useEffect(() => setNotice(null), [setNotice]);
   const place = [wedding.venueName, wedding.primaryCity].filter(Boolean).join(', ');
 
   return (
     <div>
-      {showCreated && (
+      {shownNotice && (
         <div
           role="status"
           className="mb-5 flex items-center justify-between gap-3 rounded-lg border border-[#2d5a3f]/30 bg-[#ebf3ee] py-1 pr-1 pl-3 shadow-sm lg:fixed lg:top-6 lg:right-6 lg:z-30 lg:mb-0 lg:w-auto"
         >
           <p className="flex items-center gap-2.5 text-body-sm font-semibold text-[#2d5a3f]">
             <Icon name="check_circle" className="size-5" />
-            {dashboard.created}
+            {shownNotice === 'wedding-created' ? dashboard.created : weddingDetailsPage.saved}
           </p>
           <button
             type="button"
-            onClick={() => setShowCreated(false)}
+            onClick={() => setShownNotice(null)}
             aria-label={dashboard.dismiss}
             className="flex size-11 items-center justify-center rounded-md text-[#2d5a3f]/80 transition-colors hover:text-[#2d5a3f] focus-visible:outline-2 focus-visible:outline-secondary"
           >

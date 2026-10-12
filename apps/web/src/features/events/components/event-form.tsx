@@ -15,7 +15,7 @@ import {
 import { Icon, type IconName } from '@/components/ui/icon';
 import { networkError } from '@/features/weddings/content';
 import type { ApiWedding } from '@/features/weddings/wedding-form-model';
-import { EVENTS_PATH } from '@/features/workspace/components/shell-parts';
+import { DASHBOARD_PATH, EVENTS_PATH } from '@/features/workspace/components/shell-parts';
 import { PageHeader, SkeletonCard } from '@/features/workspace/components/workspace-page';
 import { SESSION_ENDED_PATH, useReadyWorkspace } from '@/features/workspace/workspace-context';
 import { api, call } from '@/lib/api';
@@ -41,7 +41,7 @@ import {
   type EventFormValues,
 } from '../event-model';
 
-type Banner = 'saved' | 'server' | 'network' | null;
+type Banner = 'server' | 'network' | null;
 
 /** `/events/new`: Stitch "P4 · O3 Event Form". */
 export function AddEventPage({ wedding }: { wedding: ApiWedding }) {
@@ -104,7 +104,7 @@ export function EditEventPage({ wedding, eventId }: { wedding: ApiWedding; event
 function EventForm({ wedding, event }: { wedding: ApiWedding; event: ApiEvent | null }) {
   const router = useRouter();
   const { setNotice } = useReadyWorkspace();
-  const [current, setCurrent] = useState(event);
+  const current = event;
   const [values, setValues] = useState<EventFormValues>(() =>
     event ? formFromEvent(event) : emptyEventForm,
   );
@@ -127,7 +127,6 @@ function EventForm({ wedding, event }: { wedding: ApiWedding; event: ApiEvent | 
   function change(field: EventFormField, value: string) {
     setValues((previous) => ({ ...previous, [field]: value }));
     if (errors[field]) setErrors((previous) => ({ ...previous, [field]: undefined }));
-    if (banner === 'saved') setBanner(null);
   }
 
   async function save(formEvent: FormEvent<HTMLFormElement>) {
@@ -154,16 +153,11 @@ function EventForm({ wedding, event }: { wedding: ApiWedding; event: ApiEvent | 
           }),
         );
     if (result.data) {
-      if (!current) {
-        // Stay busy until the page changes, so a quick second submit cannot create a
-        // duplicate event (review M8).
-        router.push(EVENTS_PATH);
-        return;
-      }
-      setSaving(false);
-      setCurrent(result.data);
-      setValues(formFromEvent(result.data));
-      setBanner('saved');
+      // Stay busy until the page changes, so a quick second submit cannot save twice
+      // (review M8). A new event opens the events list; saving an edit returns to the
+      // dashboard, which confirms the save (product owner, 2026-10-12).
+      if (current) setNotice('event-saved');
+      router.push(current ? DASHBOARD_PATH : EVENTS_PATH);
       return;
     }
     setSaving(false);
@@ -211,11 +205,6 @@ function EventForm({ wedding, event }: { wedding: ApiWedding; event: ApiEvent | 
 
       <section className="rounded-xl border border-hairline bg-white p-6 shadow-sm sm:p-8">
         <div className="space-y-4 empty:hidden">
-          {banner === 'saved' && (
-            <Banner tone="success" icon="check_circle">
-              {eventForm.saved}
-            </Banner>
-          )}
           {banner === 'server' && (
             <Banner tone="error" icon="error">
               {eventForm.serverError}
@@ -302,6 +291,7 @@ function TextField({
   aside,
   required,
   inputMode,
+  type = 'text',
   props,
 }: {
   field: Exclude<EventFormField, 'type' | 'description' | 'notes'>;
@@ -312,6 +302,8 @@ function TextField({
   aside?: string;
   required?: boolean;
   inputMode?: 'numeric';
+  /** "date" opens the browser's calendar; it still accepts typing, and allows past dates. */
+  type?: 'text' | 'date';
   props: FieldsProps;
 }) {
   const id = useId();
@@ -333,7 +325,7 @@ function TextField({
         <input
           id={id}
           name={field}
-          type="text"
+          type={type}
           inputMode={inputMode}
           autoComplete="off"
           value={props.values[field]}
@@ -446,8 +438,7 @@ function EventFields(props: FieldsProps) {
         label={eventFields.date.label}
         placeholder={eventFields.date.placeholder}
         hint={eventFields.date.hint}
-        icon="calendar_month"
-        inputMode="numeric"
+        type="date"
         required
         props={props}
       />

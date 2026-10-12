@@ -28,7 +28,7 @@ describe('wedding form', () => {
       validateWeddingForm({
         ...filled,
         groomName: 'A'.repeat(101),
-        startDate: '32 / 13 / 2027',
+        startDate: '2027-02-30',
         venueName: 'V'.repeat(120),
         primaryCity: 'C'.repeat(121),
         description: 'D'.repeat(1001),
@@ -48,7 +48,7 @@ describe('wedding form', () => {
 
   it('sends trimmed values, an ISO date and null for empty optional fields', () => {
     expect(
-      toWeddingPayload({ ...filled, brideName: ' Meera Sharma ', startDate: '18/02/2027' }),
+      toWeddingPayload({ ...filled, brideName: ' Meera Sharma ', startDate: '2027-02-18' }),
     ).toEqual({
       brideName: 'Meera Sharma',
       groomName: 'Arjun Patel',
@@ -72,7 +72,7 @@ describe('wedding form', () => {
         description: null,
         timezone: 'Asia/Kolkata',
       }),
-    ).toEqual({ ...filled, startDate: '18 / 02 / 2027', primaryCity: 'Jaipur' });
+    ).toEqual({ ...filled, startDate: '2027-02-18', primaryCity: 'Jaipur' });
   });
 
   it('maps API field errors onto the form', () => {

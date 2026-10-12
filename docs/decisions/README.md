@@ -29,6 +29,7 @@ in a specification, the record names that statement.
 | [0021](0021-phase-4-design-approval.md)                   | Phase 4 design approval: screens and rules; wording draft          | Accepted; amended by 0022       |
 | [0022](0022-dashboard-api-contract.md)                    | Dashboard API contract (Phase 4)                                   | Accepted                        |
 | [0023](0023-phase-4-engineering-decisions.md)             | Phase 4 engineering decisions (retries, rate limits, order, opens) | Accepted                        |
+| [0024](0024-live-updates.md)                              | Live updates on organizer screens (SSE)                            | Deferred (parked enhancement)   |
 
 Conflicts between specifications or decision records are handled with the protocol in
 [0004](0004-specification-authority.md) — never resolved silently in code.

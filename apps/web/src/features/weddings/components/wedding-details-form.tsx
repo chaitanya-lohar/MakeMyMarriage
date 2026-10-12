@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
+import { DASHBOARD_PATH } from '@/features/workspace/components/shell-parts';
 import { SESSION_ENDED_PATH, useReadyWorkspace } from '@/features/workspace/workspace-context';
 import { api, call } from '@/lib/api';
 import { networkError, weddingDetailsPage } from '../content';
@@ -17,15 +18,15 @@ import {
 import { NotAvailable } from './not-available';
 import { FormBanner, PrimaryButton, WeddingFormFields } from './wedding-form-fields';
 
-type Banner = 'saved' | 'server' | 'network' | null;
+type Banner = 'server' | 'network' | null;
 
 /**
- * Stitch "P3 · S5 Wedding Details". Saving stays on the page with "Your changes have been
- * saved."; Cancel restores the saved values without asking (decision 0016).
+ * Stitch "P3 · S5 Wedding Details". Saving returns to the dashboard, which shows "Your changes
+ * have been saved."; Cancel restores the saved values without asking (decision 0016).
  */
 export function WeddingDetailsForm({ wedding }: { wedding: ApiWedding }) {
   const router = useRouter();
-  const { setWedding } = useReadyWorkspace();
+  const { setWedding, setNotice } = useReadyWorkspace();
   const [values, setValues] = useState(() => formFromWedding(wedding));
   const [errors, setErrors] = useState<WeddingFormErrors>({});
   const [banner, setBanner] = useState<Banner>(null);
@@ -35,7 +36,6 @@ export function WeddingDetailsForm({ wedding }: { wedding: ApiWedding }) {
   function change(field: WeddingFormField, value: string) {
     setValues((current) => ({ ...current, [field]: value }));
     if (errors[field]) setErrors((current) => ({ ...current, [field]: undefined }));
-    if (banner === 'saved') setBanner(null);
   }
 
   function cancel() {
@@ -60,9 +60,11 @@ export function WeddingDetailsForm({ wedding }: { wedding: ApiWedding }) {
     );
     setPending(false);
     if (result.data) {
+      // Saving returns to the dashboard, which confirms the save (product owner, 2026-10-12;
+      // amends 0016, which kept the user on this page).
       setWedding(result.data);
-      setValues(formFromWedding(result.data));
-      setBanner('saved');
+      setNotice('wedding-saved');
+      router.push(DASHBOARD_PATH);
       return;
     }
 
@@ -83,11 +85,6 @@ export function WeddingDetailsForm({ wedding }: { wedding: ApiWedding }) {
       <p className="mb-6 text-body-md text-on-surface-variant">{weddingDetailsPage.subtitle}</p>
 
       <section className="rounded-xl border border-hairline bg-white p-6 shadow-sm sm:p-8">
-        {banner === 'saved' && (
-          <FormBanner tone="success" icon="check_circle">
-            {weddingDetailsPage.saved}
-          </FormBanner>
-        )}
         {banner === 'server' && (
           <FormBanner tone="error" icon="error">
             {weddingDetailsPage.serverError}

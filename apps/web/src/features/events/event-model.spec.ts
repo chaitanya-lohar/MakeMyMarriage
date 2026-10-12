@@ -12,7 +12,7 @@ const valid = {
   ...emptyEventForm,
   name: 'Mehendi',
   type: 'MEHENDI' as const,
-  date: '16 / 02 / 2027',
+  date: '2027-02-16',
 };
 
 describe('validateEventForm', () => {
@@ -22,7 +22,7 @@ describe('validateEventForm', () => {
       type: 'Choose an event type.',
       date: 'Enter a valid date.',
     });
-    expect(validateEventForm({ ...valid, date: '30 / 02 / 2027' })).toEqual({
+    expect(validateEventForm({ ...valid, date: '2027-02-30' })).toEqual({
       date: 'Enter a valid date.',
     });
     expect(validateEventForm(valid)).toEqual({});
