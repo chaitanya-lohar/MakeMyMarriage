@@ -1,20 +1,15 @@
 // Local development runner: compiles with the same `tsc` used for production builds
-// (decorator metadata is required by NestJS DI), then runs the HTTP API and the worker
-// with `node --watch` so both restart whenever compiled output changes.
+// (decorator metadata is required by NestJS DI), then runs the HTTP API with `node --watch`
+// so it restarts whenever compiled output changes. There is no worker (decision 0025).
 //
-// Usage: node scripts/dev.mjs [--only=api|worker]
+// Usage: node scripts/dev.mjs
 import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 const tscBin = require.resolve('typescript/bin/tsc');
 
-const onlyArg = process.argv.find((arg) => arg.startsWith('--only='));
-const only = onlyArg?.split('=')[1];
-const entries = [
-  { name: 'api', file: 'dist/main.js' },
-  { name: 'worker', file: 'dist/worker.js' },
-].filter((entry) => !only || entry.name === only);
+const entries = [{ name: 'api', file: 'dist/main.js' }];
 
 const children = [];
 

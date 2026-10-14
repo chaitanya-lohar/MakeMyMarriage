@@ -23,7 +23,7 @@ export class EmailRejectedError extends Error {
   }
 }
 
-/** Delivery provider behind the worker (System Design: external providers behind interfaces). */
+/** Email delivery provider (System Design: external providers behind interfaces). */
 export abstract class EmailSender {
   /** Name recorded with invitation send attempts (Database Design §10.4). */
   abstract readonly providerName: string;

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 /**
- * Environment contract for both the HTTP API and the worker.
+ * Environment contract for the HTTP API (decision 0025: there is no worker).
  * The process refuses to start when any value is missing or invalid.
  *
  * Variables for integrations (S3, Google Places, YouTube, …) are added here by the
@@ -13,7 +13,6 @@ export const envSchema = z
     APP_ENV: z.enum(['local', 'test', 'staging', 'production']),
 
     PORT: z.coerce.number().int().min(1).max(65535).default(3001),
-    WORKER_HEALTH_PORT: z.coerce.number().int().min(1).max(65535).default(3002),
 
     MONGODB_URI: z
       .string()

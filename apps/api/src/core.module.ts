@@ -3,13 +3,12 @@ import { ConfigModule } from './config/config.module.js';
 import { DatabaseModule } from './infrastructure/database/database.module.js';
 import { EmailModule } from './infrastructure/email/email.module.js';
 import { LoggingModule, type ServiceRole } from './infrastructure/logging/logging.module.js';
-import { QueueModule } from './infrastructure/queue/queue.module.js';
 import { RateLimitModule } from './infrastructure/rate-limit/rate-limit.module.js';
 import { RedisModule } from './infrastructure/redis/redis.module.js';
 
 /**
- * Infrastructure shared by both runtimes (HTTP API and worker): validated config,
- * structured logging, MongoDB, Redis, BullMQ, rate limiting and the email outbox.
+ * Infrastructure for the HTTP API: validated config, structured logging, MongoDB, Redis
+ * (rate limiting), and email (0025: there is no worker runtime).
  */
 @Module({})
 export class CoreModule {
@@ -21,11 +20,9 @@ export class CoreModule {
         LoggingModule.forRoot(service),
         DatabaseModule,
         RedisModule,
-        QueueModule,
         RateLimitModule,
         EmailModule,
       ],
-      exports: [QueueModule],
     };
   }
 }

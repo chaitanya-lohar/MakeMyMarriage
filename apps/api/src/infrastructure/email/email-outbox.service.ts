@@ -1,23 +1,32 @@
-import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable } from '@nestjs/common';
-import type { Queue } from 'bullmq';
-import { EmailJob, QueueName } from '../queue/queue-names.js';
-import type { EmailMessage } from './email-message.js';
+import { waitUntil } from '@vercel/functions';
+import { PinoLogger } from 'nestjs-pino';
+import { EmailRejectedError, EmailSender, type EmailMessage } from './email-message.js';
 
 /**
- * Queues email for the worker to send, so requests never wait on the provider.
- *
- * Messages can carry one-time links (password reset), so jobs are removed as soon as
- * they are sent and failed jobs after an hour — longer than any such link is useful.
+ * Sends email after the response (decision 0025): the caller returns at once and the send
+ * finishes in the same function invocation (Vercel `waitUntil`; elsewhere the promise simply
+ * runs on). Used where response time must not depend on whether an email goes out, such as
+ * password reset (0015). A failed send is logged, never retried.
  */
 @Injectable()
 export class EmailOutbox {
-  constructor(@InjectQueue(QueueName.Email) private readonly queue: Queue<EmailMessage>) {}
+  constructor(
+    private readonly sender: EmailSender,
+    private readonly logger: PinoLogger,
+  ) {
+    this.logger.setContext(EmailOutbox.name);
+  }
 
-  async enqueue(message: EmailMessage): Promise<void> {
-    await this.queue.add(EmailJob.Send, message, {
-      removeOnComplete: true,
-      removeOnFail: { age: 60 * 60 },
-    });
+  sendAfterResponse(message: EmailMessage): void {
+    const sending = this.sender.send(message).then(
+      // Never log the recipient or content: messages can carry one-time links.
+      () => this.logger.info('Email sent'),
+      (error: unknown) => {
+        const reason = error instanceof EmailRejectedError ? error.reason : (error as Error).name;
+        this.logger.warn({ reason }, 'Email could not be sent');
+      },
+    );
+    waitUntil(sending);
   }
 }

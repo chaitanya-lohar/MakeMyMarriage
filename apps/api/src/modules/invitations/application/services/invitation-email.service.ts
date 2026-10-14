@@ -1,37 +1,51 @@
-import { Processor, WorkerHost } from '@nestjs/bullmq';
-import { UnrecoverableError, type Job } from 'bullmq';
+import { Inject, Injectable } from '@nestjs/common';
+import { Redis } from 'ioredis';
 import { PinoLogger } from 'nestjs-pino';
 import { AppConfig } from '../../../../config/app-config.js';
 import { TransactionRunner } from '../../../../infrastructure/database/transaction.js';
 import { EmailRejectedError, EmailSender } from '../../../../infrastructure/email/email-message.js';
-import { InvitationJob, QueueName } from '../../../../infrastructure/queue/queue-names.js';
+import { REDIS_CLIENT } from '../../../../infrastructure/redis/redis.module.js';
 import { GuestsService } from '../../../guests/index.js';
 import { WeddingsService } from '../../../weddings/index.js';
 import {
   AttemptStatus,
   DeliveryStatus,
   type AttemptOutcome,
+  type DeliveryKind,
 } from '../../domain/types/invitation.js';
 import { GuestInvitationsRepository } from '../../infrastructure/repositories/guest-invitations.repository.js';
 import { InvitationHistoryRepository } from '../../infrastructure/repositories/invitation-history.repository.js';
 import { invitationEmail } from '../emails/invitation.email.js';
-import type { InvitationEmailJob } from '../use-cases/manage-invitation.use-case.js';
 import { InvitationTokensService } from './invitation-tokens.service.js';
 
-/** Recorded when every retry failed before the provider accepted or rejected the message. */
+/** Recorded when the provider could not be reached, so it neither accepted nor rejected. */
 export const UNREACHABLE_REASON = 'The email service could not be reached.';
 
+/** How long an attempt key stays claimed, so a repeated request cannot send twice. */
+const ATTEMPT_CLAIM_SECONDS = 24 * 60 * 60;
+
+export interface InvitationEmailRequest {
+  weddingId: string;
+  invitationId: string;
+  kind: DeliveryKind;
+  /** Unique per attempt; repeated requests with the same key send at most once. */
+  attemptKey: string;
+  /** The link the email is for: the token's creation time when the request was checked. */
+  tokenCreatedAt: Date;
+}
+
 /**
- * Worker-side invitation email (Phase 4 PRD §7.3, decisions 0017 #10–11, 0018 #8).
+ * Sends an invitation email during the request and records the attempt (Phase 4 PRD §7.3,
+ * decisions 0017 #10–11, 0018 #8, 0020, 0025).
  *
  * Builds the link from the stored encrypted token, so resends reuse the same token. Each
  * attempt becomes an `invitation_deliveries` record: SENT when the provider accepts it, FAILED
- * when it rejects it immediately — and FAILED when retries run out, since the provider never
- * accepted it. The invitation's status follows the latest attempt. Never DELIVERED. The
- * idempotency key makes the job safe to retry. Never logs the token, link or address.
+ * when it rejects it or cannot be reached. There is no automatic retry; the organizer resends
+ * (0025). The invitation's status follows the latest attempt. Never DELIVERED. Never logs the
+ * token, link or address.
  */
-@Processor(QueueName.Invitations)
-export class InvitationEmailProcessor extends WorkerHost {
+@Injectable()
+export class InvitationEmailService {
   constructor(
     private readonly invitations: GuestInvitationsRepository,
     private readonly history: InvitationHistoryRepository,
@@ -40,28 +54,33 @@ export class InvitationEmailProcessor extends WorkerHost {
     private readonly weddings: WeddingsService,
     private readonly sender: EmailSender,
     private readonly transactions: TransactionRunner,
+    @Inject(REDIS_CLIENT) private readonly redis: Redis,
     private readonly config: AppConfig,
     private readonly logger: PinoLogger,
   ) {
-    super();
-    this.logger.setContext(InvitationEmailProcessor.name);
+    this.logger.setContext(InvitationEmailService.name);
   }
 
-  async process(job: Job<InvitationEmailJob>): Promise<void> {
-    if (job.name !== InvitationJob.Send) {
-      throw new UnrecoverableError(`Unknown job "${job.name}" on queue "${job.queueName}"`);
-    }
-    const { weddingId, invitationId, kind, idempotencyKey } = job.data;
-    const log = { jobId: job.id, invitationId };
+  async send(request: InvitationEmailRequest): Promise<void> {
+    const { weddingId, invitationId, kind, attemptKey } = request;
+    const log = { invitationId };
 
-    if (await this.history.hasAttempt(idempotencyKey)) return;
+    // Claimed before sending, so two identical requests arriving together send once; the
+    // recorded attempt covers repeats after the claim expires.
+    const claimed = await this.redis.set(
+      `invitation-attempt:${attemptKey}`,
+      '1',
+      'EX',
+      ATTEMPT_CLAIM_SECONDS,
+      'NX',
+    );
+    if (claimed !== 'OK' || (await this.history.hasAttempt(attemptKey))) return;
 
-    // Revoked, regenerated or deleted since queueing: the link this email was queued for is no
-    // longer current, so nothing is sent or recorded (0020).
+    // Revoked, regenerated or deleted since the request was checked: the link is no longer
+    // current, so nothing is sent or recorded (0020).
     const secret = await this.invitations.findSecretById(invitationId);
-    const linkTime = secret?.invitation.tokenCreatedAt;
-    const queuedFor = new Date(job.data.tokenCreatedAt);
-    const sameLink = linkTime?.getTime() === queuedFor.getTime();
+    const sameLink =
+      secret?.invitation.tokenCreatedAt?.getTime() === request.tokenCreatedAt.getTime();
     const guest =
       secret && sameLink
         ? await this.guests.findActive(weddingId, secret.invitation.guestId)
@@ -73,7 +92,7 @@ export class InvitationEmailProcessor extends WorkerHost {
     }
 
     const token = this.tokens.decrypt(secret.tokenCiphertext, secret.tokenKeyVersion, guest.id);
-    if (!token) throw new UnrecoverableError('The invitation token could not be decrypted');
+    if (!token) throw new Error('The invitation token could not be decrypted');
 
     const message = invitationEmail({
       to: guest.email,
@@ -92,10 +111,10 @@ export class InvitationEmailProcessor extends WorkerHost {
     } catch (error) {
       if (error instanceof EmailRejectedError) {
         outcome = { status: AttemptStatus.Failed, failureReason: error.reason };
-      } else if (job.attemptsMade + 1 >= (job.opts.attempts ?? 1)) {
-        outcome = { status: AttemptStatus.Failed, failureReason: UNREACHABLE_REASON };
       } else {
-        throw error; // Retried with the queue's backoff.
+        // Only the error's name: provider messages can echo request content.
+        this.logger.warn({ ...log, error: (error as Error).name }, 'Email service unreachable');
+        outcome = { status: AttemptStatus.Failed, failureReason: UNREACHABLE_REASON };
       }
     }
 
@@ -108,7 +127,7 @@ export class InvitationEmailProcessor extends WorkerHost {
           invitationId,
           kind,
           provider: this.sender.providerName,
-          idempotencyKey,
+          idempotencyKey: attemptKey,
           outcome,
           at,
         },
@@ -118,7 +137,7 @@ export class InvitationEmailProcessor extends WorkerHost {
       // revoked during the send keeps the status 0020 gave it, so nobody is told it was sent.
       return this.invitations.applyAttempt(
         invitationId,
-        queuedFor,
+        request.tokenCreatedAt,
         outcome.status === AttemptStatus.Sent ? DeliveryStatus.Sent : DeliveryStatus.Failed,
         outcome.status === AttemptStatus.Sent ? at : null,
         transaction,

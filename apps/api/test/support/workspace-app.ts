@@ -7,6 +7,7 @@ import type { Server } from 'node:http';
 import request from 'supertest';
 import { AppModule } from '../../src/app.module.js';
 import { configureHttpApp } from '../../src/bootstrap/configure-http-app.js';
+import { EmailSender } from '../../src/infrastructure/email/email-message.js';
 import { startTestEnvironment, TEST_REDIS_URL, type TestEnvironment } from './test-environment.js';
 
 export type Agent = ReturnType<typeof request.agent>;
@@ -28,10 +29,13 @@ export const COUPLE = { brideName: 'Meera Sharma', groomName: 'Arjun Patel' };
 
 export async function startWorkspaceApp(
   overrides: Record<string, string> = {},
+  options: { emailSender?: EmailSender } = {},
 ): Promise<WorkspaceApp> {
   const env: TestEnvironment = await startTestEnvironment(overrides);
   const redis = new Redis(TEST_REDIS_URL);
-  const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
+  const builder = Test.createTestingModule({ imports: [AppModule] });
+  if (options.emailSender) builder.overrideProvider(EmailSender).useValue(options.emailSender);
+  const moduleRef = await builder.compile();
   const app = moduleRef.createNestApplication({ bufferLogs: true });
   configureHttpApp(app);
   await app.init();

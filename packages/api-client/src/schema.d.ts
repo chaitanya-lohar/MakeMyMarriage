@@ -315,7 +315,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Queue the invitation email */
+        /** Send the invitation email */
         post: operations["InvitationsController_send"];
         delete?: never;
         options?: never;
@@ -332,7 +332,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Queue the invitation email again, with the same link */
+        /** Send the invitation email again, with the same link */
         post: operations["InvitationsController_resend"];
         delete?: never;
         options?: never;
@@ -2226,7 +2226,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
-                /** @description The same key queues the email at most once. */
+                /** @description The same key sends the email at most once. */
                 "Idempotency-Key"?: string;
             };
             path: {
@@ -2299,7 +2299,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: {
-                /** @description The same key queues the email at most once. */
+                /** @description The same key sends the email at most once. */
                 "Idempotency-Key"?: string;
             };
             path: {

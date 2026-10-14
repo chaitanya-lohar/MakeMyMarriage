@@ -1,6 +1,3 @@
-import type { TestingModule } from '@nestjs/testing';
-import { Test } from '@nestjs/testing';
-import { Queue, QueueEvents } from 'bullmq';
 import { Types } from 'mongoose';
 import request from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
@@ -10,9 +7,6 @@ import {
   type EmailMessage,
   type EmailSendResult,
 } from '../src/infrastructure/email/email-message.js';
-import { QueueName } from '../src/infrastructure/queue/queue-names.js';
-import { WorkerModule } from '../src/worker/worker.module.js';
-import { TEST_REDIS_URL } from './support/test-environment.js';
 import { startWorkspaceApp, type Agent, type WorkspaceApp } from './support/workspace-app.js';
 
 /** Records sent messages; the next send can be told to reject. */
@@ -59,7 +53,6 @@ const tokenOf = (url: string) => url.split('/invite/')[1] as string;
 
 describe('Invitations', () => {
   let workspace: WorkspaceApp;
-  let worker: TestingModule;
   const sender = new FakeEmailSender();
 
   const guestUrl = (owner: Owner, guestId: string) =>
@@ -143,14 +136,11 @@ describe('Invitations', () => {
     };
   }
 
-  /** Waits for the worker to record `count` attempts. */
-  async function waitForAttempts(owner: Owner, guestId: string, count: number) {
-    for (let i = 0; i < 100; i++) {
-      const { deliveries } = await deliveriesOf(owner, guestId);
-      if (deliveries.length >= count) return deliveries;
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    }
-    throw new Error(`Timed out waiting for ${count} delivery attempt(s)`);
+  /** The recorded attempts; sends complete before the response (0025), so they are all there. */
+  async function attemptsOf(owner: Owner, guestId: string, count: number) {
+    const { deliveries } = await deliveriesOf(owner, guestId);
+    expect(deliveries).toHaveLength(count);
+    return deliveries;
   }
 
   async function auditActions(resourceId: string) {
@@ -169,12 +159,7 @@ describe('Invitations', () => {
   }
 
   beforeAll(async () => {
-    workspace = await startWorkspaceApp({ WORKER_HEALTH_PORT: '3903' });
-    worker = await Test.createTestingModule({ imports: [WorkerModule] })
-      .overrideProvider(EmailSender)
-      .useValue(sender)
-      .compile();
-    await worker.init();
+    workspace = await startWorkspaceApp({}, { emailSender: sender });
   });
 
   beforeEach(async () => {
@@ -184,7 +169,6 @@ describe('Invitations', () => {
   });
 
   afterAll(async () => {
-    await worker?.close();
     await workspace?.stop();
   });
 
@@ -396,7 +380,7 @@ describe('Invitations', () => {
       const { owner, guestId, assignments } = await weddingWithGuest();
       const old = tokenOf((await createInvitation(owner, guestId)).invitationUrl);
       await owner.agent.post(invitationUrl(owner, guestId, '/send')).expect(202);
-      await waitForAttempts(owner, guestId, 1);
+      await attemptsOf(owner, guestId, 1);
 
       const regenerated = await owner.agent
         .post(invitationUrl(owner, guestId, '/regenerate'))
@@ -421,7 +405,7 @@ describe('Invitations', () => {
       const { owner, guestId, assignments } = await weddingWithGuest();
       const token = tokenOf((await createInvitation(owner, guestId)).invitationUrl);
       await owner.agent.post(invitationUrl(owner, guestId, '/send')).expect(202);
-      await waitForAttempts(owner, guestId, 1);
+      await attemptsOf(owner, guestId, 1);
 
       const revoked = await owner.agent.post(invitationUrl(owner, guestId, '/revoke')).expect(200);
       expect(revoked.body.data).toMatchObject({ deliveryStatus: 'SENT', isRevoked: true });
@@ -462,7 +446,7 @@ describe('Invitations', () => {
         owner.agent.post(invitationUrl(owner, guestId, '/regenerate')).expect(200);
 
       await owner.agent.post(invitationUrl(owner, guestId, '/send')).expect(202);
-      const deliveries = await waitForAttempts(owner, guestId, 1);
+      const deliveries = await attemptsOf(owner, guestId, 1);
 
       // The attempt happened and is recorded, with the old link…
       expect(pluck(deliveries, 'status')).toEqual(['SENT']);
@@ -474,35 +458,6 @@ describe('Invitations', () => {
         deliveryStatus: 'DRAFT',
         lastSentAt: null,
       });
-    });
-
-    it('skips a queued email whose link was revoked and replaced before sending (review M2)', async () => {
-      const { owner, guestId } = await weddingWithGuest();
-      await createInvitation(owner, guestId);
-      const connection = { url: TEST_REDIS_URL };
-      const queue = new Queue(QueueName.Invitations, { connection });
-      const queueEvents = new QueueEvents(QueueName.Invitations, { connection });
-      try {
-        await queueEvents.waitUntilReady();
-        await queue.pause();
-        await owner.agent.post(invitationUrl(owner, guestId, '/send')).expect(202);
-        const [job] = await queue.getJobs(['waiting']);
-        expect(job).toBeDefined();
-        await owner.agent.post(invitationUrl(owner, guestId, '/revoke')).expect(200);
-        await owner.agent.post(invitationUrl(owner, guestId, '/regenerate')).expect(200);
-        await queue.resume();
-        // Wait until the worker has actually run the job, so the checks below mean it skipped it.
-        await job?.waitUntilFinished(queueEvents, 15_000);
-        expect(await job?.getState()).toBe('completed');
-      } finally {
-        await queue.resume();
-        await queueEvents.close();
-        await queue.close();
-      }
-      expect(sender.sent).toHaveLength(0);
-      expect((await deliveriesOf(owner, guestId)).deliveries).toEqual([]);
-      const guest = await owner.agent.get(guestUrl(owner, guestId)).expect(200);
-      expect(guest.body.data.invitation.deliveryStatus).toBe('DRAFT');
     });
 
     it('revokes the token when the guest is deleted, keeping the history', async () => {
@@ -546,11 +501,12 @@ describe('Invitations', () => {
       const { owner, guestId } = await weddingWithGuest();
       const created = await createInvitation(owner, guestId);
 
-      const queued = await owner.agent.post(invitationUrl(owner, guestId, '/send')).expect(202);
-      expect(queued.body.data.deliveryStatus).toBe('DRAFT');
-      await waitForAttempts(owner, guestId, 1);
+      // The response arrives with the attempt already recorded (0025).
+      const sent = await owner.agent.post(invitationUrl(owner, guestId, '/send')).expect(202);
+      expect(sent.body.data.deliveryStatus).toBe('SENT');
+      await attemptsOf(owner, guestId, 1);
       await owner.agent.post(invitationUrl(owner, guestId, '/resend')).expect(202);
-      const deliveries = await waitForAttempts(owner, guestId, 2);
+      const deliveries = await attemptsOf(owner, guestId, 2);
 
       expect(deliveries).toEqual([
         expect.objectContaining({ attemptNumber: 1, kind: 'SEND', status: 'SENT', failedAt: null }),
@@ -581,18 +537,17 @@ describe('Invitations', () => {
       expect(guests.body.data).toHaveLength(1);
     });
 
-    it('queues an email at most once per Idempotency-Key', async () => {
+    it('sends an email at most once per Idempotency-Key, even for requests arriving together', async () => {
       const { owner, guestId } = await weddingWithGuest();
       await createInvitation(owner, guestId);
-      for (let i = 0; i < 3; i++) {
-        await owner.agent
+      const send = () =>
+        owner.agent
           .post(invitationUrl(owner, guestId, '/send'))
           .set('Idempotency-Key', 'send-raju-1')
           .expect(202);
-      }
-      await waitForAttempts(owner, guestId, 1);
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      expect((await deliveriesOf(owner, guestId)).deliveries).toHaveLength(1);
+      await Promise.all([send(), send()]);
+      await send();
+      await attemptsOf(owner, guestId, 1);
       expect(sender.sent).toHaveLength(1);
     });
 
@@ -600,11 +555,12 @@ describe('Invitations', () => {
       const { owner, guestId } = await weddingWithGuest();
       await createInvitation(owner, guestId);
       await owner.agent.post(invitationUrl(owner, guestId, '/send')).expect(202);
-      await waitForAttempts(owner, guestId, 1);
+      await attemptsOf(owner, guestId, 1);
 
       sender.rejectNext = 'SMTP 550';
-      await owner.agent.post(invitationUrl(owner, guestId, '/resend')).expect(202);
-      const deliveries = await waitForAttempts(owner, guestId, 2);
+      const rejected = await owner.agent.post(invitationUrl(owner, guestId, '/resend')).expect(202);
+      expect(rejected.body.data.deliveryStatus).toBe('FAILED');
+      const deliveries = await attemptsOf(owner, guestId, 2);
       expect(deliveries[1]).toMatchObject({
         status: 'FAILED',
         sentAt: null,
@@ -618,8 +574,8 @@ describe('Invitations', () => {
     });
   });
 
-  describe('an unreachable email service (0023)', () => {
-    it('records one FAILED attempt after every retry fails, touching nothing else', async () => {
+  describe('an unreachable email service (0025)', () => {
+    it('records one FAILED attempt without retrying, touching nothing else', async () => {
       const { owner, guestId, assignments } = await weddingWithGuest();
       await createInvitation(owner, guestId);
       await owner.agent
@@ -630,8 +586,7 @@ describe('Invitations', () => {
       sender.unreachable = true;
       try {
         await owner.agent.post(invitationUrl(owner, guestId, '/send')).expect(202);
-        // The queue retries twice with backoff (1 s, then 2 s) before giving up.
-        const deliveries = await waitForAttempts(owner, guestId, 1);
+        const deliveries = await attemptsOf(owner, guestId, 1);
         expect(deliveries).toEqual([
           expect.objectContaining({
             attemptNumber: 1,
@@ -652,7 +607,7 @@ describe('Invitations', () => {
 
       // A later send works normally.
       await owner.agent.post(invitationUrl(owner, guestId, '/resend')).expect(202);
-      const after = await waitForAttempts(owner, guestId, 2);
+      const after = await attemptsOf(owner, guestId, 2);
       expect(pluck(after, 'status')).toEqual(['FAILED', 'SENT']);
     });
   });
