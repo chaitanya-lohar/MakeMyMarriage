@@ -1,6 +1,7 @@
 # 0002 — One NestJS codebase and image, API and worker runtimes
 
-**Status:** Accepted (decision A2)
+**Status:** Accepted (decision A2); amended by 0025 — there is no worker runtime and no Docker
+image. The API is the only runtime.
 
 ## Decision
 

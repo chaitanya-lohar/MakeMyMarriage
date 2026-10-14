@@ -14,6 +14,7 @@
 | ------- | ---------- | ---------------------------------------------------------------------------------------------------------------- |
 | 1.0     | 2026-09-24 | Baseline contract.                                                                                               |
 | 1.1     | 2026-10-10 | Consolidated: v1.0 plus decisions 0001, 0008, 0009, 0010, 0012, 0015–0019 and the endpoints built in Phases 2–3. |
+| 1.1     | 2026-10-14 | Decision 0025: the API runs on Vercel; emails are sent directly, with no worker or job queue.                    |
 
 **Status of each route group** — _Built_: implemented; the generated OpenAPI contract
 (`packages/api-client/openapi.json`) is the exact reference. _Phase 4_: approved, not built.
@@ -35,8 +36,8 @@ external integrations.
 ## 2. Architecture
 
 ```text
-Browser → Next.js (Vercel) → /api/v1 proxy (same origin — 0001) → NestJS API container
-NestJS API → MongoDB Atlas · Redis/BullMQ · Amazon S3 · Resend · Google Places · YouTube Live
+Browser → Next.js (Vercel) → /api/v1 proxy (same origin — 0001) → NestJS API (Vercel function — 0025)
+NestJS API → MongoDB Atlas · Redis (rate limits) · Amazon S3 · Resend · Google Places · YouTube Live
 ```
 
 The browser never receives database, Redis or provider credentials. Public and guest
@@ -300,8 +301,8 @@ Organizer routes (all `/api/v1/weddings/{weddingId}/guests/{guestId}/invitation�
 | ------ | ------------------------ | -------------------------------------------- | ------- |
 | POST   | `/invitation`            | Create the invitation and its first token    | `201`   |
 | POST   | `/invitation/regenerate` | Replace the token; the old one stops working | `200`   |
-| POST   | `/invitation/send`       | Queue the invitation email                   | `202`   |
-| POST   | `/invitation/resend`     | Queue it again                               | `202`   |
+| POST   | `/invitation/send`       | Send the invitation email                    | `202`   |
+| POST   | `/invitation/resend`     | Send it again                                | `202`   |
 | POST   | `/invitation/revoke`     | Revoke the token                             | `200`   |
 | GET    | `/invitation/link`       | The current link, for Copy Link and WhatsApp | `200`   |
 | GET    | `/invitation/deliveries` | Delivery history and activity history        | `200`   |
@@ -321,16 +322,18 @@ firstOpenedAt }`. Create and regenerate also return `invitationUrl`
   revoked) returns the invitation with `deliveryStatus: "DRAFT"` and `isRevoked: false`, and
   revoke leaves `deliveryStatus` unchanged (0020);
   `422 GUEST_EMAIL_REQUIRED` for send or resend without a guest email.
-- A queued email carries only the link current when it was queued: revoked or regenerated
-  before sending, it is skipped (nothing sent or recorded); changed during sending, the
-  attempt is recorded but the status is not updated (0020).
+- The email carries the link that is current when it is sent. If the link is regenerated or
+  revoked while the email is being sent, the attempt is recorded but the status is not
+  updated (0020).
 - Send and resend accept an optional `Idempotency-Key` header; each attempt becomes an
-  `invitation_deliveries` record and the email is sent by the worker, which decrypts the
-  stored token copy to build the link. Resends reuse the same token. The attempt and the
-  invitation's status become `SENT` when the provider accepts the request and `FAILED`, with
-  the provider's reason, when it rejects it immediately (0018) — or with "The email service
-  could not be reached." when every automatic retry fails (0023). `DELIVERED`, and failures
-  reported after acceptance, need provider webhooks (not in Phase 4).
+  `invitation_deliveries` record. The API sends the email during the request, decrypting the
+  stored token copy to build the link, and records the attempt before responding (0025), so
+  the `202` response arrives with the attempt already recorded. The same key sends at most
+  once. Resends reuse the same token. The attempt and the invitation's status become `SENT`
+  when the provider accepts the request and `FAILED`, with the provider's reason, when it
+  rejects it (0018) — or with "The email service could not be reached." when the provider
+  cannot be reached. There is no automatic retry; the organizer resends (0025).
+  `DELIVERED`, and failures reported after acceptance, need provider webhooks (not in Phase 4).
 - `GET …/deliveries` returns
   `{ deliveries: [{ attemptNumber, kind, status, sentAt, failedAt, failureReason, createdAt }],
 activities: [{ type, occurredAt }] }`.
@@ -652,17 +655,17 @@ objects are cleaned up asynchronously.
 
 ## 27. Background job boundaries
 
-| Job                           | Trigger                      | Queue                  |
-| ----------------------------- | ---------------------------- | ---------------------- |
-| Password reset email          | Forgot password              | BullMQ `email` (Built) |
-| Invitation email              | Send / resend                | BullMQ                 |
-| Guest reminders               | Reminder schedule (deferred) | BullMQ                 |
-| Organizer notifications       | Business events              | BullMQ                 |
-| Report generation             | Export request               | BullMQ                 |
-| Media cleanup                 | Deleted or orphaned object   | BullMQ                 |
-| Email delivery reconciliation | Provider webhook (future)    | BullMQ                 |
+There is no worker or job queue (0025).
 
-The worker runs in its own container, never as a Vercel request function (0005).
+| Work                          | Trigger                      | How it runs                                   |
+| ----------------------------- | ---------------------------- | --------------------------------------------- |
+| Password reset email          | Forgot password              | Sent after the response (`waitUntil`) (Built) |
+| Invitation email              | Send / resend                | Sent during the request (Built)               |
+| Guest reminders               | Reminder schedule (deferred) | Needs a decision                              |
+| Organizer notifications       | Business events              | Needs a decision                              |
+| Report generation             | Export request               | Needs a decision                              |
+| Media cleanup                 | Deleted or orphaned object   | Needs a decision                              |
+| Email delivery reconciliation | Provider webhook (future)    | Needs a decision                              |
 
 ## 28. Rate limiting and abuse protection
 
@@ -714,7 +717,7 @@ independently where practical.
 | Google Places (New) | Vendor discovery only; map responses to internal DTOs               |
 | YouTube Live        | Store stream identifiers; expose embed information                  |
 | Amazon S3           | Binary storage; controlled upload and access URLs                   |
-| Redis / BullMQ      | Asynchronous jobs; not a public API                                 |
+| Redis               | Rate-limit counters; not a public API (0025)                        |
 
 ## 33. Testing strategy
 

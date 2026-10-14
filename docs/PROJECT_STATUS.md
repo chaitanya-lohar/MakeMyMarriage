@@ -159,20 +159,21 @@ mobile navigation drawer, a states board and the copy-drafts board.
 
 ## Open decisions and blockers
 
-| Item                                                                                                                     | Blocks              | Owner         |
-| ------------------------------------------------------------------------------------------------------------------------ | ------------------- | ------------- |
-| A4 — what partners share by default (0011)                                                                               | Phase 16            | Product       |
-| A5 — what happens on partner disconnect (0011)                                                                           | Phase 16            | Product       |
-| Usage rights for the Stitch-generated photos                                                                             | Public launch       | Product       |
-| Privacy Policy and Terms of Service text                                                                                 | Public launch       | Legal         |
-| Resend account and DNS for `makemymarriage.com`                                                                          | Real email delivery | Ops           |
-| Delete the outdated first "Sign In (V1)" screen in Stitch                                                                | Housekeeping        | Product       |
-| Staging deployment accounts (Vercel, AWS, Atlas)                                                                         | Staging             | Ops           |
-| Forgot-password response time hints whether an email is registered (code review, deferred)                               | Public launch       | Engineering   |
-| Reset email says "signs you out on all your devices", but access tokens live ≤15 min (0015) — reword or revoke instantly | Public launch       | Product       |
-| Phase 4 wording on the copy-drafts screen: confirm or change (0019 #7, 0021)                                             | Phase 4 UI          | Product       |
-| Delivery webhooks for DELIVERED/FAILED (Sent is the highest status until then)                                           | Delivery statuses   | Product / Ops |
-| Live updates on organizer screens (0024, parked): until then, an open page shows a guest's RSVP only after a refresh     | Enhancement         | Product       |
+| Item                                                                                                                     | Blocks            | Owner         |
+| ------------------------------------------------------------------------------------------------------------------------ | ----------------- | ------------- |
+| A4 — what partners share by default (0011)                                                                               | Phase 16          | Product       |
+| A5 — what happens on partner disconnect (0011)                                                                           | Phase 16          | Product       |
+| Usage rights for the Stitch-generated photos                                                                             | Public launch     | Product       |
+| Privacy Policy and Terms of Service text                                                                                 | Public launch     | Legal         |
+| A domain verified in Resend (none owned yet; until then email reaches only the Resend account owner — 0025)              | Email to guests   | Product / Ops |
+| Delete the outdated first "Sign In (V1)" screen in Stitch                                                                | Housekeeping      | Product       |
+| Deployment accounts: Vercel (two projects), MongoDB Atlas, Upstash Redis (0025)                                          | First deployment  | Ops           |
+| Scheduled and background work (reminders, exports, media cleanup, webhooks) on Vercel-only hosting (0025)                | Later phases      | Product       |
+| Forgot-password response time hints whether an email is registered (code review, deferred)                               | Public launch     | Engineering   |
+| Reset email says "signs you out on all your devices", but access tokens live ≤15 min (0015) — reword or revoke instantly | Public launch     | Product       |
+| Phase 4 wording on the copy-drafts screen: confirm or change (0019 #7, 0021)                                             | Phase 4 UI        | Product       |
+| Delivery webhooks for DELIVERED/FAILED (Sent is the highest status until then)                                           | Delivery statuses | Product / Ops |
+| Live updates on organizer screens (0024, parked): until then, an open page shows a guest's RSVP only after a refresh     | Enhancement       | Product       |
 
 ## Working rules
 
@@ -223,6 +224,7 @@ checked only for loading the saved values.
 
 | Date       | Change                                                                                                                                                                                                                                                                                                                                                            |
 | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-14 | Decision 0025 approved: Vercel-only hosting on free plans (web and API as two Vercel projects, MongoDB Atlas, Upstash Redis, Resend); no worker, job queue or Docker image; invitation emails sent during the request without automatic retry; reset emails sent after the response. Supersedes 0023 #1; amends 0002, 0005 and 0015. Specifications updated.      |
 | 2026-10-12 | Decision 0024 drafted and parked as a later enhancement: live updates on organizer screens (Server-Sent Events over the `/api/v1` proxy, Redis pub/sub, change notices only). Not approved; no specification changed.                                                                                                                                             |
 | 2026-10-12 | Decision 0016 amended by the product owner: saving wedding details returns to the dashboard with "Your changes have been saved." Saving an edited event also returns to the dashboard (adding an event still opens the events list). Built on `feat/event-date-picker` with calendar date pickers for the event and wedding dates. Not pushed.                    |
 | 2026-10-11 | Decision 0023: Phase 4 engineering decisions — a send that exhausts its retries is recorded FAILED; guest-route rate limits raised to 120 per IP and 60 per link a minute; guest list alphabetical; every open stored as activity. Specifications updated to match.                                                                                               |
