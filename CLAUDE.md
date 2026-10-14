@@ -27,7 +27,7 @@ originals.
 ## Commands
 
 ```sh
-pnpm infra:up && pnpm dev    # local stack: web :3000, API :3001, worker :3002, Mailpit :8025
+pnpm infra:up && pnpm dev    # local stack: web :3000, API :3001, Mailpit :8025
 pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm test:integration && pnpm build
 pnpm api:contract            # after changing API DTOs or controllers
 ```
