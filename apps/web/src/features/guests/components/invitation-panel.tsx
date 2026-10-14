@@ -197,10 +197,10 @@ export function InvitationPanel({
     });
     if (data || refused) sendKey.current = null;
     if (!data) return;
-    setToast(invitationPanel.queued);
-    // The worker records the attempt shortly; refresh twice to pick it up.
-    setTimeout(onGuestChanged, 2500);
-    setTimeout(onGuestChanged, 7000);
+    // The attempt is recorded before the response (decision 0025), so its result is known now.
+    if (data.deliveryStatus === 'SENT') setToast(invitationPanel.sent);
+    else setError(invitationPanel.notSent);
+    onGuestChanged();
   }
 
   async function confirmDialog() {

@@ -179,7 +179,8 @@ export const invitationPanel = {
   rejected: 'The email address was rejected',
   unreachable: 'The email service could not be reached',
   copied: 'Link copied',
-  queued: 'Email queued. Its status updates when the email service responds.',
+  sent: 'Email sent.',
+  notSent: "The email couldn't be sent. See the email history below, then try again.",
   error: 'Something went wrong. Please try again.',
 };
 
