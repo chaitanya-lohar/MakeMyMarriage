@@ -1,6 +1,5 @@
 import { Global, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { QueueModule } from '../../infrastructure/queue/queue.module.js';
 import { AuditModule } from '../audit/index.js';
 import { GuestInvitations, GuestsModule } from '../guests/index.js';
 import { WeddingsModule } from '../weddings/index.js';
@@ -8,6 +7,7 @@ import { WorkspaceModule } from '../workspace/index.js';
 import { GuestInvitationController } from './api/controllers/guest-invitation.controller.js';
 import { InvitationsController } from './api/controllers/invitations.controller.js';
 import { GuestInvitationsAdapter } from './application/services/guest-invitations.adapter.js';
+import { InvitationEmailService } from './application/services/invitation-email.service.js';
 import { InvitationTokensService } from './application/services/invitation-tokens.service.js';
 import { GuestInvitationAccessUseCase } from './application/use-cases/guest-invitation-access.use-case.js';
 import { ManageInvitationUseCase } from './application/use-cases/manage-invitation.use-case.js';
@@ -41,7 +41,6 @@ import {
       { name: InvitationDeliveryRecord.name, schema: InvitationDeliverySchema },
       { name: InvitationActivityRecord.name, schema: InvitationActivitySchema },
     ]),
-    QueueModule,
     WorkspaceModule,
     WeddingsModule,
     GuestsModule,
@@ -52,16 +51,11 @@ import {
     GuestInvitationsRepository,
     InvitationHistoryRepository,
     InvitationTokensService,
+    InvitationEmailService,
     ManageInvitationUseCase,
     GuestInvitationAccessUseCase,
     { provide: GuestInvitations, useClass: GuestInvitationsAdapter },
   ],
-  exports: [
-    GuestInvitations,
-    // For the worker-side email job in this module (invitations-worker.module.ts).
-    GuestInvitationsRepository,
-    InvitationHistoryRepository,
-    InvitationTokensService,
-  ],
+  exports: [GuestInvitations],
 })
 export class InvitationsModule {}

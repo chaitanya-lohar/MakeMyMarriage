@@ -8,7 +8,6 @@ export class AppConfig {
   readonly nodeEnv: Env['NODE_ENV'];
   readonly appEnv: Env['APP_ENV'];
   readonly http: { readonly port: number };
-  readonly worker: { readonly healthPort: number };
   readonly mongo: { readonly uri: string; readonly autoIndex: boolean };
   readonly redis: { readonly url: string };
   readonly log: { readonly level: Env['LOG_LEVEL']; readonly pretty: boolean };
@@ -32,7 +31,6 @@ export class AppConfig {
     this.nodeEnv = env.NODE_ENV;
     this.appEnv = env.APP_ENV;
     this.http = { port: env.PORT };
-    this.worker = { healthPort: env.WORKER_HEALTH_PORT };
     // Index builds are deployment operations in staging/production (Database Design §30);
     // Mongoose only auto-builds indexes for local development and tests.
     this.mongo = {

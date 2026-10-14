@@ -4,7 +4,7 @@ import { LoggerModule } from 'nestjs-pino';
 import { resolveRequestId } from '../../common/http/request-id.js';
 import { AppConfig } from '../../config/app-config.js';
 
-export type ServiceRole = 'api' | 'worker';
+export type ServiceRole = 'api';
 
 interface RoutedRequest extends IncomingMessage {
   route?: { path?: string };

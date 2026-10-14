@@ -24,7 +24,6 @@ describe('parseEnv', () => {
     expect(env).toMatchObject({
       NODE_ENV: 'development',
       PORT: 3001,
-      WORKER_HEALTH_PORT: 3002,
       LOG_LEVEL: 'info',
       OPENAPI_DOCS_ENABLED: false,
     });

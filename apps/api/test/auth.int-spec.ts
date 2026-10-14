@@ -1,7 +1,6 @@
 import type { INestApplication } from '@nestjs/common';
 import { getConnectionToken } from '@nestjs/mongoose';
 import { Test } from '@nestjs/testing';
-import { Queue } from 'bullmq';
 import { Redis } from 'ioredis';
 import type { Connection } from 'mongoose';
 import type { Server } from 'node:http';
@@ -9,8 +8,11 @@ import request from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { AppModule } from '../src/app.module.js';
 import { configureHttpApp } from '../src/bootstrap/configure-http-app.js';
-import type { EmailMessage } from '../src/infrastructure/email/email-message.js';
-import { QueueName } from '../src/infrastructure/queue/queue-names.js';
+import {
+  EmailSender,
+  type EmailMessage,
+  type EmailSendResult,
+} from '../src/infrastructure/email/email-message.js';
 import {
   startTestEnvironment,
   TEST_REDIS_URL,
@@ -18,6 +20,17 @@ import {
 } from './support/test-environment.js';
 
 const PASSWORD = 'correct horse battery';
+
+/** Records every message the API sends. */
+class RecordingEmailSender extends EmailSender {
+  readonly providerName = 'TEST';
+  readonly sent: EmailMessage[] = [];
+
+  send(message: EmailMessage): Promise<EmailSendResult> {
+    this.sent.push(message);
+    return Promise.resolve({ providerMessageId: null });
+  }
+}
 
 interface ParsedCookie {
   name: string;
@@ -48,7 +61,7 @@ describe('Authentication', () => {
   let env: TestEnvironment;
   let app: INestApplication;
   let redis: Redis;
-  let emailQueue: Queue<EmailMessage>;
+  const sender = new RecordingEmailSender();
   let connection: Connection;
   let counter = 0;
 
@@ -63,9 +76,14 @@ describe('Authentication', () => {
     return { agent, email, response };
   }
 
+  /** The reset email for an address; it is sent just after the response (0025), so wait briefly. */
   async function resetEmailFor(email: string): Promise<EmailMessage | undefined> {
-    const jobs = await emailQueue.getJobs(['waiting', 'delayed', 'prioritized']);
-    return jobs.map((job) => job.data).find((message) => message.to === email);
+    for (let i = 0; i < 20; i++) {
+      const message = sender.sent.find((sent) => sent.to === email);
+      if (message) return message;
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+    return undefined;
   }
 
   function tokenFrom(message: EmailMessage): string {
@@ -77,8 +95,10 @@ describe('Authentication', () => {
   beforeAll(async () => {
     env = await startTestEnvironment();
     redis = new Redis(TEST_REDIS_URL);
-    emailQueue = new Queue(QueueName.Email, { connection: { url: TEST_REDIS_URL } });
-    const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
+    const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
+      .overrideProvider(EmailSender)
+      .useValue(sender)
+      .compile();
     app = moduleRef.createNestApplication({ bufferLogs: true });
     configureHttpApp(app);
     await app.init();
@@ -91,7 +111,6 @@ describe('Authentication', () => {
   });
 
   afterAll(async () => {
-    await emailQueue?.close();
     await redis?.quit();
     await app?.close();
     await env?.stop();

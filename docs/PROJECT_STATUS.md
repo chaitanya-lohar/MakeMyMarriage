@@ -23,22 +23,24 @@ The single place to see where MakeMyMarriage stands. Read this first.
 
 Every branch below except `fix/phase-4-review` is merged into `main`; new work starts from `main`.
 
-| Branch                          | Contains                                                                                | State              |
-| ------------------------------- | --------------------------------------------------------------------------------------- | ------------------ |
-| `main`                          | Everything below                                                                        | Up to date         |
-| `feat/home-page`                | Phase 1: design system and home page                                                    | Merged (PR #2)     |
-| `feat/auth`                     | Phase 2: authentication                                                                 | Merged (PR #3)     |
-| `chore/pre-phase-3`             | The three branches below, `.mcp.json`, this page                                        | Merged (PR #4)     |
-| ↳ `fix/auth-hardening`          | Code-review fixes (4 commits)                                                           | Merged via #4      |
-| ↳ `fix/auth-test-findings`      | Manual-testing fixes (3 commits)                                                        | Merged via #4      |
-| ↳ `docs/status-after-phase-2`   | This page after the Phase 1/2 merges (1 commit)                                         | Merged via #4      |
-| `feat/weddings`                 | Phase 3: wedding setup and dashboard shell                                              | Merged (PR #5)     |
-| `fix/workspace-logo-home`       | Workspace logo opens the home page (manual-testing fix)                                 | Merged (PR #6)     |
-| `docs/consolidation`            | Consolidated documentation, decisions 0017–0018                                         | Merged (PR #8)     |
-| `docs/phase-4-design-decisions` | Decision 0019 and the matching spec updates                                             | Merged (PR #9)     |
-| `docs/regenerate-email-status`  | Decisions 0020–0022 and the matching spec updates                                       | Merged (PR #10)    |
-| `feat/phase-4`                  | Phase 4: events, guests, RSVP, invitations and dashboard                                | Merged (PR #12)    |
-| `fix/phase-4-review`            | Decision 0023 and the code-review fixes (includes `feat/phase-4-engineering-decisions`) | Pushed, not merged |
+| Branch                          | Contains                                                                                | State             |
+| ------------------------------- | --------------------------------------------------------------------------------------- | ----------------- |
+| `main`                          | Everything below                                                                        | Up to date        |
+| `feat/home-page`                | Phase 1: design system and home page                                                    | Merged (PR #2)    |
+| `feat/auth`                     | Phase 2: authentication                                                                 | Merged (PR #3)    |
+| `chore/pre-phase-3`             | The three branches below, `.mcp.json`, this page                                        | Merged (PR #4)    |
+| ↳ `fix/auth-hardening`          | Code-review fixes (4 commits)                                                           | Merged via #4     |
+| ↳ `fix/auth-test-findings`      | Manual-testing fixes (3 commits)                                                        | Merged via #4     |
+| ↳ `docs/status-after-phase-2`   | This page after the Phase 1/2 merges (1 commit)                                         | Merged via #4     |
+| `feat/weddings`                 | Phase 3: wedding setup and dashboard shell                                              | Merged (PR #5)    |
+| `fix/workspace-logo-home`       | Workspace logo opens the home page (manual-testing fix)                                 | Merged (PR #6)    |
+| `docs/consolidation`            | Consolidated documentation, decisions 0017–0018                                         | Merged (PR #8)    |
+| `docs/phase-4-design-decisions` | Decision 0019 and the matching spec updates                                             | Merged (PR #9)    |
+| `docs/regenerate-email-status`  | Decisions 0020–0022 and the matching spec updates                                       | Merged (PR #10)   |
+| `feat/phase-4`                  | Phase 4: events, guests, RSVP, invitations and dashboard                                | Merged (PR #12)   |
+| `fix/phase-4-review`            | Decision 0023 and the code-review fixes (includes `feat/phase-4-engineering-decisions`) | Merged (PR #14)   |
+| `feat/event-date-picker`        | Date pickers, save returns to the dashboard, decision 0024 parked                       | Merged (PR #15)   |
+| `feat/vercel-single-runtime`    | Decision 0025: Vercel-only hosting, no worker, emails sent directly, deployment guide   | Local, not pushed |
 
 The merged branches can be deleted, on GitHub and locally.
 
@@ -51,7 +53,7 @@ questions for it are raised then (0004).
 
 | #   | Phase                                | State        | Records                                                         |
 | --- | ------------------------------------ | ------------ | --------------------------------------------------------------- |
-| 0   | Scaffold (monorepo, API/worker, CI)  | Done, merged | 0001–0013                                                       |
+| 0   | Scaffold (monorepo, API, CI)         | Done, merged | 0001–0013                                                       |
 | 1   | Design system and home page          | Done, merged | 0014                                                            |
 | 2   | Authentication                       | Done, merged | 0015                                                            |
 | 3   | Wedding setup and dashboard shell    | Done, merged | 0010, 0012, 0016                                                |
@@ -69,9 +71,9 @@ questions for it are raised then (0004).
 | 15  | Reports                              | Not started  | 0013                                                            |
 | 16  | Partner connection and sharing       | Not started  | 0011, 0012 — **blocked on A4/A5**                               |
 
-A staging deployment (Vercel for the web app, containers for the API and worker — 0005) was
-recommended after Phase 2. It is not scheduled yet and needs Vercel, AWS and MongoDB Atlas
-accounts.
+Deployment follows decision 0025: the web app and the API on Vercel, MongoDB Atlas, Upstash
+Redis and Resend, all on free plans. Steps are in [DEPLOYMENT.md](DEPLOYMENT.md); the
+accounts are not created yet.
 
 ## What exists today (on `main`)
 
@@ -119,18 +121,18 @@ accounts.
 | `…/guests/{guestId}/invitation` (+ `/regenerate`, `/send`, `/resend`, `/revoke`, `/link`, `/deliveries`) | Invitations (§10)                                |
 | `GET`/`PATCH /guest/invitations/{token}` (+ `/rsvp`)                                                     | Guest invitation and RSVP, no account (§10)      |
 
-Health checks: `GET /health/live` and `/health/ready` on the API (3001) and worker (3002).
+Health checks: `GET /health/live` and `/health/ready` on the API (3001).
 
 ### Backend modules
 
 `users`, `auth`, `weddings` (`weddings` collection) and `workspace` (`wedding_memberships`,
 the membership check for wedding routes), in `apps/api/src/modules/`. Phase 4 adds `events`,
 `guests` (`guests`, `guest_events`), `invitations` (`guest_invitations`,
-`invitation_deliveries`, `invitation_activities`; the worker sends the email), `audit`
+`invitation_deliveries`, `invitation_activities`; the API sends the email during the request — 0025), `audit`
 (`audit_logs`) and `dashboard`. Creating a wedding
 writes the wedding and its owner membership in one transaction. Shared infrastructure:
-config, logging, MongoDB, Redis, BullMQ queues, rate limiting, email outbox (worker sends via
-Mailpit locally, Resend later).
+config, logging, MongoDB, Redis (rate limiting), email (Mailpit locally, Resend when
+deployed; reset emails are sent after the response — 0025).
 
 ### Designs (Google Stitch project `11709379677369700007`)
 
@@ -159,20 +161,21 @@ mobile navigation drawer, a states board and the copy-drafts board.
 
 ## Open decisions and blockers
 
-| Item                                                                                                                     | Blocks              | Owner         |
-| ------------------------------------------------------------------------------------------------------------------------ | ------------------- | ------------- |
-| A4 — what partners share by default (0011)                                                                               | Phase 16            | Product       |
-| A5 — what happens on partner disconnect (0011)                                                                           | Phase 16            | Product       |
-| Usage rights for the Stitch-generated photos                                                                             | Public launch       | Product       |
-| Privacy Policy and Terms of Service text                                                                                 | Public launch       | Legal         |
-| Resend account and DNS for `makemymarriage.com`                                                                          | Real email delivery | Ops           |
-| Delete the outdated first "Sign In (V1)" screen in Stitch                                                                | Housekeeping        | Product       |
-| Staging deployment accounts (Vercel, AWS, Atlas)                                                                         | Staging             | Ops           |
-| Forgot-password response time hints whether an email is registered (code review, deferred)                               | Public launch       | Engineering   |
-| Reset email says "signs you out on all your devices", but access tokens live ≤15 min (0015) — reword or revoke instantly | Public launch       | Product       |
-| Phase 4 wording on the copy-drafts screen: confirm or change (0019 #7, 0021)                                             | Phase 4 UI          | Product       |
-| Delivery webhooks for DELIVERED/FAILED (Sent is the highest status until then)                                           | Delivery statuses   | Product / Ops |
-| Live updates on organizer screens (0024, parked): until then, an open page shows a guest's RSVP only after a refresh     | Enhancement         | Product       |
+| Item                                                                                                                     | Blocks            | Owner         |
+| ------------------------------------------------------------------------------------------------------------------------ | ----------------- | ------------- |
+| A4 — what partners share by default (0011)                                                                               | Phase 16          | Product       |
+| A5 — what happens on partner disconnect (0011)                                                                           | Phase 16          | Product       |
+| Usage rights for the Stitch-generated photos                                                                             | Public launch     | Product       |
+| Privacy Policy and Terms of Service text                                                                                 | Public launch     | Legal         |
+| A domain verified in Resend (none owned yet; until then email reaches only the Resend account owner — 0025)              | Email to guests   | Product / Ops |
+| Delete the outdated first "Sign In (V1)" screen in Stitch                                                                | Housekeeping      | Product       |
+| Deployment accounts: Vercel (two projects), MongoDB Atlas, Upstash Redis (0025)                                          | First deployment  | Ops           |
+| Scheduled and background work (reminders, exports, media cleanup, webhooks) on Vercel-only hosting (0025)                | Later phases      | Product       |
+| Forgot-password response time hints whether an email is registered (code review, deferred)                               | Public launch     | Engineering   |
+| Reset email says "signs you out on all your devices", but access tokens live ≤15 min (0015) — reword or revoke instantly | Public launch     | Product       |
+| Phase 4 wording on the copy-drafts screen: confirm or change (0019 #7, 0021)                                             | Phase 4 UI        | Product       |
+| Delivery webhooks for DELIVERED/FAILED (Sent is the highest status until then)                                           | Delivery statuses | Product / Ops |
+| Live updates on organizer screens (0024, parked): until then, an open page shows a guest's RSVP only after a refresh     | Enhancement       | Product       |
 
 ## Working rules
 
@@ -195,7 +198,7 @@ See the [README](../README.md) for full setup. In short:
 ```sh
 pnpm install
 pnpm infra:up      # MongoDB, Redis, Mailpit
-pnpm dev           # web :3000, API :3001, worker :3002
+pnpm dev           # web :3000, API :3001
 ```
 
 Phase 4 adds the required `INVITATION_TOKEN_KEYS` variable to `apps/api/.env` (see
@@ -223,6 +226,7 @@ checked only for loading the saved values.
 
 | Date       | Change                                                                                                                                                                                                                                                                                                                                                            |
 | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-14 | Decision 0025 approved: Vercel-only hosting on free plans (web and API as two Vercel projects, MongoDB Atlas, Upstash Redis, Resend); no worker, job queue or Docker image; invitation emails sent during the request without automatic retry; reset emails sent after the response. Supersedes 0023 #1; amends 0002, 0005 and 0015. Specifications updated.      |
 | 2026-10-12 | Decision 0024 drafted and parked as a later enhancement: live updates on organizer screens (Server-Sent Events over the `/api/v1` proxy, Redis pub/sub, change notices only). Not approved; no specification changed.                                                                                                                                             |
 | 2026-10-12 | Decision 0016 amended by the product owner: saving wedding details returns to the dashboard with "Your changes have been saved." Saving an edited event also returns to the dashboard (adding an event still opens the events list). Built on `feat/event-date-picker` with calendar date pickers for the event and wedding dates. Not pushed.                    |
 | 2026-10-11 | Decision 0023: Phase 4 engineering decisions — a send that exhausts its retries is recorded FAILED; guest-route rate limits raised to 120 per IP and 60 per link a minute; guest list alphabetical; every open stored as activity. Specifications updated to match.                                                                                               |

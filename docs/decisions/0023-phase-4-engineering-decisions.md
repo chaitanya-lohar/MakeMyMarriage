@@ -1,6 +1,7 @@
 # 0023 — Phase 4 engineering decisions
 
-**Status:** Accepted (approved by the product owner on 2026-10-11).
+**Status:** Accepted (approved by the product owner on 2026-10-11). Decision 1 is superseded
+by 0025: there are no automatic retries.
 
 Phase 4 (PR #12) implemented four behaviours that the specifications left open. The product
 owner reviewed each against its alternatives and approved them as listed here. Decisions 1, 3

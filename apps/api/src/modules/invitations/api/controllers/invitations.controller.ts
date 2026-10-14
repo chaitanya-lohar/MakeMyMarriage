@@ -35,7 +35,7 @@ const revoked = { status: 409, description: 'INVITATION_REVOKED — regenerate t
 const idempotencyKey = {
   name: 'Idempotency-Key',
   required: false,
-  description: 'The same key queues the email at most once.',
+  description: 'The same key sends the email at most once.',
 };
 
 /**
@@ -92,7 +92,7 @@ export class InvitationsController {
   @Post('send')
   @HttpCode(HttpStatus.ACCEPTED)
   @ApiHeader(idempotencyKey)
-  @ApiOperation({ summary: 'Queue the invitation email' })
+  @ApiOperation({ summary: 'Send the invitation email' })
   @ApiEnvelopeResponse(202, InvitationDto)
   @ApiErrorResponses(
     { status: 400, description: 'VALIDATION_FAILED — invalid Idempotency-Key' },
@@ -107,14 +107,14 @@ export class InvitationsController {
     @Headers('idempotency-key') key: string | undefined,
   ): Promise<InvitationDto> {
     return InvitationDto.from(
-      await this.invitations.queueEmail(weddingId, guestId, DeliveryKind.Send, key),
+      await this.invitations.sendEmail(weddingId, guestId, DeliveryKind.Send, key),
     );
   }
 
   @Post('resend')
   @HttpCode(HttpStatus.ACCEPTED)
   @ApiHeader(idempotencyKey)
-  @ApiOperation({ summary: 'Queue the invitation email again, with the same link' })
+  @ApiOperation({ summary: 'Send the invitation email again, with the same link' })
   @ApiEnvelopeResponse(202, InvitationDto)
   @ApiErrorResponses(
     { status: 400, description: 'VALIDATION_FAILED — invalid Idempotency-Key' },
@@ -129,7 +129,7 @@ export class InvitationsController {
     @Headers('idempotency-key') key: string | undefined,
   ): Promise<InvitationDto> {
     return InvitationDto.from(
-      await this.invitations.queueEmail(weddingId, guestId, DeliveryKind.Resend, key),
+      await this.invitations.sendEmail(weddingId, guestId, DeliveryKind.Resend, key),
     );
   }
 

@@ -14,6 +14,7 @@
 | ------- | ---------- | ------------------------------------------------------------------------------------------------------ |
 | 1.0     | 2026-09-24 | Baseline design.                                                                                       |
 | 1.1     | 2026-10-10 | Consolidated: v1.0 plus decisions 0008–0010, 0012, 0013, 0015–0019 and the schema built in Phases 2–3. |
+| 1.1     | 2026-10-14 | Decision 0025: no job queue; invitation emails are sent during the request. No schema change.          |
 
 **Status of each collection** — _Built_: exists in code. _Phase 4_: designed and approved for
 Phase 4. _Planned_: carried from v1.0 with approved changes; re-checked against the PRD
@@ -63,7 +64,7 @@ metadata, transaction boundaries and operational rules.
 | Public website identity      | Dedicated `publicIdentifier`                                                                                                              |
 | Invitation, QR, reset access | Secure random token, never stored in plain form: QR and reset tokens as a hash; invitation tokens as a hash plus an encrypted copy (0018) |
 | Binary storage               | Amazon S3                                                                                                                                 |
-| Background jobs              | Redis + BullMQ                                                                                                                            |
+| Background jobs              | None; Redis holds rate-limit counters only (0025)                                                                                         |
 | Email provider               | Resend                                                                                                                                    |
 | Vendor discovery             | Google Places API (New), through a provider abstraction                                                                                   |
 | Live streaming               | YouTube Live                                                                                                                              |
@@ -424,14 +425,13 @@ The limits here and in §9 are approved (0019 #6).
 - **No `expiresAt`:** no automatic expiry in Phase 4 (0017 #8). v1.0's `status` is now
   `deliveryStatus` (without `OPENED`), and its `openedAt` is now `firstOpenedAt`.
 - `deliveryStatus` follows the latest send attempt: `SENT` on provider acceptance, `FAILED`
-  on an immediate provider rejection (0018) or when every automatic retry fails (0023). Regenerating the link (from an active or a
+  on a provider rejection (0018) or when the provider cannot be reached (0025; no automatic retry). Regenerating the link (from an active or a
   revoked link) sets it back to `DRAFT` and clears `revokedAt`; revoking never changes it
   (0020). `invitation_deliveries` records are never changed by either. `DELIVERED`, and failures reported after
   acceptance, need provider webhooks (not in Phase 4). Opens never change it.
-- A queued email is tied to the link it was queued for (`tokenCreatedAt`). If that link is
-  revoked or regenerated before the worker sends it, the email is skipped and nothing is
-  sent or recorded. If the link changes during the send, the attempt is still recorded in
-  `invitation_deliveries`, but `deliveryStatus` is left unchanged (0020).
+- An email is tied to the link that is current when it is sent (`tokenCreatedAt`). If the
+  link changes during the send, the attempt is still recorded in `invitation_deliveries`,
+  but `deliveryStatus` is left unchanged (0020). Emails are sent during the request (0025).
 
 ### 10.4 `invitation_deliveries`
 
@@ -446,7 +446,7 @@ The limits here and in §9 are approved (0019 #6).
   provider: string,            // RESEND
   providerMessageId?: string,
   status: string,              // SENT, DELIVERED, FAILED
-  idempotencyKey: string,      // unique; makes the send job safe to retry
+  idempotencyKey: string,      // unique; a repeated request never sends twice
   sentAt?: Date,
   deliveredAt?: Date,
   failedAt?: Date,
@@ -844,7 +844,7 @@ Excel only; generated files are temporary, not permanent business data.
 | `guest_invitations`     | `guestId` UNIQUE                                                                                            | One invitation per guest       | Phase 4 |
 | `guest_invitations`     | `tokenHash` UNIQUE (partial: when present)                                                                  | Token lookup                   | Phase 4 |
 | `invitation_deliveries` | `(guestInvitationId, createdAt)`                                                                            | Delivery history               | Phase 4 |
-| `invitation_deliveries` | `idempotencyKey` UNIQUE                                                                                     | Safe job retries               | Phase 4 |
+| `invitation_deliveries` | `idempotencyKey` UNIQUE                                                                                     | No repeated sends              | Phase 4 |
 | `invitation_deliveries` | `(status, createdAt)`                                                                                       | Recent failures                | Phase 4 |
 | `invitation_activities` | `(guestInvitationId, occurredAt)`                                                                           | Activity history               | Phase 4 |
 | `expenses`              | `(weddingId, expenseDate)`, `(weddingId, category)`, `(weddingId, paymentStatus)`, `(weddingId, createdAt)` | Reporting and filters          | Planned |
@@ -971,8 +971,8 @@ Transactions are a consistency tool, not a wrapper around every repository call.
 Separate high-growth collections (photos, notifications, invitation deliveries and
 activities, task activities, audit logs, payments); paginate growing lists, with cursors for
 large chronological feeds; no unbounded arrays on weddings, users or guests; compound
-indexes matching real filters and sorts; BullMQ for email, reminders, reports, media and
-cleanup; a stateless backend.
+indexes matching real filters and sorts; background work (reminders, reports, media
+cleanup) decided when it is needed (0025); a stateless backend.
 
 ## 29. Backup and recovery
 

@@ -1,9 +1,6 @@
-import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable } from '@nestjs/common';
-import type { Queue } from 'bullmq';
 import { createHash, randomUUID } from 'node:crypto';
 import { AppConfig } from '../../../../config/app-config.js';
-import { InvitationJob, QueueName } from '../../../../infrastructure/queue/queue-names.js';
 import { AuditAction, AuditService } from '../../../audit/index.js';
 import { GuestsService } from '../../../guests/index.js';
 import type {
@@ -18,20 +15,8 @@ import {
 } from '../../infrastructure/repositories/guest-invitations.repository.js';
 import { InvitationHistoryRepository } from '../../infrastructure/repositories/invitation-history.repository.js';
 import { InvitationsErrors } from '../invitations-errors.js';
+import { InvitationEmailService } from '../services/invitation-email.service.js';
 import { InvitationTokensService } from '../services/invitation-tokens.service.js';
-
-/** The invitation-email job (worker: InvitationEmailProcessor). Carries no token or address. */
-export interface InvitationEmailJob {
-  weddingId: string;
-  invitationId: string;
-  kind: DeliveryKind;
-  idempotencyKey: string;
-  /**
-   * Which link the email was queued for: the token's creation time (ISO). The worker sends only
-   * while this link is still current, so a revoke or regenerate after queueing is respected.
-   */
-  tokenCreatedAt: string;
-}
 
 export interface InvitationWithLink {
   invitation: Invitation;
@@ -52,7 +37,7 @@ export class ManageInvitationUseCase {
     private readonly guests: GuestsService,
     private readonly audit: AuditService,
     private readonly config: AppConfig,
-    @InjectQueue(QueueName.Invitations) private readonly queue: Queue<InvitationEmailJob>,
+    private readonly emails: InvitationEmailService,
   ) {}
 
   /** The invitation and its first token; only now is a token created (0017 #6). */
@@ -122,10 +107,11 @@ export class ManageInvitationUseCase {
   }
 
   /**
-   * Queues the invitation email (202). The worker sends it and records the attempt. The same
-   * Idempotency-Key queues it at most once.
+   * Sends the invitation email and records the attempt before responding (202, decision 0025),
+   * so the returned invitation already shows SENT or FAILED. The same Idempotency-Key sends it
+   * at most once.
    */
-  async queueEmail(
+  async sendEmail(
     weddingId: string,
     guestId: string,
     kind: DeliveryKind,
@@ -140,26 +126,20 @@ export class ManageInvitationUseCase {
     if (invitation.isRevoked) throw InvitationsErrors.revoked();
     if (!guest.email) throw InvitationsErrors.emailRequired();
 
-    // BullMQ ignores a job whose ID it already holds; the worker also skips a key it has
-    // already recorded. Custom job IDs cannot contain ":".
+    // Hashed, so the stored key never repeats what the client sent.
     const key = createHash('sha256')
       .update(idempotencyKey ?? randomUUID())
       .digest('base64url')
       .slice(0, 32);
-    const jobId = `invitation-${invitation.id}-${key}`;
-    await this.queue.add(
-      InvitationJob.Send,
-      {
-        weddingId,
-        invitationId: invitation.id,
-        kind,
-        idempotencyKey: jobId,
-        // Set for every active link (only a revoked one lacks it, and that is refused above).
-        tokenCreatedAt: (invitation.tokenCreatedAt as Date).toISOString(),
-      },
-      { jobId },
-    );
-    return invitation;
+    await this.emails.send({
+      weddingId,
+      invitationId: invitation.id,
+      kind,
+      attemptKey: `invitation-${invitation.id}-${key}`,
+      // Set for every active link (only a revoked one lacks it, and that is refused above).
+      tokenCreatedAt: invitation.tokenCreatedAt as Date,
+    });
+    return (await this.invitations.findForGuest(weddingId, guestId)) ?? invitation;
   }
 
   async history(

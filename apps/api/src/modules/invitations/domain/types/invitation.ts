@@ -65,7 +65,7 @@ export interface InvitationActivity {
   occurredAt: Date;
 }
 
-/** The outcome of one send attempt, recorded by the worker. */
+/** The outcome of one send attempt, recorded with it (0025). */
 export type AttemptOutcome =
   | { status: typeof AttemptStatus.Sent; providerMessageId: string | null }
   | { status: typeof AttemptStatus.Failed; failureReason: string };

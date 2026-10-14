@@ -40,7 +40,8 @@ export class RequestPasswordResetUseCase {
     );
 
     const resetUrl = `${this.config.web.appUrl}/reset-password?token=${token}`;
-    await this.outbox.enqueue(
+    // Sent after the response, so its timing does not reveal that the account exists (0025).
+    this.outbox.sendAfterResponse(
       passwordResetEmail(credentials.user.email, credentials.user.displayName, resetUrl),
     );
   }

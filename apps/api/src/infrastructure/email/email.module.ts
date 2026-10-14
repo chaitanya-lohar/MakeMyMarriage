@@ -1,12 +1,19 @@
 import { Global, Module } from '@nestjs/common';
-import { QueueModule } from '../queue/queue.module.js';
+import { AppConfig } from '../../config/app-config.js';
+import { EmailSender } from './email-message.js';
 import { EmailOutbox } from './email-outbox.service.js';
+import { createEmailSender } from './senders.js';
 
-/** Producer side of email: lets any runtime queue a message for the worker. */
+/**
+ * Email for the HTTP API (decision 0025: no worker). `EmailSender` sends during the request
+ * (invitations); `EmailOutbox` sends after the response (password reset).
+ */
 @Global()
 @Module({
-  imports: [QueueModule],
-  providers: [EmailOutbox],
-  exports: [EmailOutbox],
+  providers: [
+    { provide: EmailSender, inject: [AppConfig], useFactory: createEmailSender },
+    EmailOutbox,
+  ],
+  exports: [EmailSender, EmailOutbox],
 })
 export class EmailModule {}

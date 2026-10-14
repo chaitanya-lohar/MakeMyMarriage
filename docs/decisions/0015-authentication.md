@@ -1,6 +1,6 @@
 # 0015 — Authentication (Phase 2)
 
-**Status:** Accepted (approved 2026-10-02).
+**Status:** Accepted (approved 2026-10-02); the reset-email delivery is amended by 0025.
 
 Implements API Design v1.0 §5, System Design v1.2 §7.1 and Database Design v1.0 §6 for
 email/password accounts. Google login and mandatory email verification are out of V1.
@@ -76,8 +76,8 @@ Source of truth: Stitch project `11709379677369700007`.
 
 - Reset links are single-use and expire after 60 minutes; only the token hash is stored.
 - `forgot-password` always returns the same response, whether or not the email exists.
-- The email is sent by the worker (BullMQ `email` queue). Because the job carries the raw
-  link, completed jobs are deleted immediately and failed ones after one hour.
+- The email is sent by the API after the response (Vercel `waitUntil`), so response time
+  does not reveal whether the account exists; a failed send is logged, not retried (0025).
 - An expired, used or unknown link shows the "Reset Link Expired" state when the new
   password is submitted (API Design defines no token-check endpoint).
 

@@ -2,15 +2,15 @@
 
 Wedding planning and management platform for Indian weddings.
 
-| Path                     | What it is                                                          |
-| ------------------------ | ------------------------------------------------------------------- |
-| `apps/web`               | Next.js web app; proxies `/api/v1/*` to the API                     |
-| `apps/api`               | NestJS modular monolith: HTTP API (`main.ts`), worker (`worker.ts`) |
-| `packages/api-client`    | Typed client generated from the API's OpenAPI contract              |
-| `packages/tsconfig`      | Shared strict TypeScript configurations                             |
-| `packages/eslint-config` | Shared ESLint configurations, including module boundaries           |
-| `docs/specs`             | Approved specifications                                             |
-| `docs/decisions`         | Decision records                                                    |
+| Path                     | What it is                                                |
+| ------------------------ | --------------------------------------------------------- |
+| `apps/web`               | Next.js web app; proxies `/api/v1/*` to the API           |
+| `apps/api`               | NestJS modular monolith: the HTTP API (`main.ts`)         |
+| `packages/api-client`    | Typed client generated from the API's OpenAPI contract    |
+| `packages/tsconfig`      | Shared strict TypeScript configurations                   |
+| `packages/eslint-config` | Shared ESLint configurations, including module boundaries |
+| `docs/specs`             | Approved specifications                                   |
+| `docs/decisions`         | Decision records                                          |
 
 ## Prerequisites
 
@@ -25,7 +25,7 @@ pnpm install
 cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env.local
 pnpm infra:up        # MongoDB (single-node replica set), Redis and the Mailpit inbox
-pnpm dev             # web :3000, API :3001, worker health :3002
+pnpm dev             # web :3000, API :3001
 ```
 
 - Web: http://localhost:3000 — sign up at /signup, sign in at /login
@@ -33,7 +33,7 @@ pnpm dev             # web :3000, API :3001, worker health :3002
   sent to real addresses
 - API through the web proxy: http://localhost:3000/api/v1/…
 - API docs (when `OPENAPI_DOCS_ENABLED=true`): http://localhost:3001/api/v1/docs
-- Health: http://localhost:3001/health/ready and http://localhost:3002/health/ready
+- Health: http://localhost:3001/health/ready
 
 ## Checks
 
@@ -48,11 +48,10 @@ pnpm api:contract       # regenerate the OpenAPI contract and client types
 pnpm --filter @makemymarriage/web icons   # regenerate the icon set after adding a name
 ```
 
-CI (`.github/workflows/ci.yml`) runs all of the above, fails on OpenAPI contract drift and
-builds the Docker image.
+CI (`.github/workflows/ci.yml`) runs all of the above and fails on OpenAPI contract drift.
 
 ## Docker
 
 ```sh
-docker compose --profile app up -d --build   # API + worker from the production image
+pnpm infra:up   # MongoDB, Redis and Mailpit for local development only
 ```

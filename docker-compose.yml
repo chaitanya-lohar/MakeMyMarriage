@@ -1,9 +1,9 @@
 # Local development infrastructure.
 #
-#   docker compose up -d mongo redis mailpit   # dependencies only (default workflow)
-#   docker compose --profile app up -d   # also run the API + worker from the production image
+#   docker compose up -d mongo redis mailpit
 #
-# Not used in staging/production: those use MongoDB Atlas, managed Redis and Resend.
+# Not used in staging/production: those use MongoDB Atlas, managed Redis and Resend, with
+# the web app and the API on Vercel (decision 0025).
 name: makemymarriage
 
 services:
@@ -31,7 +31,7 @@ services:
 
   redis:
     image: redis:8-alpine
-    # BullMQ requires keys never to be evicted.
+    # Rate-limit counters must never be evicted early.
     command: ['redis-server', '--appendonly', 'yes', '--maxmemory-policy', 'noeviction']
     ports:
       - '6379:6379'
@@ -50,46 +50,6 @@ services:
     ports:
       - '1025:1025'
       - '8025:8025'
-
-  api:
-    profiles: ['app']
-    build:
-      context: .
-      dockerfile: apps/api/Dockerfile
-    image: makemymarriage-api:local
-    environment: &app-env
-      NODE_ENV: production
-      APP_ENV: local
-      MONGODB_URI: mongodb://mongo:27017/makemymarriage?directConnection=true
-      REDIS_URL: redis://redis:6379
-      LOG_LEVEL: info
-      OPENAPI_DOCS_ENABLED: 'true'
-      # Local-only values; never reuse outside this compose file.
-      JWT_ACCESS_SECRET: local-compose-secret-not-for-real-use-0000000000
-      INVITATION_TOKEN_KEYS: v1:oXmc9dHGZI+Yt8x/MW9Y57PgcCbod8wEI6PFZAn9Iyo=
-      WEB_APP_URL: http://localhost:3000
-      EMAIL_TRANSPORT: smtp
-      SMTP_HOST: mailpit
-      SMTP_PORT: '1025'
-    ports:
-      - '3001:3001'
-    depends_on:
-      mongo: { condition: service_healthy }
-      redis: { condition: service_healthy }
-      mailpit: { condition: service_started }
-
-  worker:
-    profiles: ['app']
-    image: makemymarriage-api:local
-    command: ['node', '--enable-source-maps', 'dist/worker.js']
-    environment: *app-env
-    ports:
-      - '3002:3002'
-    depends_on:
-      api: { condition: service_started }
-      mongo: { condition: service_healthy }
-      redis: { condition: service_healthy }
-      mailpit: { condition: service_started }
 
 volumes:
   mongo-data:

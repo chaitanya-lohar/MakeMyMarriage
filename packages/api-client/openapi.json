@@ -2075,7 +2075,7 @@
           {
             "name": "Idempotency-Key",
             "in": "header",
-            "description": "The same key queues the email at most once.",
+            "description": "The same key sends the email at most once.",
             "required": false,
             "schema": {
               "type": "string"
@@ -2161,7 +2161,7 @@
             "session": []
           }
         ],
-        "summary": "Queue the invitation email",
+        "summary": "Send the invitation email",
         "tags": [
           "Invitations"
         ]
@@ -2190,7 +2190,7 @@
           {
             "name": "Idempotency-Key",
             "in": "header",
-            "description": "The same key queues the email at most once.",
+            "description": "The same key sends the email at most once.",
             "required": false,
             "schema": {
               "type": "string"
@@ -2276,7 +2276,7 @@
             "session": []
           }
         ],
-        "summary": "Queue the invitation email again, with the same link",
+        "summary": "Send the invitation email again, with the same link",
         "tags": [
           "Invitations"
         ]

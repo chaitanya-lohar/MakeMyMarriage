@@ -1,6 +1,8 @@
 # 0005 — Production hosting
 
 **Status:** Accepted. Supersedes the hosting wording in System Design v1.2 (see below).
+Amended by 0025: the API runs on Vercel as its own project, and there is no worker; the
+container hosting below applies again only if 0025 is reversed.
 
 ## Decision
 
