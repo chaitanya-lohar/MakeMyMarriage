@@ -92,14 +92,8 @@ export function validateTaskForm(values: TaskFormValues): TaskFormErrors {
 
 const orNull = (value: string) => value.trim() || null;
 
-/**
- * The request body for creating or saving a task. `assigneeIds` is the complete set: today
- * only the signed-in member can be assigned (0026 #13), so others already assigned are kept.
- */
-export function toTaskPayload(values: TaskFormValues, userId: string, task?: ApiTask) {
-  const others = (task?.assignees ?? [])
-    .map((assignee) => assignee.userId)
-    .filter((id) => id !== userId);
+/** The full request body for a new task. Today only the signed-in member can be assigned (0026 #13). */
+export function toNewTaskPayload(values: TaskFormValues, userId: string) {
   return {
     title: values.title.trim(),
     description: orNull(values.description),
@@ -108,8 +102,35 @@ export function toTaskPayload(values: TaskFormValues, userId: string, task?: Api
     priority: values.priority,
     dueDate: values.dueDate || null,
     eventId: values.eventId || null,
-    assigneeIds: values.assignToMe ? [...others, userId] : others,
+    assigneeIds: values.assignToMe ? [userId] : [],
   };
+}
+
+/**
+ * The PATCH body for an edit: only the fields that differ from the task as loaded, so a change
+ * made meanwhile in another tab (say, its status) is not undone (review P7-M2). `assigneeIds`
+ * is sent only when "Assign to me" changed, and keeps everyone else assigned.
+ */
+export function toTaskChanges(values: TaskFormValues, userId: string, task: ApiTask) {
+  const full = toNewTaskPayload(values, userId);
+  const loaded = toNewTaskPayload(formFromTask(task, userId), userId);
+  const changes: Partial<ReturnType<typeof toNewTaskPayload>> = {};
+  for (const key of [
+    'title',
+    'description',
+    'notes',
+    'status',
+    'priority',
+    'dueDate',
+    'eventId',
+  ] as const) {
+    if (full[key] !== loaded[key]) Object.assign(changes, { [key]: full[key] });
+  }
+  if (values.assignToMe !== formFromTask(task, userId).assignToMe) {
+    const others = task.assignees.map((assignee) => assignee.userId).filter((id) => id !== userId);
+    changes.assigneeIds = values.assignToMe ? [...others, userId] : others;
+  }
+  return changes;
 }
 
 /** Field errors reported by the API, as form errors (first message per field). */

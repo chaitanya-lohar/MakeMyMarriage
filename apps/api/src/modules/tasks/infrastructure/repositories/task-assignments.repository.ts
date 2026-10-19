@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, trusted, Types } from 'mongoose';
+import { isValidObjectId, Model, trusted, Types } from 'mongoose';
 import { sessionOf, type Transaction } from '../../../../infrastructure/database/transaction.js';
 import { TaskAssignmentRecord } from '../schemas/task-assignment.schema.js';
 
@@ -18,12 +18,16 @@ export class TaskAssignmentsRepository {
   ) {}
 
   /** Each task's assignee user IDs, oldest assignment first. */
-  async userIdsByTask(taskIds: string[]): Promise<Map<string, string[]>> {
+  async userIdsByTask(
+    taskIds: string[],
+    transaction?: Transaction,
+  ): Promise<Map<string, string[]>> {
     const result = new Map<string, string[]>();
     if (taskIds.length === 0) return result;
     const documents = await this.assignments
       .find({ taskId: trusted({ $in: taskIds.map(oid) }) })
-      .sort({ createdAt: 1, _id: 1 });
+      .sort({ createdAt: 1, _id: 1 })
+      .session(sessionOf(transaction) ?? null);
     for (const document of documents) {
       const taskId = document.taskId.toString();
       result.set(taskId, [...(result.get(taskId) ?? []), document.userId.toString()]);
@@ -78,6 +82,7 @@ export class TaskAssignmentsRepository {
 
   /** Removes the assignment; false when the user was not assigned. */
   async remove(taskId: string, userId: string, transaction?: Transaction): Promise<boolean> {
+    if (!isValidObjectId(userId)) return false;
     const result = await this.assignments.deleteOne(
       { taskId: oid(taskId), userId: oid(userId) },
       { session: sessionOf(transaction) },

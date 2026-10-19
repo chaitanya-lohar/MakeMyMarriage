@@ -2,6 +2,7 @@ import { Types } from 'mongoose';
 import request from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { todayIn } from '../src/modules/weddings/index.js';
+import { restoreClock, startClockAtNoonInIndia } from './support/noon-in-india.js';
 import { startWorkspaceApp, type Agent, type WorkspaceApp } from './support/workspace-app.js';
 
 /** A calendar date `days` from today in India (the wedding timezone). */
@@ -25,6 +26,8 @@ describe('Tasks (Phase 7, decision 0026)', () => {
 
   beforeAll(async () => {
     workspace = await startWorkspaceApp();
+    // "Today" never crosses midnight IST during the run.
+    startClockAtNoonInIndia();
   });
 
   beforeEach(async () => {
@@ -32,6 +35,7 @@ describe('Tasks (Phase 7, decision 0026)', () => {
   });
 
   afterAll(async () => {
+    restoreClock();
     await workspace?.stop();
   });
 
@@ -377,6 +381,105 @@ describe('Tasks (Phase 7, decision 0026)', () => {
     ]);
     expect(upcomingTasks[0]).toMatchObject({ isOverdue: true, status: 'BLOCKED' });
     expect(upcomingTasks[2]).toMatchObject({ isDueToday: true });
+  });
+
+  it('records each change once when two saves arrive together (review P7-M1)', async () => {
+    const { create, update, history, agent, base } = await setUp();
+    const task = await create({ title: 'Book DJ' });
+    await Promise.all([
+      update(task.id, { status: 'COMPLETED' }),
+      update(task.id, { status: 'COMPLETED' }),
+    ]);
+    expect(pluck(await history(task.id), 'action')).toEqual(['STATUS_CHANGED', 'CREATED']);
+
+    // Different fields from two tabs: both kept, each recorded once against the right value.
+    await Promise.all([
+      update(task.id, { priority: 'URGENT' }),
+      update(task.id, { status: 'BLOCKED' }),
+    ]);
+    const current = (await agent.get(`${base}/tasks/${task.id}`).expect(200)).body.data;
+    expect(current).toMatchObject({ priority: 'URGENT', status: 'BLOCKED' });
+    const entries = await history(task.id);
+    expect(entries.filter((entry) => entry.action === 'STATUS_CHANGED')).toHaveLength(2);
+    expect(entries.filter((entry) => entry.action === 'UPDATED')).toEqual([
+      expect.objectContaining({ oldValue: { priority: 'MEDIUM' } }),
+    ]);
+  });
+
+  it('refuses another wedding’s task on every route, and its events', async () => {
+    const { agent, base, me, create } = await setUp();
+    const task = await create({ title: 'Ours' });
+    const other = await workspace.owner();
+    const theirBase = `/api/v1/weddings/${other.weddingId}`;
+    const viaTheirWedding = `${theirBase}/tasks/${task.id}`;
+    const theirId = (await other.agent.get('/api/v1/me').expect(200)).body.data.user.id as string;
+    const responses = [
+      await other.agent.patch(viaTheirWedding).send({ title: 'Taken' }),
+      await other.agent.delete(viaTheirWedding),
+      await other.agent.post(`${viaTheirWedding}/assignees`).send({ userId: theirId }),
+      await other.agent.delete(`${viaTheirWedding}/assignees/${me.id}`),
+      await other.agent.get(`${viaTheirWedding}/activities`),
+    ];
+    for (const response of responses) {
+      expect(response.status).toBe(404);
+      expect(response.body.error.code).toBe('TASK_NOT_FOUND');
+    }
+
+    const theirEvent = (
+      await other.agent
+        .post(`${theirBase}/events`)
+        .send({ name: 'Theirs', type: 'CUSTOM', date: day(5) })
+        .expect(201)
+    ).body.data.id as string;
+    const moved = await agent
+      .patch(`${base}/tasks/${task.id}`)
+      .send({ eventId: theirEvent })
+      .expect(404);
+    expect(moved.body.error.code).toBe('EVENT_NOT_FOUND');
+    expect((await agent.get(`${base}/tasks/${task.id}`).expect(200)).body.data.eventId).toBeNull();
+  });
+
+  it('answers a malformed assignee ID with MEMBER_NOT_FOUND, not a server error', async () => {
+    const { agent, base, create } = await setUp();
+    const task = await create({ title: 'Flowers' });
+    const unassign = await agent.delete(`${base}/tasks/${task.id}/assignees/abc`).expect(404);
+    expect(unassign.body.error.code).toBe('MEMBER_NOT_FOUND');
+    const assign = await agent
+      .post(`${base}/tasks/${task.id}/assignees`)
+      .send({ userId: 'abc' })
+      .expect(404);
+    expect(assign.body.error.code).toBe('MEMBER_NOT_FOUND');
+  });
+
+  it('pages tasks with the same due date and priority, and with filters, without gaps', async () => {
+    const { create, list } = await setUp();
+    const titles: string[] = [];
+    for (let i = 1; i <= 7; i++) {
+      const title = `Same day ${i}`;
+      titles.push(title);
+      await create({ title, dueDate: day(2), priority: 'HIGH' });
+    }
+    await create({ title: 'Other priority', dueDate: day(2), priority: 'LOW' });
+
+    const collect = async (query: string) => {
+      const seen: unknown[] = [];
+      let cursor: string | null = null;
+      do {
+        const page = await list(`?limit=3${query}${cursor ? `&cursor=${cursor}` : ''}`);
+        seen.push(...pluck(page.data, 'title'));
+        cursor = page.meta.pagination.nextCursor;
+      } while (cursor);
+      return seen;
+    };
+
+    const all = await collect('');
+    expect(all).toHaveLength(8);
+    expect(new Set(all).size).toBe(8);
+    // Same date and priority: newest first, and "Other priority" (Low) after them.
+    expect(all).toEqual([...titles].reverse().concat('Other priority'));
+
+    const high = await collect('&priority=HIGH&search=same');
+    expect(high).toEqual([...titles].reverse());
   });
 
   it('keeps each wedding’s tasks private and requires sign-in', async () => {

@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { TransactionRunner } from '../../../../infrastructure/database/transaction.js';
+import {
+  TransactionRunner,
+  type Transaction,
+} from '../../../../infrastructure/database/transaction.js';
 import type { WeddingEvent } from '../../domain/types/event.js';
 import { EventsRepository } from '../../infrastructure/repositories/events.repository.js';
 import { EventsErrors } from '../events-errors.js';
@@ -21,15 +24,26 @@ export class EventsService {
     return this.events.listActive(weddingId);
   }
 
-  /** The active event, or EVENT_NOT_FOUND. */
-  async getActive(weddingId: string, eventId: string): Promise<WeddingEvent> {
-    const event = await this.events.findActive(weddingId, eventId);
+  /**
+   * The active event, or EVENT_NOT_FOUND. Pass a transaction to check it as part of a change
+   * in another module (e.g. linking a task — decision 0026 #11).
+   */
+  async getActive(
+    weddingId: string,
+    eventId: string,
+    transaction?: Transaction,
+  ): Promise<WeddingEvent> {
+    const event = await this.events.findActive(weddingId, eventId, transaction);
     if (!event) throw EventsErrors.notFound();
     return event;
   }
 
-  findActive(weddingId: string, eventId: string): Promise<WeddingEvent | null> {
-    return this.events.findActive(weddingId, eventId);
+  findActive(
+    weddingId: string,
+    eventId: string,
+    transaction?: Transaction,
+  ): Promise<WeddingEvent | null> {
+    return this.events.findActive(weddingId, eventId, transaction);
   }
 
   /** The active events among these IDs, in event order. */

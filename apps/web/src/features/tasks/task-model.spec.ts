@@ -4,8 +4,10 @@ import {
   formatHistoryTime,
   formatShortDate,
   formFromTask,
+  errorsFromApi,
   historyText,
-  toTaskPayload,
+  toNewTaskPayload,
+  toTaskChanges,
   validateTaskForm,
   type ApiTask,
   type ApiTaskActivity,
@@ -77,9 +79,9 @@ describe('task form', () => {
     expect(validateTaskForm({ ...emptyTaskForm(), title: 'Fine' })).toEqual({});
   });
 
-  it('sends nulls for empty fields and the full assignee set', () => {
+  it('sends a new task in full, with nulls for empty fields', () => {
     const values = { ...emptyTaskForm(), title: '  Gifts  ', assignToMe: true };
-    expect(toTaskPayload(values, 'me')).toEqual({
+    expect(toNewTaskPayload(values, 'me')).toEqual({
       title: 'Gifts',
       description: null,
       notes: null,
@@ -89,14 +91,52 @@ describe('task form', () => {
       eventId: null,
       assigneeIds: ['me'],
     });
-    // Unticking keeps anyone else who is assigned.
+    expect(toNewTaskPayload(emptyTaskForm(), 'me').assigneeIds).toEqual([]);
+  });
+
+  it('sends only the changed fields of an edit (review P7-M2)', () => {
+    const loaded = formFromTask(task, 'me');
+    expect(toTaskChanges(loaded, 'me', task)).toEqual({});
+    expect(toTaskChanges({ ...loaded, title: ' Book henna artist ' }, 'me', task)).toEqual({
+      title: 'Book henna artist',
+    });
+    expect(
+      toTaskChanges({ ...loaded, notes: 'Two quotes in', dueDate: '', eventId: '' }, 'me', task),
+    ).toEqual({ notes: 'Two quotes in', dueDate: null, eventId: null });
+    // Status and assignees are left alone unless changed, so another tab's change survives.
+    expect(toTaskChanges({ ...loaded, priority: 'URGENT' }, 'me', task)).not.toHaveProperty(
+      'status',
+    );
+    expect(toTaskChanges({ ...loaded, priority: 'URGENT' }, 'me', task)).not.toHaveProperty(
+      'assigneeIds',
+    );
+  });
+
+  it('sends assignees only when "assign to me" changed, keeping everyone else', () => {
     const shared = {
       ...task,
       assignees: [...task.assignees, { userId: 'p2', displayName: 'Arjun' }],
     };
+    const loaded = formFromTask(shared, 'me');
+    expect(toTaskChanges({ ...loaded, assignToMe: false }, 'me', shared)).toEqual({
+      assigneeIds: ['p2'],
+    });
+    const unassigned = { ...task, assignees: [] };
     expect(
-      toTaskPayload({ ...formFromTask(shared, 'me'), assignToMe: false }, 'me', shared).assigneeIds,
-    ).toEqual(['p2']);
+      toTaskChanges({ ...formFromTask(unassigned, 'me'), assignToMe: true }, 'me', unassigned),
+    ).toEqual({ assigneeIds: ['me'] });
+  });
+
+  it('rejects a title of only spaces, and maps API field errors', () => {
+    expect(validateTaskForm({ ...emptyTaskForm(), title: '   \t ' }).title).toBe('Enter a title.');
+    expect(
+      errorsFromApi({
+        title: ['Use 150 characters or fewer.', 'second'],
+        dueDate: ['Enter a valid date.'],
+        assigneeIds: ['ignored'],
+        unknown: ['ignored'],
+      }),
+    ).toEqual({ title: 'Use 150 characters or fewer.', dueDate: 'Enter a valid date.' });
   });
 });
 
@@ -145,5 +185,55 @@ describe('task display', () => {
     expect(
       historyText(activity({ action: 'ASSIGNEE_ADDED', subjectName: 'Meera Sharma' })),
     ).toEqual(['Meera Sharma assigned Meera Sharma']);
+  });
+
+  it('writes the remaining history lines (review P7)', () => {
+    const lines = (partial: Partial<ApiTaskActivity>) => historyText(activity(partial));
+    expect(
+      lines({ action: 'UPDATED', oldValue: { title: 'Henna' }, newValue: { title: 'Mehendi' } }),
+    ).toEqual(['Meera Sharma renamed the task from "Henna" to "Mehendi"']);
+    expect(
+      lines({
+        action: 'UPDATED',
+        oldValue: { dueDate: null },
+        newValue: { dueDate: '2027-02-05' },
+      }),
+    ).toEqual(['Meera Sharma set the due date to 5 Feb 2027']);
+    expect(
+      lines({
+        action: 'UPDATED',
+        oldValue: { dueDate: '2027-02-05' },
+        newValue: { dueDate: null },
+      }),
+    ).toEqual(['Meera Sharma removed the due date']);
+    expect(
+      lines({ action: 'UPDATED', oldValue: {}, newValue: { fields: ['description'] } }),
+    ).toEqual(['Meera Sharma edited the description']);
+    expect(
+      lines({
+        action: 'EVENT_CHANGED',
+        oldValue: { eventId: 'e1', eventName: 'Haldi' },
+        newValue: { eventId: 'e2', eventName: 'Mehendi' },
+      }),
+    ).toEqual(['Meera Sharma moved the task from Haldi to Mehendi']);
+    expect(
+      lines({
+        action: 'EVENT_CHANGED',
+        oldValue: { eventId: 'e1', eventName: 'Haldi' },
+        newValue: { eventId: null, eventName: null },
+      }),
+    ).toEqual(['Meera Sharma made this a whole-wedding task']);
+    expect(
+      lines({
+        action: 'EVENT_CHANGED',
+        oldValue: { eventId: 'e1', eventName: null },
+        newValue: { eventId: 'e2', eventName: 'Mehendi' },
+      }),
+    ).toEqual(['Meera Sharma moved the task from a deleted event to Mehendi']);
+    expect(lines({ action: 'ASSIGNEE_REMOVED', subjectName: 'Arjun Patel' })).toEqual([
+      'Meera Sharma unassigned Arjun Patel',
+    ]);
+    expect(lines({ action: 'DELETED' })).toEqual(['Meera Sharma deleted the task']);
+    expect(lines({ actorName: '', action: 'CREATED' })).toEqual(['Someone created the task']);
   });
 });

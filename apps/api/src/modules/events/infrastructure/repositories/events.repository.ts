@@ -64,13 +64,15 @@ export class EventsRepository {
     return toEvent(document);
   }
 
-  async findActive(weddingId: string, eventId: string): Promise<WeddingEvent | null> {
+  async findActive(
+    weddingId: string,
+    eventId: string,
+    transaction?: Transaction,
+  ): Promise<WeddingEvent | null> {
     if (!isValidObjectId(eventId)) return null;
-    const document = await this.events.findOne({
-      _id: oid(eventId),
-      weddingId: oid(weddingId),
-      ...notDeleted(),
-    });
+    const document = await this.events
+      .findOne({ _id: oid(eventId), weddingId: oid(weddingId), ...notDeleted() })
+      .session(sessionOf(transaction) ?? null);
     return document ? toEvent(document) : null;
   }
 
