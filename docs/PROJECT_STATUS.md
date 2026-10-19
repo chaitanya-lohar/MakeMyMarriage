@@ -2,7 +2,7 @@
 
 The single place to see where MakeMyMarriage stands. Read this first.
 
-- **Updated:** 2026-10-11, with the Phase 4 engineering decisions (0023).
+- **Updated:** 2026-10-19, after merging Phase 7 (Tasks).
 - **Source of truth:** the canonical documents listed in the [documentation index](README.md)
   and the decision records in [`decisions/`](decisions/README.md). This page only summarises
   and links; where they differ, the decision record wins.
@@ -41,7 +41,8 @@ Every branch below except `fix/phase-4-review` is merged into `main`; new work s
 | `fix/phase-4-review`            | Decision 0023 and the code-review fixes (includes `feat/phase-4-engineering-decisions`) | Merged (PR #14)   |
 | `feat/event-date-picker`        | Date pickers, save returns to the dashboard, decision 0024 parked                       | Merged (PR #15)   |
 | `feat/vercel-single-runtime`    | Decision 0025: Vercel-only hosting, no worker, emails sent directly, deployment guide   | Local, not pushed |
-| `feat/phase-7`                  | Phase 7: tasks module, screens and dashboard card (0026, 0027)                          | Local, not pushed |
+| `docs/phase-7-tasks`            | Decisions 0026 and 0027, the Phase 7 PRD                                                | Merged (PR #19)   |
+| `feat/phase-7`                  | Phase 7: tasks module, screens and dashboard card (0026, 0027)                          | Merged (PR #20)   |
 
 The merged branches can be deleted, on GitHub and locally.
 
@@ -52,25 +53,25 @@ approved combining events, guests and RSVP, and invitations into one Phase 4 (an
 later phases keep their numbers. Each phase is approved before it starts, and any open
 questions for it are raised then (0004).
 
-| #   | Phase                                | State                               | Records                                                          |
-| --- | ------------------------------------ | ----------------------------------- | ---------------------------------------------------------------- |
-| 0   | Scaffold (monorepo, API, CI)         | Done, merged                        | 0001–0013                                                        |
-| 1   | Design system and home page          | Done, merged                        | 0014                                                             |
-| 2   | Authentication                       | Done, merged                        | 0015                                                             |
-| 3   | Wedding setup and dashboard shell    | Done, merged                        | 0010, 0012, 0016                                                 |
-| 4   | Events, guests, RSVP and invitations | Done, merged                        | 0008, 0010, 0017–0023; [Phase 4 PRD](specs/PHASE_4_PRD_v1.2.md)  |
-| 5   | (merged into Phase 4)                | —                                   | —                                                                |
-| 6   | (merged into Phase 4)                | —                                   | —                                                                |
-| 7   | Tasks                                | Built on `feat/phase-7`, not pushed | 0010, 0013, 0026, 0027; [Phase 7 PRD](specs/PHASE_7_PRD_v1.0.md) |
-| 8   | Expenses                             | Not started                         | 0009, 0010                                                       |
-| 9   | Vendors                              | Not started                         | 0010                                                             |
-| 10  | Organizers and permissions           | Not started                         | 0012                                                             |
-| 11  | Wedding website                      | Not started                         | 0007                                                             |
-| 12  | Gallery and QR memories              | Not started                         | 0007                                                             |
-| 13  | Live stream                          | Not started                         | —                                                                |
-| 14  | Notifications                        | Not started                         | —                                                                |
-| 15  | Reports                              | Not started                         | 0013                                                             |
-| 16  | Partner connection and sharing       | Not started                         | 0011, 0012 — **blocked on A4/A5**                                |
+| #   | Phase                                | State                       | Records                                                          |
+| --- | ------------------------------------ | --------------------------- | ---------------------------------------------------------------- |
+| 0   | Scaffold (monorepo, API, CI)         | Done, merged                | 0001–0013                                                        |
+| 1   | Design system and home page          | Done, merged                | 0014                                                             |
+| 2   | Authentication                       | Done, merged                | 0015                                                             |
+| 3   | Wedding setup and dashboard shell    | Done, merged                | 0010, 0012, 0016                                                 |
+| 4   | Events, guests, RSVP and invitations | Done, merged                | 0008, 0010, 0017–0023; [Phase 4 PRD](specs/PHASE_4_PRD_v1.2.md)  |
+| 5   | (merged into Phase 4)                | —                           | —                                                                |
+| 6   | (merged into Phase 4)                | —                           | —                                                                |
+| 7   | Tasks                                | Done, merged (PRs #19, #20) | 0010, 0013, 0026, 0027; [Phase 7 PRD](specs/PHASE_7_PRD_v1.0.md) |
+| 8   | Expenses                             | Not started                 | 0009, 0010                                                       |
+| 9   | Vendors                              | Not started                 | 0010                                                             |
+| 10  | Organizers and permissions           | Not started                 | 0012                                                             |
+| 11  | Wedding website                      | Not started                 | 0007                                                             |
+| 12  | Gallery and QR memories              | Not started                 | 0007                                                             |
+| 13  | Live stream                          | Not started                 | —                                                                |
+| 14  | Notifications                        | Not started                 | —                                                                |
+| 15  | Reports                              | Not started                 | 0013                                                             |
+| 16  | Partner connection and sharing       | Not started                 | 0011, 0012 — **blocked on A4/A5**                                |
 
 Deployment follows decision 0025: the web app and the API on Vercel, MongoDB Atlas, Upstash
 Redis and Resend, all on free plans. Steps are in [DEPLOYMENT.md](DEPLOYMENT.md); the
@@ -92,6 +93,7 @@ accounts are not created yet.
 | `/wedding`                                                              | Wedding details: edit and save (S5)                                                                 |
 | `/events`, `/events/new`, `/events/[eventId]`                           | Events list, add and edit, delete (O2–O4)                                                           |
 | `/guests`, `/guests/new`, `/guests/[guestId]`, `/guests/[guestId]/edit` | Guests list, add and edit, detail with RSVP and the invitation panel (O5–O9)                        |
+| `/tasks`, `/tasks/new`, `/tasks/[taskId]`, `/tasks/[taskId]/edit`       | Tasks list, add and edit, task page with history (Phase 7, Stitch "P7 · T1–T7")                     |
 | `/invite/[token]`                                                       | A guest's private invitation and RSVP, no account (G1–G5)                                           |
 | (workspace)                                                             | Sidebar and user menu, mobile drawer, loading (S1), not available (S6)                              |
 | `/privacy`, `/terms`                                                    | Placeholders — legal text not yet provided                                                          |
@@ -121,6 +123,7 @@ accounts are not created yet.
 | `…/guests`, `…/guests/{guestId}`, `…/guests/{guestId}/events`, `…/guest-events/{id}`                     | Guests, assignments, RSVP (§9)                   |
 | `…/guests/{guestId}/invitation` (+ `/regenerate`, `/send`, `/resend`, `/revoke`, `/link`, `/deliveries`) | Invitations (§10)                                |
 | `GET`/`PATCH /guest/invitations/{token}` (+ `/rsvp`)                                                     | Guest invitation and RSVP, no account (§10)      |
+| `…/tasks`, `…/tasks/{taskId}` (+ `/assignees`, `/assignees/{userId}`, `/activities`)                     | Tasks, assignees, history (§13)                  |
 
 Health checks: `GET /health/live` and `/health/ready` on the API (3001).
 
@@ -130,7 +133,8 @@ Health checks: `GET /health/live` and `/health/ready` on the API (3001).
 the membership check for wedding routes), in `apps/api/src/modules/`. Phase 4 adds `events`,
 `guests` (`guests`, `guest_events`), `invitations` (`guest_invitations`,
 `invitation_deliveries`, `invitation_activities`; the API sends the email during the request — 0025), `audit`
-(`audit_logs`) and `dashboard`. Creating a wedding
+(`audit_logs`) and `dashboard`; Phase 7 adds `tasks` (`tasks`, `task_assignments`,
+`task_activities`; deleting an event makes its tasks whole-wedding tasks — 0026). Creating a wedding
 writes the wedding and its owner membership in one transaction. Shared infrastructure:
 config, logging, MongoDB, Redis (rate limiting), email (Mailpit locally, Resend when
 deployed; reset emails are sent after the response — 0025).
@@ -227,6 +231,7 @@ checked only for loading the saved values.
 
 | Date       | Change                                                                                                                                                                                                                                                                                                                                                            |
 | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-19 | Phase 7 (Tasks) merged to `main`: decisions 0026 and 0027 (PR #19) and the implementation (PR #20); CI and both Vercel builds passed. Open: the draft wording (0027), and review by the Code review and Manual QA sessions. The next phase needs approval.                                                                                                        |
 | 2026-10-19 | Phase 7 built on `feat/phase-7`: tasks API (tasks, assignees, history, event-deletion cascade, dashboard counts and upcoming tasks) and the T1–T7 screens with the 0027 corrections. 18 new API tests (14 integration, 4 unit) and 32 web unit tests for tasks; browser check at desktop and mobile widths. The wording is draft. Not pushed.                     |
 | 2026-10-19 | Decision 0027: Phase 7 Stitch screens approved (T1–T7) with a correction list; no overdue nav badge, no per-event task panel, completed titles struck through. Wording draft. Implementation awaits approval.                                                                                                                                                     |
 | 2026-10-19 | Phase 7 (Tasks) discovery done: decision 0026 and the Phase 7 PRD v1.0 approved; Database Design §13, API Design §6 and §13, PRD §16 and §18, System Design §12.2 and §20 and Phase 4 PRD §3.2 updated. Attachments, reminders, reports and permissions stay out of scope. Next: Stitch screens.                                                                  |
