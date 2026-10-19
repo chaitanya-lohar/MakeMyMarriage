@@ -454,8 +454,15 @@ Behaviour: [Phase 7 PRD v1.0](PHASE_7_PRD_v1.0.md).
   `status` (default `TODO`), `priority` (default `MEDIUM`), `dueDate` (`YYYY-MM-DD` or
   `null`), `eventId` (an active event of the wedding, or `null` for a whole-wedding task).
   Notes are a field, not a separate endpoint. **Attachment endpoints are deferred** (0026 #3).
-- **Task DTO** adds `id`, `assignees` (member user IDs and display names), `isOverdue` and
-  timestamps.
+  Create and update also accept `assigneeIds`, the complete set of assignees, so a form saves
+  them with the task; the assign and unassign routes change one member at a time.
+- **Task DTO** adds `id`, `eventName`, `assignees` (member user IDs and display names),
+  `isOverdue`, `isDueToday` and timestamps. Create and update return `201` and `200` with it;
+  assign and unassign return `200` with it.
+- **History** `GET …/activities`: newest first, each with `action` (`CREATED`, `UPDATED`,
+  `STATUS_CHANGED`, `EVENT_CHANGED`, `EVENT_DELETED`, `ASSIGNEE_ADDED`, `ASSIGNEE_REMOVED`,
+  `DELETED`), `actorName`, `subjectName` (for assignee changes), `oldValue`, `newValue` and
+  `createdAt`. Edited descriptions and notes are named in `newValue.fields`, not copied.
 - **List** `GET …/tasks`: `status` (repeatable; default every status except `CANCELLED`),
   `priority`, `eventId` (an event ID, or `none` for whole-wedding tasks), `overdue=true`,
   `assignedToMe=true`, `search` (title contains, ignoring case), `limit` (25) and `cursor`

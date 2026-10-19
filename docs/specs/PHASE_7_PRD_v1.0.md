@@ -2,7 +2,7 @@
 
 | Item         | Value                                                                                                                                                                    |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Status       | **Canonical** for Phase 7. Approved scope; screens approved (0027); not yet built.                                                                                       |
+| Status       | **Canonical** for Phase 7. Approved scope; screens approved (0027); built on `feat/phase-7` (not merged).                                                                |
 | Date         | 2026-10-19                                                                                                                                                               |
 | Parent       | [PRD v1.2](PRD_v1.2.md) (sections 16 and 18)                                                                                                                             |
 | Decision     | [0026](../decisions/0026-phase-7-tasks.md), with 0010 #3–#4 and [0013](../decisions/0013-task-status-reporting.md)                                                       |
