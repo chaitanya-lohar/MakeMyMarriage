@@ -15,7 +15,12 @@ import {
 import { Icon, type IconName } from '@/components/ui/icon';
 import { networkError } from '@/features/weddings/content';
 import type { ApiWedding } from '@/features/weddings/wedding-form-model';
-import { DASHBOARD_PATH, EVENTS_PATH } from '@/features/workspace/components/shell-parts';
+import { eventTaskShortcut } from '@/features/tasks/content';
+import {
+  DASHBOARD_PATH,
+  EVENTS_PATH,
+  TASKS_PATH,
+} from '@/features/workspace/components/shell-parts';
 import { PageHeader, SkeletonCard } from '@/features/workspace/components/workspace-page';
 import { SESSION_ENDED_PATH, useReadyWorkspace } from '@/features/workspace/workspace-context';
 import { api, call } from '@/lib/api';
@@ -201,6 +206,18 @@ function EventForm({ wedding, event }: { wedding: ApiWedding; event: ApiEvent | 
         title={current ? eventForm.editTitle : eventForm.addTitle}
         subtitle={eventForm.subtitle}
         back={{ href: EVENTS_PATH, label: eventForm.back }}
+        actions={
+          // Stitch "P7 · T7": only this button is added; no per-event task panel (0027).
+          current && (
+            <Link
+              href={`${TASKS_PATH}/new?eventId=${current.id}`}
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-champagne bg-white px-5 text-label-md text-navy transition-colors hover:bg-ivory focus-visible:outline-2 focus-visible:outline-secondary"
+            >
+              <Icon name="add_task" className="size-5" />
+              {eventTaskShortcut}
+            </Link>
+          )
+        }
       />
 
       <section className="rounded-xl border border-hairline bg-white p-6 shadow-sm sm:p-8">

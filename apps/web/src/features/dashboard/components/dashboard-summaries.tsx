@@ -8,8 +8,11 @@ import { Banner, SecondaryButton } from '@/components/ui/form';
 import { Icon, type IconName } from '@/components/ui/icon';
 import { formatTimes } from '@/features/events/event-model';
 import { rsvpLabels } from '@/features/guests/content';
+import { DueTag } from '@/features/tasks/components/task-parts';
+import { dashboardTasks, priorityLabels } from '@/features/tasks/content';
+import { formatShortDate } from '@/features/tasks/task-model';
 import type { ApiWedding } from '@/features/weddings/wedding-form-model';
-import { EVENTS_PATH } from '@/features/workspace/components/shell-parts';
+import { EVENTS_PATH, TASKS_PATH } from '@/features/workspace/components/shell-parts';
 import { SkeletonCard } from '@/features/workspace/components/workspace-page';
 import { SESSION_ENDED_PATH } from '@/features/workspace/workspace-context';
 import { api, call } from '@/lib/api';
@@ -17,10 +20,12 @@ import { dashboardSummaries as copy } from '../content';
 
 type ApiDashboard = components['schemas']['DashboardDto'];
 type UpcomingEvent = ApiDashboard['upcomingEvents'][number];
+type UpcomingTask = ApiDashboard['upcomingTasks'][number];
 
 /**
- * The four Phase 4 summaries below the Phase 3 cards (Stitch "P4 · O10", decisions 0019 #5 and
- * 0022). The API returns at most five upcoming events, with expected attendees for those only.
+ * The Phase 4 summaries below the Phase 3 cards (Stitch "P4 · O10", decisions 0019 #5 and
+ * 0022), with the Phase 7 Tasks card after Upcoming events ("P7 · T6", decisions 0026 #20 and
+ * 0027). The API returns at most five upcoming events and five upcoming tasks.
  */
 export function DashboardSummaries({ wedding }: { wedding: ApiWedding }) {
   const router = useRouter();
@@ -56,6 +61,7 @@ export function DashboardSummaries({ wedding }: { wedding: ApiWedding }) {
         <SkeletonCard className="h-56" />
         <SkeletonCard className="h-56" />
         <SkeletonCard className="h-56" />
+        <SkeletonCard className="h-56" />
       </div>
     );
   }
@@ -78,7 +84,7 @@ export function DashboardSummaries({ wedding }: { wedding: ApiWedding }) {
     );
   }
 
-  const { upcomingEvents, guestTotals, rsvpBreakdown } = state.data;
+  const { upcomingEvents, guestTotals, rsvpBreakdown, taskCounts, upcomingTasks } = state.data;
   return (
     <div className="mt-6 grid gap-6 md:grid-cols-2">
       <Card icon="festival" title={copy.upcomingTitle}>
@@ -113,6 +119,8 @@ export function DashboardSummaries({ wedding }: { wedding: ApiWedding }) {
           </ul>
         )}
       </Card>
+
+      <TasksCard counts={taskCounts} upcoming={upcomingTasks} />
 
       <Card icon="group" title={copy.guestsTitle}>
         <p className="font-serif text-navy">
@@ -177,6 +185,101 @@ export function DashboardSummaries({ wedding }: { wedding: ApiWedding }) {
         </p>
       </Card>
     </div>
+  );
+}
+
+/** The Tasks card (Stitch "P7 · T6"): four counts and up to five upcoming tasks. */
+function TasksCard({
+  counts,
+  upcoming,
+}: {
+  counts: ApiDashboard['taskCounts'];
+  upcoming: UpcomingTask[];
+}) {
+  const none =
+    counts.pending + counts.blocked + counts.completed + counts.overdue === 0 &&
+    upcoming.length === 0;
+  return (
+    <Card icon="checklist" title={dashboardTasks.title}>
+      {none ? (
+        <div className="py-4 text-center">
+          <p className="font-medium text-navy">{dashboardTasks.emptyTitle}</p>
+          <p className="mb-4 text-body-sm text-on-surface-variant">{dashboardTasks.emptyBody}</p>
+          <Link
+            href={`${TASKS_PATH}/new`}
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-navy px-5 text-label-md text-on-primary hover:bg-[#1e293b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+          >
+            <Icon name="add" className="size-5" />
+            {dashboardTasks.add}
+          </Link>
+        </div>
+      ) : (
+        <>
+          <dl className="grid grid-cols-2 gap-3">
+            <Count
+              icon="pending"
+              label={dashboardTasks.pending}
+              value={counts.pending}
+              tone="champagne"
+            />
+            <Count
+              icon="block"
+              label={dashboardTasks.blocked}
+              value={counts.blocked}
+              tone="neutral"
+            />
+            <Count
+              icon="check_circle"
+              label={dashboardTasks.completed}
+              value={counts.completed}
+              tone="sage"
+            />
+            <Count
+              icon="warning"
+              label={dashboardTasks.overdue}
+              value={counts.overdue}
+              tone="rose"
+            />
+          </dl>
+          <p className="mt-2 text-body-sm text-on-surface-variant">{dashboardTasks.overlapNote}</p>
+          <h3 className="mt-4 mb-2 border-t border-hairline pt-3 text-label-md text-navy">
+            {dashboardTasks.upcomingTitle}
+          </h3>
+          {upcoming.length === 0 ? (
+            <p className="text-body-sm text-on-surface-variant">{dashboardTasks.noUpcoming}</p>
+          ) : (
+            <ul className="divide-y divide-hairline">
+              {upcoming.map((task) => (
+                <li key={task.id} className="flex items-start justify-between gap-3 py-2.5">
+                  <div className="min-w-0">
+                    <Link
+                      href={`${TASKS_PATH}/${task.id}`}
+                      className="rounded font-medium break-words text-navy hover:underline focus-visible:outline-2 focus-visible:outline-secondary"
+                    >
+                      {task.title}
+                    </Link>
+                    <p className="mt-0.5 flex flex-wrap items-center gap-2 text-body-sm text-on-surface-variant">
+                      {formatShortDate(task.dueDate)}
+                      <DueTag task={task} />
+                    </p>
+                  </div>
+                  <span className="shrink-0 text-body-sm text-on-surface-variant">
+                    {priorityLabels[task.priority]}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+          <Link
+            href={TASKS_PATH}
+            className="mt-3 inline-flex min-h-11 items-center gap-1 rounded-lg text-label-md text-navy hover:underline focus-visible:outline-2 focus-visible:outline-secondary"
+          >
+            {dashboardTasks.viewAll}
+            <Icon name="arrow_forward" className="size-4" />
+          </Link>
+        </>
+      )}
+    </Card>
   );
 }
 
