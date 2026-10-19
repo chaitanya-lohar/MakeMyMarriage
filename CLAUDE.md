@@ -17,6 +17,9 @@ originals.
   marked Open, Deferred or UNRESOLVED are not implemented until a decision approves them.
 - Start a module or phase only after explicit approval. Never push, open a PR or start the
   next phase without being told to.
+- Merging (product owner, 2026-10-19): Claude merges a **code** PR only when told "merge it".
+  A **documentation-only** PR (files under `docs/` or this file) Claude merges itself once CI
+  passes and it has no conflicts. After every merge, verify `main` and its CI.
 - UI follows the approved Google Stitch screens (project `11709379677369700007`); missing
   screens are designed and approved in Stitch first.
 - Keep commits small and logical, and keep documentation changes separate from code. Run

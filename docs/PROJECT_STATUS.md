@@ -43,7 +43,7 @@ Every branch below except `fix/phase-4-review` is merged into `main`; new work s
 | `feat/vercel-single-runtime`    | Decision 0025: Vercel-only hosting, no worker, emails sent directly, deployment guide   | Local, not pushed |
 | `docs/phase-7-tasks`            | Decisions 0026 and 0027, the Phase 7 PRD                                                | Merged (PR #19)   |
 | `feat/phase-7`                  | Phase 7: tasks module, screens and dashboard card (0026, 0027)                          | Merged (PR #20)   |
-| `fix/phase-7-review`            | Phase 7 code-review fixes (4 medium, 9 low) and tests                                   | Local, not pushed |
+| `fix/phase-7-review`            | Phase 7 code-review fixes (4 medium, 9 low) and tests                                   | Merged (PR #22)   |
 
 The merged branches can be deleted, on GitHub and locally.
 
@@ -192,6 +192,8 @@ mobile navigation drawer, a states board and the copy-drafts board.
   product owner before any code is written.
 - One module or phase at a time; each starts only after explicit approval.
 - Nothing is pushed and no PR is opened without explicit approval.
+- Code PRs are merged by Claude only on "merge it"; documentation-only PRs Claude merges
+  itself once CI passes (product owner, 2026-10-19).
 - UI follows the approved Stitch screens; missing screens are designed in Stitch and approved
   first.
 - Small, logical commits. Run Prettier from the repository root (running it inside a package
@@ -232,7 +234,8 @@ checked only for loading the saved values.
 
 | Date       | Change                                                                                                                                                                                                                                                                                                                                                            |
 | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2026-10-20 | Phase 7 code review (no critical or high): the 4 medium and 9 low findings fixed on `fix/phase-7-review` with tests; 112 integration, 66 API and 271 web unit tests pass. Open: whether the dashboard says "No tasks yet" when every task is cancelled (product decision), and the draft wording. Not pushed.                                                     |
+| 2026-10-20 | Phase 7 code review (no critical or high): the 4 medium and 9 low findings fixed on `fix/phase-7-review` with tests; 112 integration, 66 API and 271 web unit tests pass; merged as PR #22. Open: whether the dashboard says "No tasks yet" when every task is cancelled (product decision), and the draft wording.                                               |
+| 2026-10-19 | Merge rule from the product owner: Claude merges documentation-only PRs once CI passes, and code PRs when told "merge it".                                                                                                                                                                                                                                        |
 | 2026-10-19 | Phase 7 (Tasks) merged to `main`: decisions 0026 and 0027 (PR #19) and the implementation (PR #20); CI and both Vercel builds passed. Open: the draft wording (0027), and review by the Code review and Manual QA sessions. The next phase needs approval.                                                                                                        |
 | 2026-10-19 | Phase 7 built on `feat/phase-7`: tasks API (tasks, assignees, history, event-deletion cascade, dashboard counts and upcoming tasks) and the T1–T7 screens with the 0027 corrections. 18 new API tests (14 integration, 4 unit) and 32 web unit tests for tasks; browser check at desktop and mobile widths. The wording is draft. Not pushed.                     |
 | 2026-10-19 | Decision 0027: Phase 7 Stitch screens approved (T1–T7) with a correction list; no overdue nav badge, no per-event task panel, completed titles struck through. Wording draft. Implementation awaits approval.                                                                                                                                                     |
