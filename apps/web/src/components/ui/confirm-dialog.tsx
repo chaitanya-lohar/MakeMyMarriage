@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useId, useRef, type ReactNode } from 'react';
+import { useId, useRef, type ReactNode } from 'react';
 import { DangerButton, PrimaryButton } from './form';
 import { Icon, type IconName } from './icon';
+import { useModal } from './use-modal';
 
 /**
  * A confirmation that does nothing until the user confirms (decision 0019 #9). Escape and the
- * backdrop cancel; focus starts on Cancel so a stray Enter never confirms.
+ * backdrop cancel; focus starts on Cancel so a stray Enter never confirms, and Tab stays inside.
  */
 export function ConfirmDialog({
   title,
@@ -36,20 +37,9 @@ export function ConfirmDialog({
   const titleId = useId();
   const bodyId = useId();
   const cancelButton = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    cancelButton.current?.focus();
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !pending) onCancel();
-    };
-    const overflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.body.style.overflow = overflow;
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [onCancel, pending]);
+  const panel = useRef<HTMLDivElement>(null);
+  // Focus starts on Cancel, stays in the dialog, and returns to the opener (review P7-M4).
+  useModal(panel, { onClose: onCancel, canClose: !pending, initialFocus: cancelButton });
 
   const Confirm = tone === 'danger' ? DangerButton : PrimaryButton;
 
@@ -61,6 +51,7 @@ export function ConfirmDialog({
         onClick={() => !pending && onCancel()}
       />
       <div
+        ref={panel}
         role="alertdialog"
         aria-modal="true"
         aria-labelledby={titleId}

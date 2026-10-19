@@ -20,7 +20,8 @@ import {
   TASK_PRIORITIES,
   TASK_STATUSES,
   TaskLimits,
-  toTaskPayload,
+  toNewTaskPayload,
+  toTaskChanges,
   validateTaskForm,
   type ApiTask,
   type TaskFormErrors,
@@ -99,7 +100,8 @@ function TaskForm({
 }) {
   const router = useRouter();
   const { user } = useReadyWorkspace();
-  const [events, setEvents] = useState<ApiEvent[]>([]);
+  // null while the events load; the select is disabled until then.
+  const [events, setEvents] = useState<ApiEvent[] | null>(null);
   const [values, setValues] = useState<TaskFormValues>(() =>
     task ? formFromTask(task, user.id) : emptyTaskForm(presetEventId ?? ''),
   );
@@ -116,7 +118,11 @@ function TaskForm({
         params: { path: { weddingId: wedding.id } },
       }),
     ).then((result) => {
-      if (!result.data) return;
+      if (!result.data) {
+        // Without the list, the select still shows the linked event (see TaskFields).
+        setEvents([]);
+        return;
+      }
       const loaded = result.data;
       setEvents(loaded);
       // A preset event that no longer exists falls back to the whole wedding.
@@ -149,18 +155,17 @@ function TaskForm({
     if (Object.keys(found).length > 0) return;
 
     setSaving(true);
-    const body = toTaskPayload(values, user.id, task ?? undefined);
     const result = task
       ? await call(() =>
           api.PATCH('/api/v1/weddings/{weddingId}/tasks/{taskId}', {
             params: { path: { weddingId: wedding.id, taskId: task.id } },
-            body,
+            body: toTaskChanges(values, user.id, task),
           }),
         )
       : await call(() =>
           api.POST('/api/v1/weddings/{weddingId}/tasks', {
             params: { path: { weddingId: wedding.id } },
-            body,
+            body: toNewTaskPayload(values, user.id),
           }),
         );
     if (result.data) {
@@ -171,11 +176,11 @@ function TaskForm({
     setSaving(false);
     const { status, code, fields } = result.error;
     if (status === 401) router.replace(SESSION_ENDED_PATH);
-    else if (status === 404 && code === 'EVENT_NOT_FOUND') {
+    else if (code === 'EVENT_NOT_FOUND') {
       // The chosen event was deleted meanwhile: fall back to the whole wedding.
       change('eventId', '');
       setBanner('server');
-    } else if (status === 404) setGone(true);
+    } else if (code === 'TASK_NOT_FOUND' || code === 'WEDDING_NOT_FOUND') setGone(true);
     else if (code === 'VALIDATION_FAILED') setErrors(errorsFromApi(fields));
     else setBanner(status === 0 ? 'network' : 'server');
   }
@@ -210,7 +215,8 @@ function TaskForm({
             values={values}
             errors={errors}
             events={events}
-            fromEvent={Boolean(presetEventId)}
+            linkedEvent={task?.eventId ? { id: task.eventId, name: task.eventName } : null}
+            fromEvent={Boolean(presetEventId) && values.eventId === presetEventId}
             userName={user.displayName}
             onChange={change}
             disabled={pending}
@@ -240,6 +246,7 @@ function TaskFields({
   values,
   errors,
   events,
+  linkedEvent,
   fromEvent,
   userName,
   onChange,
@@ -247,7 +254,11 @@ function TaskFields({
 }: {
   values: TaskFormValues;
   errors: TaskFormErrors;
-  events: ApiEvent[];
+  /** Null while loading. */
+  events: ApiEvent[] | null;
+  /** The task's event as loaded, shown even if the events list fails or lacks it. */
+  linkedEvent: { id: string; name: string | null } | null;
+  /** True while the event preset from an event's shortcut is still chosen. */
   fromEvent: boolean;
   userName: string;
   onChange: <K extends keyof TaskFormValues>(field: K, value: TaskFormValues[K]) => void;
@@ -331,7 +342,7 @@ function TaskFields({
               name="eventId"
               value={values.eventId}
               onChange={(changeEvent) => onChange('eventId', changeEvent.target.value)}
-              disabled={disabled}
+              disabled={disabled || events === null}
               aria-describedby={describedBy(
                 ids.event,
                 errors.eventId,
@@ -340,7 +351,10 @@ function TaskFields({
               className={select}
             >
               <option value="">{tasksPage.wholeWedding}</option>
-              {events.map((event) => (
+              {linkedEvent && !(events ?? []).some((event) => event.id === linkedEvent.id) && (
+                <option value={linkedEvent.id}>{linkedEvent.name ?? linkedEvent.id}</option>
+              )}
+              {(events ?? []).map((event) => (
                 <option key={event.id} value={event.id}>
                   {event.name}
                 </option>

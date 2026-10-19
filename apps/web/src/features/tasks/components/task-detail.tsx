@@ -12,7 +12,7 @@ import type { ApiWedding } from '@/features/weddings/wedding-form-model';
 import { TASKS_PATH } from '@/features/workspace/components/shell-parts';
 import { PageHeader, SkeletonCard } from '@/features/workspace/components/workspace-page';
 import { SESSION_ENDED_PATH, useReadyWorkspace } from '@/features/workspace/workspace-context';
-import { api, call } from '@/lib/api';
+import { api, call, type ApiError } from '@/lib/api';
 import { deleteTask, priorityLabels, statusLabels, taskDetail, tasksPage } from '../content';
 import {
   formatHistoryTime,
@@ -39,6 +39,8 @@ export function TaskDetail({ wedding, taskId }: { wedding: ApiWedding; taskId: s
   const [state, setState] = useState<State>({ status: 'loading' });
   const [attempt, setAttempt] = useState(0);
   const [busy, setBusy] = useState(false);
+  // The status just chosen, shown while it saves so the select never shows the old one.
+  const [chosenStatus, setChosenStatus] = useState<TaskStatus | null>(null);
   const [actionError, setActionError] = useState<string>();
   const [confirming, setConfirming] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -69,20 +71,39 @@ export function TaskDetail({ wedding, taskId }: { wedding: ApiWedding; taskId: s
   }, [wedding.id, taskId, attempt, router]);
 
   /** Runs a change, then reloads the task and its history. */
-  async function act(change: () => Promise<{ error?: { status: number } }>) {
+  /**
+   * Runs a change. The task it returns is shown at once, so the status select never snaps back;
+   * the controls stay disabled until the history has reloaded too (review P7-M3). If only that
+   * reload fails, the updated task stays on screen.
+   */
+  async function act(change: () => Promise<{ data?: ApiTask; error?: ApiError }>) {
     setBusy(true);
     setActionError(undefined);
     const result = await change();
-    if (result.error?.status === 401) router.replace(SESSION_ENDED_PATH);
-    else if (result.error?.status === 404) setState({ status: 'gone' });
+    if (result.data) {
+      const updated = result.data;
+      setState((current) => (current.status === 'ready' ? { ...current, task: updated } : current));
+      const history = await call(() =>
+        api.GET('/api/v1/weddings/{weddingId}/tasks/{taskId}/activities', { params: { path } }),
+      );
+      if (history.data) {
+        const entries = history.data;
+        setState((current) =>
+          current.status === 'ready' ? { ...current, history: entries } : current,
+        );
+      }
+    } else if (result.error?.status === 401) router.replace(SESSION_ENDED_PATH);
+    else if (result.error?.code === 'TASK_NOT_FOUND') setState({ status: 'gone' });
     else if (result.error) {
+      // MEMBER_NOT_FOUND and other failures are ordinary errors, not "task not available".
       setActionError(result.error.status === 0 ? networkError : taskDetail.updateError);
-    } else setAttempt((value) => value + 1);
+    }
     setBusy(false);
   }
 
-  const changeStatus = (status: TaskStatus) =>
-    act(() =>
+  async function changeStatus(status: TaskStatus) {
+    setChosenStatus(status);
+    await act(() =>
       call(() =>
         api.PATCH('/api/v1/weddings/{weddingId}/tasks/{taskId}', {
           params: { path },
@@ -90,6 +111,9 @@ export function TaskDetail({ wedding, taskId }: { wedding: ApiWedding; taskId: s
         }),
       ),
     );
+    // Saved: the task now carries it. Failed: the select returns to the saved status.
+    setChosenStatus(null);
+  }
   const assignMe = () =>
     act(() =>
       call(() =>
@@ -119,11 +143,14 @@ export function TaskDetail({ wedding, taskId }: { wedding: ApiWedding; taskId: s
     const result = await call(() =>
       api.DELETE('/api/v1/weddings/{weddingId}/tasks/{taskId}', { params: { path } }),
     );
-    setDeleting(false);
-    if (!result.error || result.error.status === 404) {
+    if (!result.error || result.error.code === 'TASK_NOT_FOUND') {
+      // Stay busy until the page changes, so the dialog cannot delete twice.
       setNotice('task-deleted');
       router.push(TASKS_PATH);
-    } else if (result.error.status === 401) router.replace(SESSION_ENDED_PATH);
+      return;
+    }
+    setDeleting(false);
+    if (result.error.status === 401) router.replace(SESSION_ENDED_PATH);
     else setDeleteError(result.error.status === 0 ? networkError : deleteTask.error);
   }
 
@@ -178,7 +205,7 @@ export function TaskDetail({ wedding, taskId }: { wedding: ApiWedding; taskId: s
             <label className="relative">
               <span className="sr-only">{taskDetail.changeStatus.replace('{status}', '')}</span>
               <select
-                value={task.status}
+                value={chosenStatus ?? task.status}
                 disabled={busy}
                 onChange={(changeEvent) =>
                   void changeStatus(changeEvent.target.value as TaskStatus)
