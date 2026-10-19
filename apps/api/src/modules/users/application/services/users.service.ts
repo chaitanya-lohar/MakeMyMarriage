@@ -17,6 +17,11 @@ export class UsersService {
     return this.users.findById(id);
   }
 
+  /** The users with these IDs, for showing names (e.g. task assignees); unknown IDs are skipped. */
+  findManyByIds(ids: string[]): Promise<User[]> {
+    return this.users.findManyByIds(ids);
+  }
+
   findCredentialsByEmail(email: string): Promise<UserCredentials | null> {
     return this.users.findCredentialsByEmail(normalizeEmail(email));
   }

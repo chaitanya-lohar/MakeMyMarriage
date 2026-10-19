@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { isValidObjectId, Model, trusted, Types } from 'mongoose';
+import { sessionOf, type Transaction } from '../../../../infrastructure/database/transaction.js';
 import type { EventChanges, NewEvent, WeddingEvent } from '../../domain/types/event.js';
 import { EventRecord, type EventDocument } from '../schemas/event.schema.js';
 
@@ -149,11 +150,17 @@ export class EventsRepository {
   }
 
   /** Soft-deletes the event; its assignments and history stay (0017 #12). */
-  async softDelete(weddingId: string, eventId: string, deletedBy: string): Promise<boolean> {
+  async softDelete(
+    weddingId: string,
+    eventId: string,
+    deletedBy: string,
+    transaction?: Transaction,
+  ): Promise<boolean> {
     if (!isValidObjectId(eventId)) return false;
     const result = await this.events.updateOne(
       { _id: oid(eventId), weddingId: oid(weddingId), ...notDeleted() },
       { $set: { deletedAt: new Date(), deletedBy: new Types.ObjectId(deletedBy) } },
+      { session: sessionOf(transaction) },
     );
     return result.modifiedCount === 1;
   }

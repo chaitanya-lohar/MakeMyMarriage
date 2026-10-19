@@ -8,6 +8,8 @@ export const AuditAction = {
   InvitationTokenRegenerated: 'INVITATION_TOKEN_REGENERATED',
   InvitationTokenRevoked: 'INVITATION_TOKEN_REVOKED',
   InvitationLinkRetrieved: 'INVITATION_LINK_RETRIEVED',
+  /** Phase 7: other task changes are in the task's own history (decision 0026 #17). */
+  TaskDeleted: 'TASK_DELETED',
 } as const;
 
 export type AuditAction = (typeof AuditAction)[keyof typeof AuditAction];

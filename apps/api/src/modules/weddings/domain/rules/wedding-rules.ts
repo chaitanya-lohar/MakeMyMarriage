@@ -25,3 +25,17 @@ export function isCalendarDate(value: string): boolean {
     date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
   );
 }
+
+/**
+ * Today's calendar date (YYYY-MM-DD) in the wedding's timezone. Date rules such as upcoming
+ * events (0022 #3) and overdue tasks (0026 #8) compare against it.
+ */
+export function todayIn(timezone: string, now: Date = new Date()): string {
+  // en-CA formats dates as YYYY-MM-DD.
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(now);
+}

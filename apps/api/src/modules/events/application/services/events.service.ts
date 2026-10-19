@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { TransactionRunner } from '../../../../infrastructure/database/transaction.js';
 import type { WeddingEvent } from '../../domain/types/event.js';
 import { EventsRepository } from '../../infrastructure/repositories/events.repository.js';
 import { EventsErrors } from '../events-errors.js';
+import { EventTasks } from '../ports/event-tasks.port.js';
 
 /**
  * Event reads for the events controller and for other modules (guests, invitations,
@@ -9,7 +11,11 @@ import { EventsErrors } from '../events-errors.js';
  */
 @Injectable()
 export class EventsService {
-  constructor(private readonly events: EventsRepository) {}
+  constructor(
+    private readonly events: EventsRepository,
+    private readonly tasks: EventTasks,
+    private readonly transactions: TransactionRunner,
+  ) {}
 
   listActive(weddingId: string): Promise<WeddingEvent[]> {
     return this.events.listActive(weddingId);
@@ -36,7 +42,16 @@ export class EventsService {
     return this.events.listActiveFrom(weddingId, fromDate, limit);
   }
 
+  /**
+   * Soft-deletes the event and, in the same transaction, makes its tasks whole-wedding tasks
+   * (decision 0026 #12).
+   */
   async delete(weddingId: string, eventId: string, userId: string): Promise<void> {
-    if (!(await this.events.softDelete(weddingId, eventId, userId))) throw EventsErrors.notFound();
+    const deleted = await this.transactions.run(async (transaction) => {
+      if (!(await this.events.softDelete(weddingId, eventId, userId, transaction))) return false;
+      await this.tasks.unlinkDeletedEvent(weddingId, eventId, userId, transaction);
+      return true;
+    });
+    if (!deleted) throw EventsErrors.notFound();
   }
 }
