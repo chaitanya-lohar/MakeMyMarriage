@@ -24,6 +24,11 @@ const TEXT_FIELDS = ['description', 'notes'] as const;
 /**
  * Creates and edits tasks (Phase 7 PRD §5.1, decision 0026). The task, its assignees and its
  * history entries are saved in one transaction, so the history never misses a change.
+ *
+ * Everything an edit compares — the current task, its event and its assignees — is read inside
+ * that transaction (review P7-M1). Two saves of the same task both write it, so MongoDB aborts
+ * one with a write conflict and retries it against the other's result: the history records each
+ * change once, by the person who made it.
  */
 @Injectable()
 export class SaveTaskUseCase {
@@ -42,10 +47,11 @@ export class SaveTaskUseCase {
     details: TaskDetails,
     assigneeIds: string[] = [],
   ): Promise<Task> {
-    const eventName = await this.eventName(weddingId, details.eventId);
     const assignees = await this.members(weddingId, assigneeIds);
 
     return this.transactions.run(async (transaction) => {
+      // Checked in the transaction, so an event deleted meanwhile is refused (0026 #11).
+      const eventName = await this.eventName(weddingId, details.eventId, transaction);
       const task = await this.tasks.create(
         { ...details, weddingId, createdBy: userId },
         transaction,
@@ -82,20 +88,21 @@ export class SaveTaskUseCase {
     changes: TaskChanges,
     assigneeIds?: string[],
   ): Promise<Task> {
-    const current = await this.tasks.findActive(weddingId, taskId);
-    if (!current) throw TasksErrors.notFound();
-
-    const eventChanged = changes.eventId !== undefined && changes.eventId !== current.eventId;
-    const [oldEventName, newEventName] = eventChanged
-      ? await Promise.all([
-          this.knownEventName(weddingId, current.eventId),
-          this.eventName(weddingId, changes.eventId ?? null),
-        ])
-      : [null, null];
     const wanted =
       assigneeIds === undefined ? undefined : await this.members(weddingId, assigneeIds);
 
     return this.transactions.run(async (transaction) => {
+      const current = await this.tasks.findActive(weddingId, taskId, transaction);
+      if (!current) throw TasksErrors.notFound();
+
+      const eventChanged = changes.eventId !== undefined && changes.eventId !== current.eventId;
+      const [oldEventName, newEventName] = eventChanged
+        ? await Promise.all([
+            this.knownEventName(weddingId, current.eventId, transaction),
+            this.eventName(weddingId, changes.eventId ?? null, transaction),
+          ])
+        : [null, null];
+
       const task = await this.tasks.update(weddingId, taskId, changes, transaction);
       if (!task) throw TasksErrors.notFound();
       const entry = (
@@ -156,15 +163,23 @@ export class SaveTaskUseCase {
   }
 
   /** The name of an active event of the wedding, or EVENT_NOT_FOUND (0026 #11). */
-  private async eventName(weddingId: string, eventId: string | null): Promise<string | null> {
+  private async eventName(
+    weddingId: string,
+    eventId: string | null,
+    transaction: Transaction,
+  ): Promise<string | null> {
     if (eventId === null) return null;
-    return (await this.events.getActive(weddingId, eventId)).name;
+    return (await this.events.getActive(weddingId, eventId, transaction)).name;
   }
 
   /** The current event's name for the history; null if it is gone. */
-  private async knownEventName(weddingId: string, eventId: string | null): Promise<string | null> {
+  private async knownEventName(
+    weddingId: string,
+    eventId: string | null,
+    transaction: Transaction,
+  ): Promise<string | null> {
     if (eventId === null) return null;
-    return (await this.events.findActive(weddingId, eventId))?.name ?? null;
+    return (await this.events.findActive(weddingId, eventId, transaction))?.name ?? null;
   }
 
   /** The distinct IDs, each an active member of the wedding, or MEMBER_NOT_FOUND. */
@@ -206,7 +221,7 @@ export class SaveTaskUseCase {
     wanted: string[],
     transaction: Transaction,
   ): Promise<NewTaskActivity[]> {
-    const current = (await this.assignments.userIdsByTask([taskId])).get(taskId) ?? [];
+    const current = (await this.assignments.userIdsByTask([taskId], transaction)).get(taskId) ?? [];
     const entries: NewTaskActivity[] = [];
     for (const userId of current.filter((id) => !wanted.includes(id))) {
       if (await this.assignments.remove(taskId, userId, transaction)) {

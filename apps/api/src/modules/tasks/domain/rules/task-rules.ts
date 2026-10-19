@@ -78,3 +78,8 @@ export function addDays(date: string, days: number): string {
   value.setUTCDate(value.getUTCDate() + days);
   return value.toISOString().slice(0, 10);
 }
+
+/** True for an ID this API could have issued (24 hex characters); anything else is not found. */
+export function isEntityId(value: string): boolean {
+  return /^[0-9a-f]{24}$/i.test(value);
+}

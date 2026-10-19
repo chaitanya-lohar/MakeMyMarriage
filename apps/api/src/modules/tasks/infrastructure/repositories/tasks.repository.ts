@@ -163,13 +163,16 @@ export class TasksRepository {
     return toTask(document as TaskDocument);
   }
 
-  async findActive(weddingId: string, taskId: string): Promise<Task | null> {
+  /** The active task; with a transaction, as that transaction sees it. */
+  async findActive(
+    weddingId: string,
+    taskId: string,
+    transaction?: Transaction,
+  ): Promise<Task | null> {
     if (!isValidObjectId(taskId)) return null;
-    const document = await this.tasks.findOne({
-      _id: oid(taskId),
-      weddingId: oid(weddingId),
-      ...notDeleted(),
-    });
+    const document = await this.tasks
+      .findOne({ _id: oid(taskId), weddingId: oid(weddingId), ...notDeleted() })
+      .session(sessionOf(transaction) ?? null);
     return document ? toTask(document) : null;
   }
 

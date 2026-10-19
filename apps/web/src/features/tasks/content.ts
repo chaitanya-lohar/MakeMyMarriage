@@ -58,6 +58,7 @@ export const tasksPage = {
   noResultsBody: 'Try changing or clearing the filters.',
   loading: 'Loading your tasks…',
   loadError: "We couldn't load your tasks. Please try again.",
+  loadMoreError: "We couldn't load more tasks. Please try again.",
   retry: 'Try again',
   deleted: 'Task deleted',
 };

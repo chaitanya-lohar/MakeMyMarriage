@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import { useModal } from '@/components/ui/use-modal';
 import { Banner, controlClasses, PrimaryButton, SecondaryButton } from '@/components/ui/form';
 import { Icon } from '@/components/ui/icon';
 import type { ApiEvent } from '@/features/events/event-model';
@@ -111,11 +112,13 @@ export function TasksList({ wedding }: { wedding: ApiWedding }) {
   const [state, setState] = useState<State>({ status: 'loading' });
   const [attempt, setAttempt] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [loadMoreFailed, setLoadMoreFailed] = useState(false);
   const [showDeleted, dismissDeleted] = useOneOffNotice('task-deleted');
   // Bumped whenever the list reloads, so a slower Load more from earlier filters is ignored.
   const listVersion = useRef(0);
 
   function applyFilters(next: Filters) {
+    setLoadMoreFailed(false);
     setState({ status: 'loading' });
     setFilters(next);
   }
@@ -147,12 +150,12 @@ export function TasksList({ wedding }: { wedding: ApiWedding }) {
     void fetchPage(wedding.id, filters).then((result) => {
       if (!active) return;
       if ('tasks' in result) {
+        setLoadMoreFailed(false);
         setState({ status: 'ready', tasks: result.tasks, nextCursor: result.nextCursor });
       } else if (result.error.status === 401) router.replace(SESSION_ENDED_PATH);
-      else if (result.error.status === 404 && result.error.code === 'WEDDING_NOT_FOUND') {
-        setState({ status: 'gone' });
-      } else if (result.error.status === 404) {
-        // The chosen event was deleted meanwhile: clear the filter.
+      else if (result.error.code === 'WEDDING_NOT_FOUND') setState({ status: 'gone' });
+      else if (result.error.code === 'EVENT_NOT_FOUND' && filters.eventId) {
+        // The chosen event was deleted meanwhile: clear that filter once.
         applyFilters({ ...filters, eventId: '' });
       } else setState({ status: 'error' });
     });
@@ -165,6 +168,7 @@ export function TasksList({ wedding }: { wedding: ApiWedding }) {
     if (state.status !== 'ready' || !state.nextCursor) return;
     const version = listVersion.current;
     setLoadingMore(true);
+    setLoadMoreFailed(false);
     const result = await fetchPage(wedding.id, filters, state.nextCursor);
     setLoadingMore(false);
     if (version !== listVersion.current) return;
@@ -179,7 +183,8 @@ export function TasksList({ wedding }: { wedding: ApiWedding }) {
           : current,
       );
     } else if (result.error.status === 401) router.replace(SESSION_ENDED_PATH);
-    else setState({ status: 'error' });
+    // Keep what is already loaded; the retry asks for the same page again.
+    else setLoadMoreFailed(true);
   }
 
   function clearFilters() {
@@ -255,6 +260,13 @@ export function TasksList({ wedding }: { wedding: ApiWedding }) {
             ))}
           </ul>
           <div className="mt-5 flex flex-col items-center gap-2">
+            {loadMoreFailed && (
+              <div className="w-full">
+                <Banner tone="error" icon="error">
+                  {tasksPage.loadMoreError}
+                </Banner>
+              </div>
+            )}
             {state.nextCursor && (
               <SecondaryButton
                 onClick={() => void loadMore()}
@@ -336,6 +348,7 @@ function FilterBar({
             value={search}
             onChange={(changeEvent) => onSearch(changeEvent.target.value)}
             placeholder={tasksPage.search}
+            maxLength={150}
             className={`${controlClasses} min-h-11 py-2.5 pr-3 pl-10`}
           />
         </label>
@@ -496,14 +509,9 @@ function FilterSheet({
   onClose: () => void;
 }) {
   const [draft, setDraft] = useState<Filters>(filters);
-
-  useEffect(() => {
-    const onKey = (keyEvent: KeyboardEvent) => {
-      if (keyEvent.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  const panel = useRef<HTMLDivElement>(null);
+  // Focus moves in and stays in; Escape closes and focus returns to Filters (review P7-M4).
+  useModal(panel, { onClose });
 
   const toggleStatus = (status: TaskStatus) =>
     setDraft((current) => {
@@ -524,6 +532,7 @@ function FilterSheet({
     <div className="fixed inset-0 z-50 flex items-end md:hidden">
       <div aria-hidden="true" className="absolute inset-0 bg-navy/40" onClick={onClose} />
       <div
+        ref={panel}
         role="dialog"
         aria-modal="true"
         aria-label={tasksPage.filters}

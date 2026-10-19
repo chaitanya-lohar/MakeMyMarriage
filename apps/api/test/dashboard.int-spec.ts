@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { todayIn } from '../src/modules/dashboard/domain/rules/dashboard-rules.js';
+import { restoreClock, startClockAtNoonInIndia } from './support/noon-in-india.js';
 import { startWorkspaceApp, type Agent, type WorkspaceApp } from './support/workspace-app.js';
 
 /** A calendar date `days` from today in India (the wedding timezone). */
@@ -21,6 +22,8 @@ describe('Dashboard', () => {
 
   beforeAll(async () => {
     workspace = await startWorkspaceApp();
+    // "Today" never crosses midnight IST during the run.
+    startClockAtNoonInIndia();
   });
 
   beforeEach(async () => {
@@ -28,6 +31,7 @@ describe('Dashboard', () => {
   });
 
   afterAll(async () => {
+    restoreClock();
     await workspace?.stop();
   });
 
