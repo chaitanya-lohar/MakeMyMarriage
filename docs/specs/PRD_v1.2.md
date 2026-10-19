@@ -299,16 +299,18 @@ Decisions 0009 and 0010 (#5–#8).
 
 ## 16. Task planner
 
-Decisions 0010 (#3, #4) and 0013.
+Decisions 0010 (#3, #4), 0013 and 0026; specified in the
+[Phase 7 PRD v1.0](PHASE_7_PRD_v1.0.md).
 
 - Wedding-level or event-level tasks.
-- Fields: title, description, due date, priority, status, assignee(s), event, notes and
-  attachments.
+- Fields: title, description, due date, priority, status, assignee(s), event and notes.
+  **Attachments are deferred** to the first phase that adds file storage (0026 #3).
 - Statuses: To do, In progress, Blocked, Completed, Cancelled.
 - Overdue and upcoming tasks appear on the dashboard.
 - Reporting: To do and In progress count as Pending; Blocked as Blocked; Completed as
   Completed; Cancelled is excluded from all counts. Overdue is an additional dimension:
-  due date in the past and status neither Completed nor Cancelled.
+  due date before today in the wedding's timezone and status neither Completed nor
+  Cancelled (0026 #8).
 
 ## 17. Vendor management and vendor discovery
 
@@ -333,7 +335,8 @@ Decisions 0010 (#3, #4) and 0013.
 - Each summary appears when its module is built. Phase 3 shows the countdown (days to go,
   wedding day, celebrated, or no date set) and the wedding details (0016). Phase 4 adds
   upcoming events, guest totals, RSVP breakdown and expected attendees, with the rules in
-  the Phase 4 PRD §10.2 (0019).
+  the Phase 4 PRD §10.2 (0019). Phase 7 adds task counts (Pending, Blocked, Completed,
+  Overdue) and up to five upcoming tasks (Phase 7 PRD §8, 0026 #20).
 
 ## 19. Wedding website
 

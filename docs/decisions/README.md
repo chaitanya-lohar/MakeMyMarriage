@@ -31,6 +31,8 @@ in a specification, the record names that statement.
 | [0023](0023-phase-4-engineering-decisions.md)             | Phase 4 engineering decisions (retries, rate limits, order, opens) | Accepted; #1 superseded by 0025 |
 | [0024](0024-live-updates.md)                              | Live updates on organizer screens (SSE)                            | Deferred (parked enhancement)   |
 | [0025](0025-vercel-only-hosting.md)                       | Vercel-only hosting: no worker, email sent directly                | Accepted                        |
+| [0026](0026-phase-7-tasks.md)                             | Phase 7: tasks (scope, rules, list, dashboard)                     | Accepted                        |
+| [0027](0027-phase-7-design-approval.md)                   | Phase 7 design approval: screens and corrections; wording draft    | Accepted                        |
 
 Conflicts between specifications or decision records are handled with the protocol in
 [0004](0004-specification-authority.md) — never resolved silently in code.

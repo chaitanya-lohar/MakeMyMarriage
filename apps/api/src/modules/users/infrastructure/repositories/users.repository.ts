@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { isValidObjectId, Model, trusted } from 'mongoose';
+import { isValidObjectId, Model, trusted, Types } from 'mongoose';
 import {
   EmailAlreadyRegisteredError,
   type NewUser,
@@ -44,6 +44,17 @@ export class UsersRepository {
     if (!isValidObjectId(id)) return null;
     const document = await this.users.findOne({ _id: id, ...notDeleted() });
     return document ? toUser(document) : null;
+  }
+
+  /** The users with these IDs that are not deleted; unknown IDs are skipped. */
+  async findManyByIds(ids: string[]): Promise<User[]> {
+    const valid = [...new Set(ids)].filter((id) => isValidObjectId(id));
+    if (valid.length === 0) return [];
+    const documents = await this.users.find({
+      _id: trusted({ $in: valid.map((id) => new Types.ObjectId(id)) }),
+      ...notDeleted(),
+    });
+    return documents.map(toUser);
   }
 
   async findCredentialsByEmail(email: string): Promise<UserCredentials | null> {

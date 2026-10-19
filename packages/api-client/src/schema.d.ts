@@ -425,6 +425,94 @@ export interface paths {
         patch: operations["GuestInvitationController_respond"];
         trace?: never;
     };
+    "/api/v1/weddings/{weddingId}/tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List, filter and search tasks: by due date (undated last), then Urgent → Low */
+        get: operations["TasksController_list"];
+        put?: never;
+        /** Create a task; status TODO and priority MEDIUM by default */
+        post: operations["TasksController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/tasks/{taskId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a task */
+        get: operations["TasksController_get"];
+        put?: never;
+        post?: never;
+        /** Soft-delete a task; its history is kept and the deletion audited */
+        delete: operations["TasksController_delete"];
+        options?: never;
+        head?: never;
+        /** Update a task; null clears an optional field; any status may follow any other */
+        patch: operations["TasksController_update"];
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/tasks/{taskId}/assignees": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Assign a wedding member; assigning them again changes nothing */
+        post: operations["TasksController_assign"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/tasks/{taskId}/assignees/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Unassign a member; unassigning someone not assigned changes nothing */
+        delete: operations["TasksController_unassign"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/tasks/{taskId}/activities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The task's history, newest first */
+        get: operations["TasksController_history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/weddings/{weddingId}/dashboard": {
         parameters: {
             query?: never;
@@ -916,6 +1004,114 @@ export interface components {
         GuestRsvpDto: {
             responses: components["schemas"]["GuestRsvpResponseDto"][];
         };
+        TaskAssigneeDto: {
+            userId: string;
+            /** @example Meera Sharma */
+            displayName: string;
+        };
+        TaskDto: {
+            /** @example 6650f0c2a1b2c3d4e5f60801 */
+            id: string;
+            /** @example Book mehendi artist */
+            title: string;
+            description: string | null;
+            notes: string | null;
+            /** @enum {string} */
+            status: "TODO" | "IN_PROGRESS" | "BLOCKED" | "COMPLETED" | "CANCELLED";
+            /** @enum {string} */
+            priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+            /**
+             * Format: date
+             * @description YYYY-MM-DD in the wedding timezone; never a time. Past dates are allowed.
+             * @example 2027-02-12
+             */
+            dueDate: string | null;
+            /** @description Null for a whole-wedding task. */
+            eventId: string | null;
+            /** @example Mehendi */
+            eventName: string | null;
+            assignees: components["schemas"]["TaskAssigneeDto"][];
+            /** @description Due before today (wedding timezone) and not closed (0026 #8). */
+            isOverdue: boolean;
+            /** @description Due today and not closed: shown as "Due today". */
+            isDueToday: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        CreateTaskDto: {
+            description?: string | null;
+            /** @description One editable field, separate from the description and the history. */
+            notes?: string | null;
+            /**
+             * Format: date
+             * @description YYYY-MM-DD in the wedding timezone; never a time. Past dates are allowed.
+             * @example 2027-02-12
+             */
+            dueDate?: string | null;
+            /** @description An active event of the wedding; null for a whole-wedding task. */
+            eventId?: string | null;
+            /** @description The complete set of assignees: active members of the wedding (user IDs). Omit to leave assignees unchanged. */
+            assigneeIds?: string[];
+            /** @example Book mehendi artist */
+            title: string;
+            /**
+             * @default TODO
+             * @enum {string}
+             */
+            status: "TODO" | "IN_PROGRESS" | "BLOCKED" | "COMPLETED" | "CANCELLED";
+            /**
+             * @default MEDIUM
+             * @enum {string}
+             */
+            priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+        };
+        UpdateTaskDto: {
+            description?: string | null;
+            /** @description One editable field, separate from the description and the history. */
+            notes?: string | null;
+            /**
+             * Format: date
+             * @description YYYY-MM-DD in the wedding timezone; never a time. Past dates are allowed.
+             * @example 2027-02-12
+             */
+            dueDate?: string | null;
+            /** @description An active event of the wedding; null for a whole-wedding task. */
+            eventId?: string | null;
+            /** @description The complete set of assignees: active members of the wedding (user IDs). Omit to leave assignees unchanged. */
+            assigneeIds?: string[];
+            /** @example Book mehendi artist */
+            title?: string;
+            /** @enum {string} */
+            status?: "TODO" | "IN_PROGRESS" | "BLOCKED" | "COMPLETED" | "CANCELLED";
+            /** @enum {string} */
+            priority?: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+        };
+        AssignTaskDto: {
+            /** @description An active member of the wedding (user ID). */
+            userId: string;
+        };
+        TaskActivityDto: {
+            id: string;
+            /** @enum {string} */
+            action: "CREATED" | "UPDATED" | "STATUS_CHANGED" | "EVENT_CHANGED" | "EVENT_DELETED" | "ASSIGNEE_ADDED" | "ASSIGNEE_REMOVED" | "DELETED";
+            actorUserId: string;
+            /** @example Meera Sharma */
+            actorName: string;
+            /** @description For ASSIGNEE_ADDED and ASSIGNEE_REMOVED: the person assigned or unassigned. */
+            subjectName: string | null;
+            /** @description Values before the change, by field; long texts are not copied. */
+            oldValue: {
+                [key: string]: unknown;
+            } | null;
+            /** @description Values after the change, by field. UPDATED lists edited long texts in `fields`. */
+            newValue: {
+                [key: string]: unknown;
+            } | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
         DashboardEventDto: {
             id: string;
             /** @example Mehendi */
@@ -956,12 +1152,48 @@ export interface components {
             /** @example 9 */
             maybe: number;
         };
+        TaskCountsDto: {
+            /**
+             * @description TODO and IN_PROGRESS.
+             * @example 7
+             */
+            pending: number;
+            /** @example 1 */
+            blocked: number;
+            /** @example 4 */
+            completed: number;
+            /**
+             * @description Overlaps pending and blocked; CANCELLED is in no count.
+             * @example 2
+             */
+            overdue: number;
+        };
+        DashboardTaskDto: {
+            id: string;
+            /** @example Book mehendi artist */
+            title: string;
+            /** @enum {string} */
+            status: "TODO" | "IN_PROGRESS" | "BLOCKED" | "COMPLETED" | "CANCELLED";
+            /** @enum {string} */
+            priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+            /**
+             * Format: date
+             * @example 2027-02-05
+             */
+            dueDate: string;
+            isOverdue: boolean;
+            isDueToday: boolean;
+        };
         DashboardDto: {
             /** @description At most five events dated today or later (wedding timezone), by date then start time, untimed first. A dashboard limit only. */
             upcomingEvents: components["schemas"]["DashboardEventDto"][];
             guestTotals: components["schemas"]["GuestTotalsDto"];
             /** @description Counted assignments per status across all counted events, past and future. */
             rsvpBreakdown: components["schemas"]["RsvpBreakdownDto"];
+            /** @description Over tasks that are not deleted (0026 #20). */
+            taskCounts: components["schemas"]["TaskCountsDto"];
+            /** @description Open tasks due up to seven days after today, every overdue task included; by due date (overdue first), then priority. At most five; never undated tasks. */
+            upcomingTasks: components["schemas"]["DashboardTaskDto"][];
         };
     };
     responses: never;
@@ -2594,6 +2826,416 @@ export interface operations {
             };
             /** @description RATE_LIMITED — per link and per IP */
             429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    TasksController_list: {
+        parameters: {
+            query?: {
+                /** @description Repeatable. Default: every status except CANCELLED. */
+                status?: ("TODO" | "IN_PROGRESS" | "BLOCKED" | "COMPLETED" | "CANCELLED")[];
+                priority?: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+                /** @description An event ID, or `none` for whole-wedding tasks. */
+                eventId?: string;
+                /** @description Only overdue tasks. */
+                overdue?: boolean;
+                /** @description Only tasks assigned to the signed-in user. */
+                assignedToMe?: boolean;
+                /** @description Title contains the text, ignoring case. */
+                search?: string;
+                limit?: number;
+                /** @description `meta.pagination.nextCursor` of the previous page. */
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                weddingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["TaskDto"][];
+                        meta: components["schemas"]["PaginatedMetaDto"];
+                    };
+                };
+            };
+            /** @description VALIDATION_FAILED — invalid query or cursor */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND, or EVENT_NOT_FOUND for the event filter */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    TasksController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateTaskDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["TaskDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description VALIDATION_FAILED */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND, EVENT_NOT_FOUND or MEMBER_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    TasksController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                taskId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["TaskDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND or TASK_NOT_FOUND — missing, deleted or not a member */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    TasksController_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                taskId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @description Always null.
+                         * @example null
+                         */
+                        data: unknown;
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND or TASK_NOT_FOUND — missing, deleted or not a member */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    TasksController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                taskId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateTaskDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["TaskDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description VALIDATION_FAILED */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND, TASK_NOT_FOUND, EVENT_NOT_FOUND or MEMBER_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    TasksController_assign: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                taskId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignTaskDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["TaskDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description VALIDATION_FAILED */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND, TASK_NOT_FOUND or MEMBER_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    TasksController_unassign: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                taskId: string;
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["TaskDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND or TASK_NOT_FOUND — missing, deleted or not a member */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    TasksController_history: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                taskId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["TaskActivityDto"][];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND or TASK_NOT_FOUND — missing, deleted or not a member */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

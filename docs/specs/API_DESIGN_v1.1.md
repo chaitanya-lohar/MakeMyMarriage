@@ -174,6 +174,11 @@ GET /api/v1/weddings/{weddingId}/dashboard
 - Computed from current data on every request. No query parameters.
 - **Errors:** `401 UNAUTHENTICATED`; `404 WEDDING_NOT_FOUND` for a wedding the user is not
   an active member of, or an invalid ID.
+- **Tasks (Phase 7 — 0026 #20):** `taskCounts { pending, blocked, completed, overdue }` over
+  tasks that are not deleted (`CANCELLED` in none; `overdue` overlaps `pending` and
+  `blocked`), and `upcomingTasks`: every overdue task plus tasks due from today to seven days
+  after today, excluding `COMPLETED` and `CANCELLED`; overdue first (oldest due date
+  first), then due date, then priority; **at most five**; never undated tasks.
 - The countdown and wedding details come from `GET /weddings/{weddingId}`. Later modules add
   their own summaries when they are built (PRD §18).
 
@@ -429,7 +434,7 @@ POST /api/v1/weddings/{weddingId}/expenses
 - `category` is a fixed `ExpenseCategory` value (0010 #7); filter with `?category=`.
 - `amountMinor` is integer minor units (₹50,000 = 5000000 paise).
 
-## 13. Task API (Planned)
+## 13. Task API (Planned — Phase 7, decision 0026)
 
 | Method | Endpoint                                                  | Purpose       |
 | ------ | --------------------------------------------------------- | ------------- |
@@ -442,8 +447,33 @@ POST /api/v1/weddings/{weddingId}/expenses
 | DELETE | `/weddings/{weddingId}/tasks/{taskId}/assignees/{userId}` | Unassign      |
 | GET    | `/weddings/{weddingId}/tasks/{taskId}/activities`         | History       |
 
-Statuses `TODO`, `IN_PROGRESS`, `BLOCKED`, `COMPLETED`, `CANCELLED` (0010 #3, 0013). Note and
-attachment endpoints are designed with the Tasks phase (0010 #4).
+Statuses `TODO`, `IN_PROGRESS`, `BLOCKED`, `COMPLETED`, `CANCELLED` (0010 #3, 0013).
+Behaviour: [Phase 7 PRD v1.0](PHASE_7_PRD_v1.0.md).
+
+- **Fields:** `title` (required, 1–150), `description` and `notes` (each at most 1,000),
+  `status` (default `TODO`), `priority` (default `MEDIUM`), `dueDate` (`YYYY-MM-DD` or
+  `null`), `eventId` (an active event of the wedding, or `null` for a whole-wedding task).
+  Notes are a field, not a separate endpoint. **Attachment endpoints are deferred** (0026 #3).
+  Create and update also accept `assigneeIds`, the complete set of assignees, so a form saves
+  them with the task; the assign and unassign routes change one member at a time.
+- **Task DTO** adds `id`, `eventName`, `assignees` (member user IDs and display names),
+  `isOverdue`, `isDueToday` and timestamps. Create and update return `201` and `200` with it;
+  assign and unassign return `200` with it.
+- **History** `GET …/activities`: newest first, each with `action` (`CREATED`, `UPDATED`,
+  `STATUS_CHANGED`, `EVENT_CHANGED`, `EVENT_DELETED`, `ASSIGNEE_ADDED`, `ASSIGNEE_REMOVED`,
+  `DELETED`), `actorName`, `subjectName` (for assignee changes), `oldValue`, `newValue` and
+  `createdAt`. Edited descriptions and notes are named in `newValue.fields`, not copied.
+- **List** `GET …/tasks`: `status` (repeatable; default every status except `CANCELLED`),
+  `priority`, `eventId` (an event ID, or `none` for whole-wedding tasks), `overdue=true`,
+  `assignedToMe=true`, `search` (title contains, ignoring case), `limit` (25) and `cursor`
+  (§24). Order: `dueDate` ascending with undated last, then priority `URGENT` → `LOW`, then
+  newest first.
+- Any status may change to any other. Assigning a member already assigned changes nothing.
+- **Delete** is a soft delete: the task leaves every list, count and route (`404`); its
+  history is kept and an audit entry is written.
+- **Errors:** `400 VALIDATION_FAILED`; `404 WEDDING_NOT_FOUND`, `404 TASK_NOT_FOUND`,
+  `404 EVENT_NOT_FOUND` (event outside the wedding or deleted), `404 MEMBER_NOT_FOUND`
+  (assignee who is not an active member).
 
 ## 14. Vendor API (Planned)
 

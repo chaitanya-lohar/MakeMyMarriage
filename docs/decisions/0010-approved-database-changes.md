@@ -1,6 +1,7 @@
 # 0010 — Approved database changes
 
-**Status:** Accepted (includes resolution C4).
+**Status:** Accepted (includes resolution C4). #4 refined by 0026: notes designed, task
+attachments deferred.
 
 Each change is applied **when its module is implemented** — not as one up-front
 migration — after re-checking the exact schema against the latest PRD, System Design,

@@ -62,6 +62,9 @@ describe('Dashboard', () => {
       upcomingEvents: [],
       guestTotals: { guests: 0 },
       rsvpBreakdown: { pending: 0, attending: 0, declined: 0, maybe: 0 },
+      // Phase 7 (0026 #20); the task summaries are tested in tasks.int-spec.ts.
+      taskCounts: { pending: 0, blocked: 0, completed: 0, overdue: 0 },
+      upcomingTasks: [],
     });
   });
 

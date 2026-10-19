@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { EventsService, type WeddingEvent } from '../../../events/index.js';
 import { GuestsService, type RsvpStatus } from '../../../guests/index.js';
+import { TasksService, type TaskDashboard } from '../../../tasks/index.js';
 import { WeddingsService } from '../../../weddings/index.js';
 import { weddingNotFound } from '../../../workspace/index.js';
 import { todayIn, UPCOMING_EVENTS_LIMIT } from '../../domain/rules/dashboard-rules.js';
@@ -14,6 +15,8 @@ export interface Dashboard {
   upcomingEvents: UpcomingEventSummary[];
   guests: number;
   rsvpBreakdown: Record<RsvpStatus, number>;
+  /** Task counts and up to five upcoming tasks (Phase 7 PRD §8, decision 0026 #20). */
+  tasks: TaskDashboard;
 }
 
 /**
@@ -27,17 +30,19 @@ export class GetDashboardUseCase {
     private readonly weddings: WeddingsService,
     private readonly events: EventsService,
     private readonly guests: GuestsService,
+    private readonly tasks: TasksService,
   ) {}
 
   async execute(weddingId: string, now: Date = new Date()): Promise<Dashboard> {
     const wedding = await this.weddings.findById(weddingId);
     if (!wedding) throw weddingNotFound();
 
-    const [upcoming, activeEvents, guests] = await Promise.all([
+    const [upcoming, activeEvents, guests, tasks] = await Promise.all([
       // At most five, in date and start-time order, untimed first (0022 #1, #3).
       this.events.listActiveFrom(weddingId, todayIn(wedding.timezone, now), UPCOMING_EVENTS_LIMIT),
       this.events.listActive(weddingId),
       this.guests.countActive(weddingId),
+      this.tasks.dashboard(weddingId, now),
     ]);
     const [rsvpBreakdown, attending] = await Promise.all([
       // Across all counted events, past and future; a guest counts once per event.
@@ -59,6 +64,7 @@ export class GetDashboardUseCase {
       })),
       guests,
       rsvpBreakdown,
+      tasks,
     };
   }
 }
