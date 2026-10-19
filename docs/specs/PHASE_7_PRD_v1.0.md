@@ -2,7 +2,7 @@
 
 | Item         | Value                                                                                                                                                                    |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Status       | **Canonical** for Phase 7. Approved scope; not yet designed or built.                                                                                                    |
+| Status       | **Canonical** for Phase 7. Approved scope; screens approved (0027); not yet built.                                                                                       |
 | Date         | 2026-10-19                                                                                                                                                               |
 | Parent       | [PRD v1.2](PRD_v1.2.md) (sections 16 and 18)                                                                                                                             |
 | Decision     | [0026](../decisions/0026-phase-7-tasks.md), with 0010 #3–#4 and [0013](../decisions/0013-task-status-reporting.md)                                                       |
@@ -135,9 +135,10 @@ Added to the existing dashboard (PRD §18; API Design §6), computed on every re
 ## 10. UI
 
 - A **Tasks** item in the workspace navigation (PRD §29).
-- Screens, to be designed and approved in Stitch before they are built: task list (with its
+- Screens: approved in Stitch (decision 0027, with its corrections) — task list (with its
   filters and states), add and edit task, task page with the timeline, delete confirmation,
-  the dashboard task summary, and the event shortcut — on desktop and mobile.
+  the dashboard task summary, and the event shortcut — on desktop and mobile. The wording is
+  draft.
 - Reuse the workspace design system and patterns of Phases 3 and 4 (forms, confirm dialog,
   toasts, the date picker, "Load more").
 - Long titles wrap rather than overflow; actions stay reachable on small screens; every
