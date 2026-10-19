@@ -342,6 +342,7 @@ function FilterBar({
         <div className="hidden gap-3 md:flex">
           <FilterSelect
             label={tasksPage.statusFilter}
+            width="md:w-64"
             value={statusValue}
             onChange={(value) =>
               onChange({
@@ -424,14 +425,16 @@ function FilterSelect({
   value,
   onChange,
   options,
+  width = 'md:w-44',
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
   options: { value: string; label: string }[];
+  width?: string;
 }) {
   return (
-    <label className="relative md:w-48">
+    <label className={`relative ${width}`}>
       <span className="sr-only">{label}</span>
       <select
         value={value}
@@ -648,11 +651,11 @@ function TaskTable({ tasks }: { tasks: ApiTask[] }) {
       <table className="w-full table-fixed">
         <thead className="border-b border-hairline bg-surface-container-low">
           <tr>
-            <th className={`${header} w-[32%]`}>{tasksPage.columns.title}</th>
-            <th className={`${header} w-[15%]`}>{tasksPage.columns.event}</th>
+            <th className={`${header} w-[27%]`}>{tasksPage.columns.title}</th>
+            <th className={`${header} w-[17%]`}>{tasksPage.columns.event}</th>
             <th className={`${header} w-[13%]`}>{tasksPage.columns.status}</th>
-            <th className={`${header} w-[10%]`}>{tasksPage.columns.priority}</th>
-            <th className={`${header} w-[20%]`}>{tasksPage.columns.dueDate}</th>
+            <th className={`${header} w-[9%]`}>{tasksPage.columns.priority}</th>
+            <th className={`${header} w-[24%]`}>{tasksPage.columns.dueDate}</th>
             <th className={`${header} w-[10%] text-right`}>{tasksPage.columns.assignee}</th>
           </tr>
         </thead>
