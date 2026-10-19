@@ -8,17 +8,18 @@ Use only these for implementation. Precedence is set by
 [decision 0004](decisions/0004-specification-authority.md): an accepted decision record
 overrides a specification only for the scope it covers.
 
-| Document                                          | Defines                                                   |
-| ------------------------------------------------- | --------------------------------------------------------- |
-| [PROJECT_STATUS.md](PROJECT_STATUS.md)            | Current phase, branches, open decisions, working rules    |
-| [Decision records 0001–0025](decisions/README.md) | Approved decisions and what they supersede                |
-| [PRD v1.2](specs/PRD_v1.2.md)                     | Master product scope and behaviour                        |
-| [Phase 4 PRD v1.2](specs/PHASE_4_PRD_v1.2.md)     | Phase 4 requirements and acceptance criteria (built)      |
-| [System Design v1.3](specs/SYSTEM_DESIGN_v1.3.md) | Architecture, deployment, module boundaries               |
-| [Database Design v1.1](specs/DB_DESIGN_v1.1.md)   | Collections, fields, indexes, lifecycle, transactions     |
-| [API Design v1.1](specs/API_DESIGN_v1.1.md)       | Routes (authoritative), payloads, errors, authorization   |
-| [DEPLOYMENT.md](DEPLOYMENT.md)                    | How to deploy on Vercel, Atlas, Upstash and Resend (0025) |
-| Google Stitch project `11709379677369700007`      | Approved screens, as corrected in decisions 0014–0016     |
+| Document                                          | Defines                                                             |
+| ------------------------------------------------- | ------------------------------------------------------------------- |
+| [PROJECT_STATUS.md](PROJECT_STATUS.md)            | Current phase, branches, open decisions, working rules              |
+| [Decision records 0001–0026](decisions/README.md) | Approved decisions and what they supersede                          |
+| [PRD v1.2](specs/PRD_v1.2.md)                     | Master product scope and behaviour                                  |
+| [Phase 4 PRD v1.2](specs/PHASE_4_PRD_v1.2.md)     | Phase 4 requirements and acceptance criteria (built)                |
+| [Phase 7 PRD v1.0](specs/PHASE_7_PRD_v1.0.md)     | Phase 7 tasks: requirements and acceptance criteria (next to build) |
+| [System Design v1.3](specs/SYSTEM_DESIGN_v1.3.md) | Architecture, deployment, module boundaries                         |
+| [Database Design v1.1](specs/DB_DESIGN_v1.1.md)   | Collections, fields, indexes, lifecycle, transactions               |
+| [API Design v1.1](specs/API_DESIGN_v1.1.md)       | Routes (authoritative), payloads, errors, authorization             |
+| [DEPLOYMENT.md](DEPLOYMENT.md)                    | How to deploy on Vercel, Atlas, Upstash and Resend (0025)           |
+| Google Stitch project `11709379677369700007`      | Approved screens, as corrected in decisions 0014–0016               |
 
 The exact contract of built endpoints is the generated
 `packages/api-client/openapi.json`.

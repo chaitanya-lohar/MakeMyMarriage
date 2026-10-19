@@ -1,6 +1,7 @@
 # 0013 — Task status reporting
 
-**Status:** Accepted (resolutions C5 and N2).
+**Status:** Accepted (resolutions C5 and N2). The overdue rule is clarified by 0026 #8: the
+due date is a calendar date, and a task is overdue from the day after it.
 
 PRD v1.1 §26 and System Design v1.2 §26 define the task report buckets as completed,
 pending, blocked and overdue. The approved statuses (0010 #3) map to them as follows:

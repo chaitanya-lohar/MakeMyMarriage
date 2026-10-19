@@ -286,7 +286,7 @@ Domain action (API) → channel adapter
 ### 12.2 Tasks
 
 - Wedding-level or event-level tasks with title, description, due date, priority, status,
-  assignees, event, notes and attachments.
+  assignees, event and notes; attachments deferred (0026). Specified in the Phase 7 PRD.
 - Statuses: `TODO`, `IN_PROGRESS`, `BLOCKED`, `COMPLETED`, `CANCELLED`; reporting rules in
   decision 0013.
 - Overdue and upcoming tasks appear on the dashboard.
@@ -390,15 +390,15 @@ QR → secure token → validate status and scope → upload session
 
 ## 20. Amazon S3
 
-| Data                 | Storage        |
-| -------------------- | -------------- |
-| Guest photos         | S3             |
-| Cover images         | S3             |
-| Expense receipts     | S3             |
-| Task attachments     | S3             |
-| Vendor attachments   | S3             |
-| Report exports       | S3 (temporary) |
-| Application metadata | MongoDB Atlas  |
+| Data                 | Storage            |
+| -------------------- | ------------------ |
+| Guest photos         | S3                 |
+| Cover images         | S3                 |
+| Expense receipts     | S3                 |
+| Task attachments     | Deferred (0026 #3) |
+| Vendor attachments   | S3                 |
+| Report exports       | S3 (temporary)     |
+| Application metadata | MongoDB Atlas      |
 
 - Private files use controlled access and presigned URLs; public media may use a CDN.
 - Server-side validation controls file type and size; object keys are opaque and

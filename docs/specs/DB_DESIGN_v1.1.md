@@ -586,7 +586,7 @@ The limits here and in §9 are approved (0019 #6).
 }
 ```
 
-## 13. Tasks (Planned — decisions 0010 #3, #4 and 0013)
+## 13. Tasks (Planned — Phase 7; decisions 0010 #3, #4, 0013 and 0026)
 
 ### 13.1 `tasks`
 
@@ -594,11 +594,12 @@ The limits here and in §9 are approved (0019 #6).
 {
   _id: ObjectId,
   weddingId: ObjectId,
-  title: string,
-  description?: string,
-  status: string,       // TODO, IN_PROGRESS, BLOCKED, COMPLETED, CANCELLED
-  priority: string,     // LOW, MEDIUM, HIGH, URGENT
-  dueDate?: Date,
+  title: string,       // 1–150 characters (0026 #6)
+  description?: string, // at most 1,000
+  notes?: string,       // at most 1,000; one field (0026 #4)
+  status: string,       // TODO (default), IN_PROGRESS, BLOCKED, COMPLETED, CANCELLED
+  priority: string,     // LOW, MEDIUM (default), HIGH, URGENT
+  dueDate?: Date,       // midnight UTC of the calendar date, wedding timezone (0026 #7), as for events
   eventId?: ObjectId,
   createdBy: ObjectId,
   createdAt: Date,
@@ -608,9 +609,15 @@ The limits here and in §9 are approved (0019 #6).
 }
 ```
 
-- **Approved addition (0010 #4):** task notes and task attachments, designed in the Tasks
-  phase (attachments in S3, metadata in MongoDB).
-- Reporting buckets and the overdue rule: decision 0013.
+- **Notes** (0010 #4) are the `notes` field above. **Task attachments are deferred** to the
+  first phase that adds file storage (0026 #3).
+- Reporting buckets: decision 0013. Overdue: `dueDate` before today in the wedding's
+  timezone and status neither `COMPLETED` nor `CANCELLED`, computed on read (0026 #8).
+- `eventId` references an active event of the same wedding. Deleting an event clears it on
+  every linked task, which becomes a whole-wedding task, and records a `task_activities`
+  entry for each (0026 #12).
+- Deleting a task is a soft delete; its assignments and activities are kept, and an
+  `audit_logs` entry is written (0026 #10, #17).
 
 ### 13.2 `task_assignments`
 
@@ -626,6 +633,10 @@ Unique `(taskId, userId)`; a task can have several assignees.
 { _id, weddingId: ObjectId, taskId: ObjectId, actorUserId: ObjectId, action: string,
   oldValue?: object, newValue?: object, createdAt: Date }
 ```
+
+- Actions: created, fields edited, status changed, assignee added or removed, event link
+  changed or removed (including by a deleted event), deleted (0026 #15). This history is
+  the record of task changes; only deletion is also written to `audit_logs` (0026 #17).
 
 ## 14. Vendor management and discovery (Planned)
 
@@ -887,7 +898,8 @@ Indexes support a known access pattern, uniqueness rule or job; each adds write 
 ```
 
 Audit important security and business events (membership and permission changes, RSVP
-updates, expense edits, task changes, vendor lifecycle, website publish and unpublish, QR and
+updates, expense edits, task deletion (other task changes are in `task_activities` — 0026
+#17), vendor lifecycle, website publish and unpublish, QR and
 invitation token revocation and regeneration), not every read. Retention is open.
 
 Phase 4 writes audit entries at least for organizer resets of an RSVP to `PENDING` (0018),

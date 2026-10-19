@@ -74,7 +74,8 @@ invitations (answer Q3).
 - Lists sort by date, then start time; events without a start time come first on their day.
 - Deleting an event removes it from active event lists, active assignments and all active
   counts. Its guest-event RSVP records and invitation delivery and activity history are
-  kept; nothing related is hard-deleted.
+  kept; nothing related is hard-deleted. Since Phase 7, its tasks become whole-wedding tasks
+  (0026 #12).
 
 ## 4. Guests
 
