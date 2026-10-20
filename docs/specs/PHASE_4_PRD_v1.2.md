@@ -16,6 +16,7 @@
 | 1.1     | 2026-10-10 | "Final" draft in the reconciled set.                                                      |
 | 1.2     | 2026-10-10 | Corrected after the documentation audit and the product-owner answers Q2, Q3, Q6, Q7, Q8. |
 | 1.2     | 2026-10-14 | Decision 0025: emails sent during the request; no worker and no automatic retry.          |
+| 1.2     | 2026-10-20 | Decision 0028: deleting an event also makes its expenses whole-wedding expenses (§3.2).   |
 
 ## 1. Purpose and outcomes
 
@@ -75,7 +76,7 @@ invitations (answer Q3).
 - Deleting an event removes it from active event lists, active assignments and all active
   counts. Its guest-event RSVP records and invitation delivery and activity history are
   kept; nothing related is hard-deleted. Since Phase 7, its tasks become whole-wedding tasks
-  (0026 #12).
+  (0026 #12); from Phase 8, its expenses become whole-wedding expenses (0028 #17).
 
 ## 4. Guests
 

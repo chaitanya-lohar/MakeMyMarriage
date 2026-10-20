@@ -10,11 +10,12 @@
 | Tenant boundary | Wedding                                                  |
 | Supersedes      | Database Design v1.0 (archived in `docs/archive/specs/`) |
 
-| Version | Date       | Change                                                                                                 |
-| ------- | ---------- | ------------------------------------------------------------------------------------------------------ |
-| 1.0     | 2026-09-24 | Baseline design.                                                                                       |
-| 1.1     | 2026-10-10 | Consolidated: v1.0 plus decisions 0008–0010, 0012, 0013, 0015–0019 and the schema built in Phases 2–3. |
-| 1.1     | 2026-10-14 | Decision 0025: no job queue; invitation emails are sent during the request. No schema change.          |
+| Version | Date       | Change                                                                                                                      |
+| ------- | ---------- | --------------------------------------------------------------------------------------------------------------------------- |
+| 1.0     | 2026-09-24 | Baseline design.                                                                                                            |
+| 1.1     | 2026-10-10 | Consolidated: v1.0 plus decisions 0008–0010, 0012, 0013, 0015–0019 and the schema built in Phases 2–3.                      |
+| 1.1     | 2026-10-14 | Decision 0025: no job queue; invitation emails are sent during the request. No schema change.                               |
+| 1.1     | 2026-10-20 | Decision 0028 (Phase 8): payer moved to payments, `paidMinor` and a server-set status, no `description`, receipts deferred. |
 
 **Status of each collection** — _Built_: exists in code. _Phase 4_: designed and approved for
 Phase 4. _Planned_: carried from v1.0 with approved changes; re-checked against the PRD
@@ -107,9 +108,9 @@ then runs a query constrained by `weddingId`.
 | `resource_shares`       | Explicit resource sharing                 | Sharing       | Planned                                                               |
 | `notifications`         | Recipient-specific notifications          | Notifications | Planned                                                               |
 | `reminders`             | Reminder configuration                    | Notifications | Planned (cadence deferred)                                            |
-| `expenses`              | Wedding expenses                          | Expenses      | Planned                                                               |
-| `expense_payments`      | Instalment and payment history            | Expenses      | Planned                                                               |
-| `expense_receipts`      | S3 receipt metadata                       | Expenses      | Planned                                                               |
+| `expenses`              | Wedding expenses                          | Expenses      | Planned — Phase 8 (0028)                                              |
+| `expense_payments`      | Instalment and payment history            | Expenses      | Planned — Phase 8 (0028)                                              |
+| `expense_receipts`      | S3 receipt metadata                       | Expenses      | Deferred (0028 #3)                                                    |
 | `tasks`                 | Wedding tasks                             | Tasks         | Planned                                                               |
 | `task_assignments`      | Task ↔ member assignment                  | Tasks         | Planned                                                               |
 | `task_activities`       | Task history                              | Tasks         | Planned                                                               |
@@ -517,7 +518,7 @@ The limits here and in §9 are approved (0019 #6).
 - Sketch only. Reminder cadence, defaults and user customization are deferred (PRD v1.2
   §14); this collection is not a mandate to build configurable schedules.
 
-## 12. Expenses and payments (Planned — decisions 0009, 0010 #5–#8)
+## 12. Expenses and payments (Planned — Phase 8; decisions 0009, 0010 #5–#8 and 0028)
 
 ### 12.1 `expenses`
 
@@ -525,20 +526,17 @@ The limits here and in §9 are approved (0019 #6).
 {
   _id: ObjectId,
   weddingId: ObjectId,
-  title: string,
-  description?: string,
-  amountMinor: number,       // integer minor units
-  currency: string,          // INR in V1
+  title: string,             // 1–150 characters (0028 #11)
+  amountMinor: number,       // integer paise; the full cost; 1 to 10,000,000,000 (₹10 crore)
+  paidMinor: number,         // integer paise; sum of the payments; 0 to amountMinor (0028 #8)
+  currency: string,          // INR, set by the server
   category: string,          // VENUE, CATERING, DECORATION, PHOTOGRAPHY, CLOTHING, JEWELLERY,
                              // MAKEUP, ENTERTAINMENT, INVITATIONS, GIFTS, MISCELLANEOUS
   eventId?: ObjectId,
-  vendorId?: ObjectId,
-  paidByType: string,        // WEDDING_MEMBER, EXTERNAL_PERSON
-  paidByUserId?: ObjectId,
-  paidByName?: string,
-  expenseDate: Date,
-  paymentStatus: string,     // PENDING, PARTIALLY_PAID, PAID — no CANCELLED in V1 (0018)
-  notes?: string,
+  vendorId?: ObjectId,       // kept for Phase 9; not set in Phase 8 (0028 #4)
+  expenseDate: Date,         // midnight UTC of the calendar date, wedding timezone, as for events
+  paymentStatus: string,     // PENDING, PARTIALLY_PAID, PAID — server-set; no CANCELLED (0018)
+  notes?: string,            // at most 1,000
   createdBy: ObjectId,
   createdAt: Date,
   updatedAt: Date,
@@ -550,27 +548,44 @@ The limits here and in §9 are approved (0019 #6).
 - **No `visibility` field.** Expenses are shared with the connected partner; one record per
   expense, never duplicated to share it; authorization applies to every read and write.
 - `categoryId` (v1.0) is replaced by the fixed `category` value; no category collection.
-- External payers such as parents use `paidByName`.
+- **No `description`** (0028 #11) and **no payer on the expense**: the payer is recorded on
+  each payment (0028 #12).
+- `paymentStatus` is derived from `paidMinor` and `amountMinor` (`PENDING` when 0,
+  `PARTIALLY_PAID` when less, `PAID` when equal) and written by the server only (0028 #7).
+- `eventId` references an active event of the same wedding. Deleting an event clears it on
+  every linked expense, which becomes a whole-wedding expense, and writes an `audit_logs`
+  entry for each (0028 #17).
+- Deleting an expense is a soft delete; its payments are kept (0028 #16).
 
 ### 12.2 `expense_payments`
 
 ```ts
 {
   _id: ObjectId,
+  weddingId: ObjectId,
   expenseId: ObjectId,
-  amountMinor: number,
-  paidByUserId?: ObjectId,
-  paymentDate: Date,
+  amountMinor: number,       // integer paise, more than 0
+  paidByType: string,        // WEDDING_MEMBER, EXTERNAL_PERSON (0028 #12)
+  paidByUserId?: ObjectId,   // an active member, when WEDDING_MEMBER
+  paidByName?: string,       // 1–100 characters, when EXTERNAL_PERSON, e.g. "Bride's father"
+  paymentDate: Date,         // calendar date, today or earlier in the wedding timezone
   paymentMethod?: string,    // CASH, UPI, BANK_TRANSFER, CARD, CHEQUE, OTHER
-  referenceNumber?: string,
-  notes?: string,
+  referenceNumber?: string,  // at most 100
+  notes?: string,            // at most 500
   createdBy: ObjectId,
   createdAt: Date,
   updatedAt: Date
 }
 ```
 
-### 12.3 `expense_receipts`
+- The payments are the source of truth for `expenses.paidMinor`. Adding, editing or removing
+  a payment updates `paidMinor` and `paymentStatus` in the same transaction (§24, §27).
+- Removing a payment deletes the record; the audit entry keeps its values (0028 #18).
+
+### 12.3 `expense_receipts` (Deferred — 0028 #3)
+
+Receipts need file storage, which is not set up (0025). Not built in Phase 8; kept here as
+the design for when a storage decision is made.
 
 ```ts
 {
@@ -838,37 +853,37 @@ Excel only; generated files are temporary, not permanent business data.
 
 ## 20. Indexes and uniqueness
 
-| Collection              | Index / constraint                                                                                          | Purpose                        | Status  |
-| ----------------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------ | ------- |
-| `users`                 | `email` UNIQUE                                                                                              | Login identity                 | Built   |
-| `auth_sessions`         | `userId`                                                                                                    | Revoke all sessions            | Built   |
-| `password_reset_tokens` | `tokenHash` UNIQUE                                                                                          | Token lookup                   | Built   |
-| `wedding_memberships`   | `(userId, weddingId)` UNIQUE                                                                                | No duplicate membership        | Built   |
-| `wedding_memberships`   | `userId` UNIQUE where `memberType = OWNER`                                                                  | One owned wedding per user     | Built   |
-| `events`                | `(weddingId, date, startTime)`                                                                              | Event listing and order        | Phase 4 |
-| `events`                | `(weddingId, deletedAt)`                                                                                    | Active/deleted filtering       | Phase 4 |
-| `guests`                | `(weddingId, name)`                                                                                         | Guest search                   | Phase 4 |
-| `guests`                | `(weddingId, mobile)`                                                                                       | Lookup and duplicate warning   | Phase 4 |
-| `guests`                | `(weddingId, deletedAt)`                                                                                    | Active/deleted filtering       | Phase 4 |
-| `guest_events`          | `(weddingId, guestId, eventId)` UNIQUE where `isActive = true`                                              | One active assignment          | Phase 4 |
-| `guest_events`          | `(weddingId, eventId, rsvpStatus)`                                                                          | Event RSVP counts and filters  | Phase 4 |
-| `guest_invitations`     | `guestId` UNIQUE                                                                                            | One invitation per guest       | Phase 4 |
-| `guest_invitations`     | `tokenHash` UNIQUE (partial: when present)                                                                  | Token lookup                   | Phase 4 |
-| `invitation_deliveries` | `(guestInvitationId, createdAt)`                                                                            | Delivery history               | Phase 4 |
-| `invitation_deliveries` | `idempotencyKey` UNIQUE                                                                                     | No repeated sends              | Phase 4 |
-| `invitation_deliveries` | `(status, createdAt)`                                                                                       | Recent failures                | Phase 4 |
-| `invitation_activities` | `(guestInvitationId, occurredAt)`                                                                           | Activity history               | Phase 4 |
-| `expenses`              | `(weddingId, expenseDate)`, `(weddingId, category)`, `(weddingId, paymentStatus)`, `(weddingId, createdAt)` | Reporting and filters          | Planned |
-| `expense_payments`      | `(expenseId, paymentDate)`                                                                                  | Payment history                | Planned |
-| `tasks`                 | `(weddingId, status)`, `(weddingId, priority)`, `(weddingId, dueDate)`, `(weddingId, eventId)`              | Board and filters              | Planned |
-| `task_assignments`      | `(taskId, userId)` UNIQUE; `(userId, weddingId)`                                                            | Assignees; my tasks            | Planned |
-| `task_activities`       | `(taskId, createdAt)`                                                                                       | History                        | Planned |
-| `wedding_vendors`       | `(weddingId, category)`, `(weddingId, status)`, `(weddingId, deletedAt)`                                    | Filters                        | Planned |
-| `wedding_websites`      | `publicIdentifier` UNIQUE; `weddingId` UNIQUE                                                               | Public lookup; one per wedding | Planned |
-| `memory_qrs`            | `tokenHash` UNIQUE; `(weddingId, status)`; `(eventId, status)`                                              | QR lookup and management       | Planned |
-| `notifications`         | `(recipientUserId, isRead, createdAt)`; `(recipientUserId, createdAt)`; `(weddingId, createdAt)`            | Feeds                          | Planned |
-| `live_streams`          | `(weddingId, eventId)`; `(weddingId, status)`                                                               | Stream lookup                  | Planned |
-| `report_exports`        | `(weddingId, createdAt)`; `(requestedBy, createdAt)`; `(status, createdAt)`                                 | History and processing         | Planned |
+| Collection              | Index / constraint                                                                                                                  | Purpose                        | Status  |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ | ------- |
+| `users`                 | `email` UNIQUE                                                                                                                      | Login identity                 | Built   |
+| `auth_sessions`         | `userId`                                                                                                                            | Revoke all sessions            | Built   |
+| `password_reset_tokens` | `tokenHash` UNIQUE                                                                                                                  | Token lookup                   | Built   |
+| `wedding_memberships`   | `(userId, weddingId)` UNIQUE                                                                                                        | No duplicate membership        | Built   |
+| `wedding_memberships`   | `userId` UNIQUE where `memberType = OWNER`                                                                                          | One owned wedding per user     | Built   |
+| `events`                | `(weddingId, date, startTime)`                                                                                                      | Event listing and order        | Phase 4 |
+| `events`                | `(weddingId, deletedAt)`                                                                                                            | Active/deleted filtering       | Phase 4 |
+| `guests`                | `(weddingId, name)`                                                                                                                 | Guest search                   | Phase 4 |
+| `guests`                | `(weddingId, mobile)`                                                                                                               | Lookup and duplicate warning   | Phase 4 |
+| `guests`                | `(weddingId, deletedAt)`                                                                                                            | Active/deleted filtering       | Phase 4 |
+| `guest_events`          | `(weddingId, guestId, eventId)` UNIQUE where `isActive = true`                                                                      | One active assignment          | Phase 4 |
+| `guest_events`          | `(weddingId, eventId, rsvpStatus)`                                                                                                  | Event RSVP counts and filters  | Phase 4 |
+| `guest_invitations`     | `guestId` UNIQUE                                                                                                                    | One invitation per guest       | Phase 4 |
+| `guest_invitations`     | `tokenHash` UNIQUE (partial: when present)                                                                                          | Token lookup                   | Phase 4 |
+| `invitation_deliveries` | `(guestInvitationId, createdAt)`                                                                                                    | Delivery history               | Phase 4 |
+| `invitation_deliveries` | `idempotencyKey` UNIQUE                                                                                                             | No repeated sends              | Phase 4 |
+| `invitation_deliveries` | `(status, createdAt)`                                                                                                               | Recent failures                | Phase 4 |
+| `invitation_activities` | `(guestInvitationId, occurredAt)`                                                                                                   | Activity history               | Phase 4 |
+| `expenses`              | `(weddingId, expenseDate)`, `(weddingId, category)`, `(weddingId, paymentStatus)`, `(weddingId, eventId)`, `(weddingId, createdAt)` | Reporting and filters          | Planned |
+| `expense_payments`      | `(expenseId, paymentDate)`; `(weddingId, expenseId)`                                                                                | Payment history                | Planned |
+| `tasks`                 | `(weddingId, status)`, `(weddingId, priority)`, `(weddingId, dueDate)`, `(weddingId, eventId)`                                      | Board and filters              | Planned |
+| `task_assignments`      | `(taskId, userId)` UNIQUE; `(userId, weddingId)`                                                                                    | Assignees; my tasks            | Planned |
+| `task_activities`       | `(taskId, createdAt)`                                                                                                               | History                        | Planned |
+| `wedding_vendors`       | `(weddingId, category)`, `(weddingId, status)`, `(weddingId, deletedAt)`                                                            | Filters                        | Planned |
+| `wedding_websites`      | `publicIdentifier` UNIQUE; `weddingId` UNIQUE                                                                                       | Public lookup; one per wedding | Planned |
+| `memory_qrs`            | `tokenHash` UNIQUE; `(weddingId, status)`; `(eventId, status)`                                                                      | QR lookup and management       | Planned |
+| `notifications`         | `(recipientUserId, isRead, createdAt)`; `(recipientUserId, createdAt)`; `(weddingId, createdAt)`                                    | Feeds                          | Planned |
+| `live_streams`          | `(weddingId, eventId)`; `(weddingId, status)`                                                                                       | Stream lookup                  | Planned |
+| `report_exports`        | `(weddingId, createdAt)`; `(requestedBy, createdAt)`; `(status, createdAt)`                                                         | History and processing         | Planned |
 
 Indexes support a known access pattern, uniqueness rule or job; each adds write cost.
 
@@ -898,7 +913,7 @@ Indexes support a known access pattern, uniqueness rule or job; each adds write 
 ```
 
 Audit important security and business events (membership and permission changes, RSVP
-updates, expense edits, task deletion (other task changes are in `task_activities` — 0026
+updates, expense and payment changes (0028 #18), task deletion (other task changes are in `task_activities` — 0026
 #17), vendor lifecycle, website publish and unpublish, QR and
 invitation token revocation and regeneration), not every read. Retention is open.
 
@@ -920,16 +935,16 @@ link by an organizer (0019).
 
 ## 24. Transaction and consistency rules
 
-| Operation                         | Guidance                                                  |
-| --------------------------------- | --------------------------------------------------------- |
-| Simple CRUD                       | No transaction                                            |
-| Create wedding + OWNER membership | Transaction (Built — 0016)                                |
-| Accept partner invitation         | Transaction: membership and connection change together    |
-| Create expense + first payment    | Transaction if both must succeed or fail together         |
-| Regenerate or revoke a token      | Single-document update                                    |
-| Upload photo                      | S3 and metadata coordinated with compensating cleanup     |
-| Publish website                   | Transaction only if several documents change together     |
-| RSVP update                       | Single-document update; audit per consistency requirement |
+| Operation                         | Guidance                                                                    |
+| --------------------------------- | --------------------------------------------------------------------------- |
+| Simple CRUD                       | No transaction                                                              |
+| Create wedding + OWNER membership | Transaction (Built — 0016)                                                  |
+| Accept partner invitation         | Transaction: membership and connection change together                      |
+| Add, edit or remove a payment     | Transaction: the payment and the expense's `paidMinor` and status (0028 #8) |
+| Regenerate or revoke a token      | Single-document update                                                      |
+| Upload photo                      | S3 and metadata coordinated with compensating cleanup                       |
+| Publish website                   | Transaction only if several documents change together                       |
+| RSVP update                       | Single-document update; audit per consistency requirement                   |
 
 Transactions are a consistency tool, not a wrapper around every repository call.
 
@@ -975,7 +990,9 @@ Transactions are a consistency tool, not a wrapper around every repository call.
   change it.
 - `publicIdentifier` and `memory_qrs.tokenHash` are globally unique.
 - No duplicate task assignee.
-- Expense payment totals are validated against payment status in the application.
+- An expense's `paidMinor` equals the sum of its payments and never exceeds `amountMinor`;
+  `paymentStatus` follows from the two (0028 #7, #8). Each payment change updates the expense
+  with a conditional update in the same transaction, so concurrent requests cannot overpay.
 - Every wedding-scoped query is tenant-scoped and authorization-checked.
 
 ## 28. Growth and scalability

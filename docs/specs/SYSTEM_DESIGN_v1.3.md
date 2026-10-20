@@ -21,6 +21,7 @@
 | 1.0–1.2 | 2026-09    | Architecture baselines.                                                                         |
 | 1.3     | 2026-10-10 | Consolidated: v1.2 plus decisions 0001, 0002, 0005–0007, 0012, 0015–0018 and answers Q1 and Q4. |
 | 1.3     | 2026-10-14 | Decision 0025: Vercel-only hosting; no worker or job queue; email sent directly.                |
+| 1.3     | 2026-10-20 | Decision 0028: expenses (§12.1); receipts deferred (§20).                                       |
 
 ## 1. Purpose and scope
 
@@ -278,9 +279,10 @@ Domain action (API) → channel adapter
 
 ### 12.1 Expenses
 
-- Actual expenses only: amount, fixed category (0010 #7), date, optional event, optional
-  vendor, paid by, payment status, payment method, notes, optional receipt.
-- Receipts are stored in S3.
+- Actual expenses only: title, amount, fixed category (0010 #7), date, optional event,
+  optional vendor (from Phase 9), notes; several payments, each with its payer, date and
+  method; payment status calculated from the payments (0028). Specified in the Phase 8 PRD.
+- Receipts are deferred until a file-storage decision (0028 #3).
 - Expenses are shared with the connected partner; no per-expense visibility field (0009).
 
 ### 12.2 Tasks
@@ -394,7 +396,7 @@ QR → secure token → validate status and scope → upload session
 | -------------------- | ------------------ |
 | Guest photos         | S3                 |
 | Cover images         | S3                 |
-| Expense receipts     | S3                 |
+| Expense receipts     | Deferred (0028 #3) |
 | Task attachments     | Deferred (0026 #3) |
 | Vendor attachments   | S3                 |
 | Report exports       | S3 (temporary)     |

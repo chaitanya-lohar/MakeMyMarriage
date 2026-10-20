@@ -5,8 +5,8 @@ phase, branches, open decisions, working rules) and the documentation index
 [`docs/README.md`](docs/README.md) (canonical documents and reading order).
 
 Canonical documents: decision records in `docs/decisions/`, and in `docs/specs/` the
-PRD v1.2, the current feature PRD (Phase 7 PRD v1.0; Phase 4 PRD v1.2 for the built
-phase), System Design v1.3, Database Design
+PRD v1.2, the current feature PRD (Phase 8 PRD v1.0; Phase 7 PRD v1.0 and Phase 4 PRD
+v1.2 for the built phases), System Design v1.3, Database Design
 v1.1 and API Design v1.1. Never implement from `docs/archive/` or from superseded `.docx`
 originals.
 
