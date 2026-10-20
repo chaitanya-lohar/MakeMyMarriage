@@ -179,7 +179,9 @@ GET /api/v1/weddings/{weddingId}/dashboard
   tasks that are not deleted (`CANCELLED` in none; `overdue` overlaps `pending` and
   `blocked`), and `upcomingTasks`: every overdue task plus tasks due from today to seven days
   after today, excluding `COMPLETED` and `CANCELLED`; overdue first (oldest due date
-  first), then due date, then priority; **at most five**; never undated tasks.
+  first), then due date, then priority; **at most five**; never undated tasks. `hasTasks`
+  is true when the wedding has any task that is not deleted, `CANCELLED` included, so the
+  card can tell "no tasks yet" from "every task cancelled" (0026 #20, amended 2026-10-20).
 - **Expenses (Phase 8 — 0028 #23):** `expenseSummary { totalMinor, paidMinor, pendingMinor,
 byCategory: [{ category, totalMinor }], byEvent: [{ eventId, eventName, totalMinor }] }` over
   expenses that are not deleted. `byCategory` lists only categories with expenses and
