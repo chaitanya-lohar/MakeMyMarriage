@@ -2,7 +2,7 @@
 
 | Item         | Value                                                                                                                                                                                      |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Status       | **Canonical** for Phase 8. Approved scope; screens not yet designed; **not implemented**.                                                                                                  |
+| Status       | **Canonical** for Phase 8. Approved scope; screens approved (0029); **not implemented**.                                                                                                   |
 | Date         | 2026-10-20                                                                                                                                                                                 |
 | Parent       | [PRD v1.2](PRD_v1.2.md) (sections 15 and 18)                                                                                                                                               |
 | Decision     | [0028](../decisions/0028-phase-8-expenses.md), with [0009](../decisions/0009-expense-sharing.md), 0010 #5–#8 and 0018                                                                      |
@@ -12,6 +12,7 @@
 | Version | Date       | Change                                                     |
 | ------- | ---------- | ---------------------------------------------------------- |
 | 1.0     | 2026-10-20 | First version, from the Phase 8 discovery (decision 0028). |
+| 1.0     | 2026-10-21 | §10: screens approved in Stitch (decision 0029).           |
 
 ## 1. Purpose and outcomes
 
@@ -164,10 +165,12 @@ expenses that are not deleted:
 ## 10. UI
 
 - An **Expenses** item in the workspace navigation, after Tasks (PRD §29).
-- Screens to design and approve in Stitch before building: expense list (with totals,
-  filters and states), add and edit expense, expense page with payments, add and edit
-  payment (including "Mark as fully paid"), the delete and remove confirmations, the
-  dashboard expense summary, and the event shortcut — on desktop and mobile.
+- Screens: approved in Stitch (decision 0029, with its corrections) — expense list (with
+  totals, filters and states), add and edit expense, expense page with payments, add and
+  edit payment (including "Mark as fully paid"), the delete and remove confirmations (the
+  remove dialog previews paid and pending before and after), the dashboard expense card,
+  and the event shortcut — on desktop and mobile. A payment is removed only from its row.
+  The wording is draft.
 - Reuse the workspace design system and the patterns of Phases 3, 4 and 7 (forms, confirm
   dialog, toasts, the date picker, "Load more").
 - Amounts are right-aligned and use tabular figures; long titles wrap; actions stay
