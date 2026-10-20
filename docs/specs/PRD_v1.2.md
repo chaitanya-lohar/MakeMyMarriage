@@ -2,16 +2,16 @@
 
 Production-ready wedding planning and management platform for Indian weddings.
 
-| Item         | Value                                                                 |
-| ------------ | --------------------------------------------------------------------- |
-| Product      | MakeMyMarriage                                                        |
-| Version      | 1.2 (consolidated master)                                             |
-| Status       | **Canonical** product baseline                                        |
-| Date         | 2026-10-10                                                            |
-| Users        | Bride, Groom, Organizers, Guests                                      |
-| Deployment   | Public online product                                                 |
-| Supersedes   | PRD v1.1 and PRD v1.0 (archived in `docs/archive/specs/`)             |
-| Feature PRDs | [Phase 4 — Events, guests, RSVP and invitations](PHASE_4_PRD_v1.2.md) |
+| Item         | Value                                                                                                                                                    |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Product      | MakeMyMarriage                                                                                                                                           |
+| Version      | 1.2 (consolidated master)                                                                                                                                |
+| Status       | **Canonical** product baseline                                                                                                                           |
+| Date         | 2026-10-10                                                                                                                                               |
+| Users        | Bride, Groom, Organizers, Guests                                                                                                                         |
+| Deployment   | Public online product                                                                                                                                    |
+| Supersedes   | PRD v1.1 and PRD v1.0 (archived in `docs/archive/specs/`)                                                                                                |
+| Feature PRDs | [Phase 4 — Events, guests, RSVP and invitations](PHASE_4_PRD_v1.2.md); [Phase 7 — Tasks](PHASE_7_PRD_v1.0.md); [Phase 8 — Expenses](PHASE_8_PRD_v1.0.md) |
 
 ## Document control
 
@@ -29,6 +29,7 @@ Production-ready wedding planning and management platform for Indian weddings.
 | 1.0     | 2026-09    | Original PRD.                                                                                                                                |
 | 1.1     | 2026-09    | Product scope baseline.                                                                                                                      |
 | 1.2     | 2026-10-10 | Consolidated master: PRD v1.1 plus decisions 0008–0018 and the product-owner answers of 2026-10-10 (Q1–Q8, invitation token, smaller rules). |
+| 1.2     | 2026-10-20 | Decision 0028: §15 and §18 updated for Phase 8 (expenses).                                                                                   |
 
 ## 1. Executive summary
 
@@ -281,17 +282,22 @@ event. Delivery state, activity history and RSVP state are three separate things
 
 ## 15. Expense tracker
 
-Decisions 0009 and 0010 (#5–#8).
+Decisions 0009, 0010 (#5–#8), 0018 and 0028; specified in the
+[Phase 8 PRD v1.0](PHASE_8_PRD_v1.0.md).
 
 - Track actual expenses rather than a full budgeting product.
-- Fields: title, amount, category, date, optional event, optional vendor, paid by, payment
-  status, payment method, notes and optional receipt.
+- Expense fields: title, amount (the full cost), category, date, optional event, optional
+  vendor (linked from Phase 9 — 0028 #4) and notes. Receipts are deferred until a
+  file-storage decision (0028 #3).
 - Category is one fixed value: `VENUE`, `CATERING`, `DECORATION`, `PHOTOGRAPHY`, `CLOTHING`,
   `JEWELLERY`, `MAKEUP`, `ENTERTAINMENT`, `INVITATIONS`, `GIFTS`, `MISCELLANEOUS`.
-- Payment status: Paid, Pending or Partially paid. There is no Cancelled status in V1
-  (0018); adding one needs a decision, because it changes totals, the pending-payments
-  summary, reports and payment validation.
-- An expense can have several payments (advances, instalments, settlement) and receipts.
+- An expense can have several payments (advances, instalments, settlement). Each payment
+  records its amount, date, who paid (a wedding member or a typed name, such as the bride's
+  father), payment method and reference (0028 #12, #13).
+- Payment status — Paid, Pending or Partially paid — is calculated from the payments, never
+  entered (0028 #7). Payments never exceed the amount (0028 #9, #10). There is no Cancelled
+  status in V1 (0018); adding one needs a decision, because it changes totals, the
+  pending-payments summary, reports and payment validation.
 - **Expenses are automatically shared with the connected partner.** There is no per-expense
   visibility setting. Authorization still applies to every read and write.
 - Dashboard summaries: total spending, pending payments, category-wise and event-wise
@@ -336,7 +342,9 @@ Decisions 0010 (#3, #4), 0013 and 0026; specified in the
   wedding day, celebrated, or no date set) and the wedding details (0016). Phase 4 adds
   upcoming events, guest totals, RSVP breakdown and expected attendees, with the rules in
   the Phase 4 PRD §10.2 (0019). Phase 7 adds task counts (Pending, Blocked, Completed,
-  Overdue) and up to five upcoming tasks (Phase 7 PRD §8, 0026 #20).
+  Overdue) and up to five upcoming tasks (Phase 7 PRD §8, 0026 #20). Phase 8 adds the
+  expense summary: Total, Paid and Pending, and spending by category and by event (Phase 8
+  PRD §8, 0028 #23).
 
 ## 19. Wedding website
 

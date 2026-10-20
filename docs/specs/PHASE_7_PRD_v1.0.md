@@ -9,9 +9,10 @@
 | Contracts    | [Database Design v1.1](DB_DESIGN_v1.1.md) §13, [API Design v1.1](API_DESIGN_v1.1.md) §6 and §13                                                                          |
 | Out of scope | Task attachments, reminders and notifications, task reports and export, permissions matrix, partner privacy, status board, bulk actions, recurring tasks, task templates |
 
-| Version | Date       | Change                                                     |
-| ------- | ---------- | ---------------------------------------------------------- |
-| 1.0     | 2026-10-19 | First version, from the Phase 7 discovery (decision 0026). |
+| Version | Date       | Change                                                                      |
+| ------- | ---------- | --------------------------------------------------------------------------- |
+| 1.0     | 2026-10-19 | First version, from the Phase 7 discovery (decision 0026).                  |
+| 1.0     | 2026-10-20 | §8: every task cancelled shows zero counts and "View all tasks" (0026 #20). |
 
 ## 1. Purpose and outcomes
 
@@ -121,7 +122,10 @@ Added to the existing dashboard (PRD §18; API Design §6), computed on every re
 - **Upcoming tasks** (0026 #20): every overdue task plus tasks due from today to seven days
   after today, excluding `COMPLETED` and `CANCELLED`. Overdue first (oldest due date first),
   then due date, then priority. **At most five.** Undated tasks never appear.
-- **No tasks:** an empty state with an "Add a task" link.
+- **No tasks:** an empty state with an "Add a task" link, only when the wedding has no tasks
+  that are not deleted.
+- **Every task cancelled:** the four counts at zero and a "View all tasks" link (0026 #20,
+  amended 2026-10-20).
 
 ## 9. API and data
 

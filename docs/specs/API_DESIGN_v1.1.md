@@ -15,6 +15,7 @@
 | 1.0     | 2026-09-24 | Baseline contract.                                                                                               |
 | 1.1     | 2026-10-10 | Consolidated: v1.0 plus decisions 0001, 0008, 0009, 0010, 0012, 0015–0019 and the endpoints built in Phases 2–3. |
 | 1.1     | 2026-10-14 | Decision 0025: the API runs on Vercel; emails are sent directly, with no worker or job queue.                    |
+| 1.1     | 2026-10-20 | Decision 0028 (Phase 8): expense and payment payloads, list filters and totals, dashboard expense summary.       |
 
 **Status of each route group** — _Built_: implemented; the generated OpenAPI contract
 (`packages/api-client/openapi.json`) is the exact reference. _Phase 4_: approved, not built.
@@ -179,6 +180,11 @@ GET /api/v1/weddings/{weddingId}/dashboard
   `blocked`), and `upcomingTasks`: every overdue task plus tasks due from today to seven days
   after today, excluding `COMPLETED` and `CANCELLED`; overdue first (oldest due date
   first), then due date, then priority; **at most five**; never undated tasks.
+- **Expenses (Phase 8 — 0028 #23):** `expenseSummary { totalMinor, paidMinor, pendingMinor,
+byCategory: [{ category, totalMinor }], byEvent: [{ eventId, eventName, totalMinor }] }` over
+  expenses that are not deleted. `byCategory` lists only categories with expenses and
+  `byEvent` only events with expenses plus whole-wedding expenses (`eventId: null`), each
+  largest total first; each adds up to `totalMinor`.
 - The countdown and wedding details come from `GET /weddings/{weddingId}`. Later modules add
   their own summaries when they are built (PRD §18).
 
@@ -406,33 +412,66 @@ regenerate replaces it.
 Reminder routes are not exposed until reminder cadence and customization are decided
 (PRD v1.2 §14).
 
-## 12. Expense API (Planned — decisions 0009, 0010)
+## 12. Expense API (Planned — Phase 8; decisions 0009, 0010 and 0028)
 
-| Method | Endpoint                                                          | Purpose          |
-| ------ | ----------------------------------------------------------------- | ---------------- |
-| GET    | `/weddings/{weddingId}/expenses`                                  | List and filter  |
-| POST   | `/weddings/{weddingId}/expenses`                                  | Create           |
-| GET    | `/weddings/{weddingId}/expenses/{expenseId}`                      | Get              |
-| PATCH  | `/weddings/{weddingId}/expenses/{expenseId}`                      | Update           |
-| DELETE | `/weddings/{weddingId}/expenses/{expenseId}`                      | Soft-delete      |
-| GET    | `/weddings/{weddingId}/expenses/{expenseId}/payments`             | List payments    |
-| POST   | `/weddings/{weddingId}/expenses/{expenseId}/payments`             | Add a payment    |
-| PATCH  | `/weddings/{weddingId}/expenses/{expenseId}/payments/{paymentId}` | Update a payment |
-| DELETE | `/weddings/{weddingId}/expenses/{expenseId}/payments/{paymentId}` | Remove a payment |
-| POST   | `/weddings/{weddingId}/expenses/{expenseId}/receipts/upload-url`  | S3 upload URL    |
-| DELETE | `/weddings/{weddingId}/expenses/{expenseId}/receipts/{receiptId}` | Delete a receipt |
+| Method | Endpoint                                                          | Purpose                 |
+| ------ | ----------------------------------------------------------------- | ----------------------- |
+| GET    | `/weddings/{weddingId}/expenses`                                  | List, filter and totals |
+| POST   | `/weddings/{weddingId}/expenses`                                  | Create                  |
+| GET    | `/weddings/{weddingId}/expenses/{expenseId}`                      | Get                     |
+| PATCH  | `/weddings/{weddingId}/expenses/{expenseId}`                      | Update                  |
+| DELETE | `/weddings/{weddingId}/expenses/{expenseId}`                      | Soft-delete             |
+| GET    | `/weddings/{weddingId}/expenses/{expenseId}/payments`             | List payments           |
+| POST   | `/weddings/{weddingId}/expenses/{expenseId}/payments`             | Add a payment           |
+| PATCH  | `/weddings/{weddingId}/expenses/{expenseId}/payments/{paymentId}` | Update a payment        |
+| DELETE | `/weddings/{weddingId}/expenses/{expenseId}/payments/{paymentId}` | Remove a payment        |
+| POST   | `/weddings/{weddingId}/expenses/{expenseId}/receipts/upload-url`  | Deferred (0028 #3)      |
+| DELETE | `/weddings/{weddingId}/expenses/{expenseId}/receipts/{receiptId}` | Deferred (0028 #3)      |
+
+Behaviour: [Phase 8 PRD v1.0](PHASE_8_PRD_v1.0.md).
 
 ```json
 POST /api/v1/weddings/{weddingId}/expenses
-{ "title": "Decorator advance", "amountMinor": 5000000, "currency": "INR",
-  "category": "DECORATION", "eventId": "…", "vendorId": null,
-  "expenseDate": "2027-01-20", "paymentStatus": "PARTIALLY_PAID" }
+{ "title": "Decorator", "amountMinor": 15000000, "category": "DECORATION",
+  "eventId": "…", "expenseDate": "2027-01-20", "notes": null }
+
+POST /api/v1/weddings/{weddingId}/expenses/{expenseId}/payments
+{ "amountMinor": 5000000, "paymentDate": "2027-01-20",
+  "paidByType": "EXTERNAL_PERSON", "paidByName": "Bride's father",
+  "paymentMethod": "UPI", "referenceNumber": null, "notes": "Advance" }
 ```
 
 - **No `visibility` field**; expenses are shared with the connected partner (0009); normal
-  `VIEW` permission applies.
-- `category` is a fixed `ExpenseCategory` value (0010 #7); filter with `?category=`.
-- `amountMinor` is integer minor units (₹50,000 = 5000000 paise).
+  `VIEW` permission applies. Any `ACTIVE` member may use every route in Phase 8 (0028 #19).
+- **Money** is integer paise (₹50,000 = 5000000). `amountMinor`: 1 to 10,000,000,000
+  (₹10 crore). `currency` is always `INR` and set by the server.
+- **Expense fields:** `title` (required, 1–150), `amountMinor` (required), `category`
+  (required, a fixed `ExpenseCategory` value — 0010 #7), `expenseDate` (required,
+  `YYYY-MM-DD`), `eventId` (an active event of the wedding, or `null` for the whole wedding),
+  `notes` (at most 1,000). `paymentStatus`, `currency`, `vendorId` and `description` are not
+  accepted (0028 #4, #7, #11).
+- **Expense DTO** adds `id`, `currency`, `paidMinor`, `pendingMinor`, `paymentStatus`
+  (calculated — 0028 #7), `eventName` and timestamps. Create returns `201`, update `200`.
+- **Payment fields:** `amountMinor` (required, more than 0), `paymentDate` (required,
+  `YYYY-MM-DD`, today or earlier in the wedding's timezone), `paidByType` (`WEDDING_MEMBER`
+  with `paidByUserId` of an active member, or `EXTERNAL_PERSON` with `paidByName`, 1–100),
+  `paymentMethod` (optional), `referenceNumber` (at most 100), `notes` (at most 500).
+- **Payment DTO** adds `id`, `paidByName` (the member's display name for a member) and
+  timestamps. Add returns `201`, update `200`, remove `204`; the list is oldest first. Each
+  change updates the expense's `paidMinor` and `paymentStatus` in one transaction (0028 #8).
+- **Money rules:** a payment that would take the paid total above `amountMinor` returns
+  `409 PAYMENT_EXCEEDS_BALANCE`; lowering `amountMinor` below the paid total returns
+  `409 AMOUNT_BELOW_PAID`. Both give `details.remainingMinor` or `details.paidMinor`.
+- **List** `GET …/expenses`: `category`, `eventId` (an event ID, or `none` for whole-wedding
+  expenses), `paymentStatus`, `search` (title contains, ignoring case), `limit` (25) and
+  `cursor` (§24). Order: `expenseDate` newest first, then `createdAt` newest first.
+  `meta.totals` `{ totalMinor, paidMinor, pendingMinor }` covers every expense matching the
+  filters, not only the page.
+- **Delete** is a soft delete: the expense leaves every list, total and route (`404`); its
+  payments are kept. Expense and payment changes are audited (0028 #18).
+- **Errors:** `400 VALIDATION_FAILED`; `404 WEDDING_NOT_FOUND`, `404 EXPENSE_NOT_FOUND`,
+  `404 PAYMENT_NOT_FOUND`, `404 EVENT_NOT_FOUND` (event outside the wedding or deleted),
+  `404 MEMBER_NOT_FOUND` (payer who is not an active member); the two `409` codes above.
 
 ## 13. Task API (Planned — Phase 7, decision 0026)
 
@@ -617,6 +656,10 @@ Error codes in use or approved:
 | `INVITATION_ALREADY_EXISTS` | 409  | Phase 4                              |
 | `INVITATION_REVOKED`        | 409  | Phase 4                              |
 | `GUEST_EMAIL_REQUIRED`      | 422  | Phase 4                              |
+| `EXPENSE_NOT_FOUND`         | 404  | Phase 8                              |
+| `PAYMENT_NOT_FOUND`         | 404  | Phase 8                              |
+| `PAYMENT_EXCEEDS_BALANCE`   | 409  | Phase 8 (0028 #9)                    |
+| `AMOUNT_BELOW_PAID`         | 409  | Phase 8 (0028 #10)                   |
 
 ## 22. Validation and DTO strategy
 
@@ -652,8 +695,8 @@ Until Phase 10 only `OWNER` members exist, and owners pass every check.
 
 ```text
 GET /weddings/{weddingId}/guests?search=raju&eventId=…&rsvpStatus=ATTENDING&limit=25&cursor=…
-GET /weddings/{weddingId}/expenses?from=2027-01-01&to=2027-02-28&category=DECORATION
-    &paymentStatus=PENDING&sort=-expenseDate&limit=25
+GET /weddings/{weddingId}/expenses?category=DECORATION&eventId=none&paymentStatus=PENDING
+    &search=decor&limit=25&cursor=…
 ```
 
 Server-enforced maximum page size; stable indexed sort keys for cursors; allow-listed
@@ -751,14 +794,14 @@ independently where practical.
 
 ## 33. Testing strategy
 
-| Level       | Coverage                                                                                                                                           |
-| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Unit        | DTO validation, services, permission evaluators, token services                                                                                    |
-| Integration | Controllers + MongoDB repositories + authorization (real Redis, in-memory MongoDB)                                                                 |
-| Contract    | Generated OpenAPI checked in CI; request/response schemas                                                                                          |
-| Security    | Authentication, tenant isolation, token guessing, IDOR, rate limiting                                                                              |
-| Workflow    | Invitation → send → open → RSVP; QR → upload → gallery → guest deletion; partner invite → accept → share → disconnect; expense → payment → receipt |
-| Provider    | Resend, Google Places, YouTube adapters                                                                                                            |
+| Level       | Coverage                                                                                                                                 |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Unit        | DTO validation, services, permission evaluators, token services                                                                          |
+| Integration | Controllers + MongoDB repositories + authorization (real Redis, in-memory MongoDB)                                                       |
+| Contract    | Generated OpenAPI checked in CI; request/response schemas                                                                                |
+| Security    | Authentication, tenant isolation, token guessing, IDOR, rate limiting                                                                    |
+| Workflow    | Invitation → send → open → RSVP; QR → upload → gallery → guest deletion; partner invite → accept → share → disconnect; expense → payment |
+| Provider    | Resend, Google Places, YouTube adapters                                                                                                  |
 
 Required for Phase 4: every application route under `/api/v1`; signup without a wedding;
 cross-wedding IDs return `404`; all four RSVP status/count combinations and every rejected
