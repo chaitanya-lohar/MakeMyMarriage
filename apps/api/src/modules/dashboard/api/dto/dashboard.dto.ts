@@ -114,6 +114,13 @@ export class DashboardDto {
   taskCounts!: TaskCountsDto;
 
   @ApiProperty({
+    description:
+      'Whether the wedding has any task that is not deleted, Cancelled included, so a wedding ' +
+      'whose tasks are all cancelled is told apart from one with none (0026 #20).',
+  })
+  hasTasks!: boolean;
+
+  @ApiProperty({
     type: [DashboardTaskDto],
     description:
       'Open tasks due up to seven days after today, every overdue task included; by due date ' +
@@ -137,6 +144,7 @@ export class DashboardDto {
       guestTotals: { guests: dashboard.guests },
       rsvpBreakdown: { pending: PENDING, attending: ATTENDING, declined: DECLINED, maybe: MAYBE },
       taskCounts: { ...dashboard.tasks.counts },
+      hasTasks: dashboard.tasks.hasTasks,
       upcomingTasks: dashboard.tasks.upcoming.map((task) => ({
         id: task.id,
         title: task.title,

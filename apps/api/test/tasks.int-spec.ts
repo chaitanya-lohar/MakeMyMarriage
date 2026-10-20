@@ -68,6 +68,7 @@ describe('Tasks (Phase 7, decision 0026)', () => {
       (await agent.get(`${base}/dashboard`).expect(200)).body.data as {
         taskCounts: Record<string, number>;
         upcomingTasks: Task[];
+        hasTasks: boolean;
       };
     return { agent, weddingId, base, me, create, update, list, history, event, dashboard };
   }
@@ -381,6 +382,48 @@ describe('Tasks (Phase 7, decision 0026)', () => {
     ]);
     expect(upcomingTasks[0]).toMatchObject({ isOverdue: true, status: 'BLOCKED' });
     expect(upcomingTasks[2]).toMatchObject({ isDueToday: true });
+    expect((await dashboard()).hasTasks).toBe(true);
+  });
+
+  it('tells a wedding with no tasks from one whose tasks are all cancelled (0026 #20)', async () => {
+    const { agent, base, create, update, dashboard } = await setUp();
+    const zero = { pending: 0, blocked: 0, completed: 0, overdue: 0 };
+    expect(await dashboard()).toMatchObject({ hasTasks: false, taskCounts: zero });
+
+    // A deleted task does not count as a task.
+    const mistake = await create({ title: 'Mistake' });
+    await agent.delete(`${base}/tasks/${mistake.id}`).expect(204);
+    expect(await dashboard()).toMatchObject({ hasTasks: false, taskCounts: zero });
+
+    // Only cancelled tasks: zero counts, but the wedding has tasks.
+    const dropped = await create({ title: 'Dropped', status: 'CANCELLED', dueDate: day(-3) });
+    expect(await dashboard()).toMatchObject({
+      hasTasks: true,
+      taskCounts: zero,
+      upcomingTasks: [],
+    });
+
+    // Another wedding's tasks change nothing here, and ours nothing there.
+    const other = await workspace.owner();
+    const otherBase = `/api/v1/weddings/${other.weddingId}`;
+    expect((await other.agent.get(`${otherBase}/dashboard`).expect(200)).body.data).toMatchObject({
+      hasTasks: false,
+      taskCounts: zero,
+    });
+    await other.agent.post(`${otherBase}/tasks`).send({ title: 'Theirs' }).expect(201);
+    expect(await dashboard()).toMatchObject({ hasTasks: true, taskCounts: zero });
+
+    // Mixed: the counts leave the cancelled task out, as before.
+    await create({ title: 'Book caterer', dueDate: day(-1) });
+    await create({ title: 'Done', status: 'COMPLETED' });
+    expect(await dashboard()).toMatchObject({
+      hasTasks: true,
+      taskCounts: { pending: 1, blocked: 0, completed: 1, overdue: 1 },
+    });
+
+    // Reopening the cancelled task counts it again.
+    await update(dropped.id, { status: 'TODO' });
+    expect((await dashboard()).taskCounts).toMatchObject({ pending: 2, overdue: 2 });
   });
 
   it('records each change once when two saves arrive together (review P7-M1)', async () => {

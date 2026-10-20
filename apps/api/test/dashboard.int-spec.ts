@@ -69,6 +69,7 @@ describe('Dashboard', () => {
       // Phase 7 (0026 #20); the task summaries are tested in tasks.int-spec.ts.
       taskCounts: { pending: 0, blocked: 0, completed: 0, overdue: 0 },
       upcomingTasks: [],
+      hasTasks: false,
     });
   });
 
