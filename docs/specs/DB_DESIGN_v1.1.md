@@ -580,7 +580,9 @@ The limits here and in §9 are approved (0019 #6).
 
 - The payments are the source of truth for `expenses.paidMinor`. Adding, editing or removing
   a payment updates `paidMinor` and `paymentStatus` in the same transaction (§24, §27).
-- Removing a payment deletes the record; the audit entry keeps its values (0028 #18).
+- Removing a payment deletes the record; its `audit_logs` entry keeps the removed payment's
+  amount, date, payer, method, reference and notes in `metadata`, with the actor and
+  `createdAt` as the removal time (0028 #18).
 
 ### 12.3 `expense_receipts` (Deferred — 0028 #3)
 

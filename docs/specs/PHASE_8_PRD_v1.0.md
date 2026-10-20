@@ -112,6 +112,8 @@ It is an expense tracker, not a budgeting tool.
 
 - Written to `audit_logs` with actor and time: expense created, edited (the changed fields),
   deleted; payment added, edited, removed; event link removed by a deleted event.
+- Removing a payment deletes its record; the audit entry keeps the removed payment's
+  amount, date, payer, method, reference and notes, with the removal time and actor.
 - No history timeline is shown in Phase 8 (0028 #18).
 
 ## 6. Expense list
@@ -207,8 +209,9 @@ expenses that are not deleted:
 - Vendor linking — Phase 9.
 - Reports and Excel export — Phase 15. Payment reminders — Phase 14.
 - Fine-grained permissions — Phase 10.
-- The optional payment `Idempotency-Key` (API Design §25) — not built in Phase 8; the form
-  prevents double submission.
+- The optional payment `Idempotency-Key` (API Design §25) — not built in Phase 8. **Known
+  MVP limitation** (0028 #25): the form prevents double submission, but a repeated request
+  can still record a payment twice; the overpayment rule still caps the total.
 - Budgets, cost splitting, other currencies, recurring expenses, refunds — not planned.
 
 ## 13. Definition of done

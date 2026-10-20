@@ -81,7 +81,9 @@ routes (Database Design §12, API Design §12) left open.
 18. **Audit, no timeline (Q18):** creating, editing and deleting an expense, adding, editing
     and removing a payment, and the event link removed by a deleted event are written to
     `audit_logs`. No expense history is shown in Phase 8; the payments list shows what was
-    paid and when.
+    paid and when. Removing a payment deletes its record, and its audit entry keeps the
+    removed payment's details (amount, date, payer, method, reference and notes) with the
+    removal time and actor.
 19. **Access (Q19):** any `ACTIVE` member of the wedding can view, create, edit and delete its
     expenses and manage their payments. Everything else returns `404`, as for other wedding
     routes. Expenses are shared with the connected partner with no private option (0009) and
@@ -105,6 +107,14 @@ routes (Database Design §12, API Design §12) left open.
     spending, largest first; spending by event, including "Whole wedding". Plain amounts, no
     charts. The category and event breakdowns each add up to Total.
 24. **Number format (Q26):** Indian grouping everywhere — ₹1,50,000 and ₹12,50,000.
+
+### Known limitation
+
+25. **No server-side idempotency (known MVP limitation):** the optional payment
+    `Idempotency-Key` (API Design §25) is not built. The form prevents double submission, but
+    that does not guarantee a repeated request cannot record a payment twice; the
+    overpayment rule (9) still caps the total. Accepted for the MVP; revisit with Platform
+    idempotency keys (0010 #16).
 
 ## Superseded and clarified statements
 
