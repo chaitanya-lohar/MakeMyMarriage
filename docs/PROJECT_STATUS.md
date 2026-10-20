@@ -44,7 +44,7 @@ Every branch below except `fix/phase-4-review` is merged into `main`; new work s
 | `docs/phase-7-tasks`            | Decisions 0026 and 0027, the Phase 7 PRD                                                | Merged (PR #19)   |
 | `feat/phase-7`                  | Phase 7: tasks module, screens and dashboard card (0026, 0027)                          | Merged (PR #20)   |
 | `fix/phase-7-review`            | Phase 7 code-review fixes (4 medium, 9 low) and tests                                   | Merged (PR #22)   |
-| `docs/phase-8-expenses`         | Decision 0028, the Phase 8 PRD and the matching spec updates                            | Local, not pushed |
+| `docs/phase-8-expenses`         | Decision 0028, the Phase 8 PRD, the spec updates and the 0026 #20 amendment             | PR open           |
 
 The merged branches can be deleted, on GitHub and locally.
 
@@ -168,23 +168,23 @@ mobile navigation drawer, a states board and the copy-drafts board.
 
 ## Open decisions and blockers
 
-| Item                                                                                                                     | Blocks            | Owner         |
-| ------------------------------------------------------------------------------------------------------------------------ | ----------------- | ------------- |
-| A4 — what partners share by default (0011)                                                                               | Phase 16          | Product       |
-| A5 — what happens on partner disconnect (0011)                                                                           | Phase 16          | Product       |
-| Usage rights for the Stitch-generated photos                                                                             | Public launch     | Product       |
-| Privacy Policy and Terms of Service text                                                                                 | Public launch     | Legal         |
-| A domain verified in Resend (none owned yet; until then email reaches only the Resend account owner — 0025)              | Email to guests   | Product / Ops |
-| Delete the outdated first "Sign In (V1)" screen in Stitch                                                                | Housekeeping      | Product       |
-| Deployment accounts: Vercel (two projects), MongoDB Atlas, Upstash Redis (0025)                                          | First deployment  | Ops           |
-| Scheduled and background work (reminders, exports, media cleanup, webhooks) on Vercel-only hosting (0025)                | Later phases      | Product       |
-| Forgot-password response time hints whether an email is registered (code review, deferred)                               | Public launch     | Engineering   |
-| Reset email says "signs you out on all your devices", but access tokens live ≤15 min (0015) — reword or revoke instantly | Public launch     | Product       |
-| Phase 4 wording on the copy-drafts screen: confirm or change (0019 #7, 0021)                                             | Phase 4 UI        | Product       |
-| Delivery webhooks for DELIVERED/FAILED (Sent is the highest status until then)                                           | Delivery statuses | Product / Ops |
-| Live updates on organizer screens (0024, parked): until then, an open page shows a guest's RSVP only after a refresh     | Enhancement       | Product       |
-| Dashboard Tasks card when every task is cancelled: keep "No tasks yet", or show zero counts with "View all tasks"        | Phase 7 UI        | Product       |
-| Phase 8 Stitch screens (Phase 8 PRD §10): design and approve before implementation                                       | Phase 8 build     | Product       |
+| Item                                                                                                                      | Blocks            | Owner         |
+| ------------------------------------------------------------------------------------------------------------------------- | ----------------- | ------------- |
+| A4 — what partners share by default (0011)                                                                                | Phase 16          | Product       |
+| A5 — what happens on partner disconnect (0011)                                                                            | Phase 16          | Product       |
+| Usage rights for the Stitch-generated photos                                                                              | Public launch     | Product       |
+| Privacy Policy and Terms of Service text                                                                                  | Public launch     | Legal         |
+| A domain verified in Resend (none owned yet; until then email reaches only the Resend account owner — 0025)               | Email to guests   | Product / Ops |
+| Delete the outdated first "Sign In (V1)" screen in Stitch                                                                 | Housekeeping      | Product       |
+| Deployment accounts: Vercel (two projects), MongoDB Atlas, Upstash Redis (0025)                                           | First deployment  | Ops           |
+| Scheduled and background work (reminders, exports, media cleanup, webhooks) on Vercel-only hosting (0025)                 | Later phases      | Product       |
+| Forgot-password response time hints whether an email is registered (code review, deferred)                                | Public launch     | Engineering   |
+| Reset email says "signs you out on all your devices", but access tokens live ≤15 min (0015) — reword or revoke instantly  | Public launch     | Product       |
+| Phase 4 wording on the copy-drafts screen: confirm or change (0019 #7, 0021)                                              | Phase 4 UI        | Product       |
+| Delivery webhooks for DELIVERED/FAILED (Sent is the highest status until then)                                            | Delivery statuses | Product / Ops |
+| Live updates on organizer screens (0024, parked): until then, an open page shows a guest's RSVP only after a refresh      | Enhancement       | Product       |
+| Dashboard Tasks card when every task is cancelled: decided (0026 #20, zero counts and "View all tasks"); code fix pending | Phase 7 UI        | Engineering   |
+| Phase 8 Stitch screens (Phase 8 PRD §10): design and approve before implementation                                        | Phase 8 build     | Product       |
 
 ## Working rules
 
@@ -237,6 +237,7 @@ checked only for loading the saved values.
 
 | Date       | Change                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 2026-10-20 | Decision 0026 #20 amended: when every task is cancelled, the dashboard Tasks card shows zero counts and "View all tasks"; "No tasks yet" only when the wedding has no tasks. Code fix pending.                                                                                                                                                                                                                                                         |
 | 2026-10-20 | Phase 8 (Expenses) discovery done: decision 0028 and the Phase 8 PRD v1.0 approved. The payer moves to each payment; payment status is calculated; a stored paid total updated in the payment's transaction blocks overpayment; no description field; receipts deferred. PRD §15 and §18, Database Design §12, §20, §22, §24 and §27, API Design §6, §12, §21 and §24, System Design §12.1 and §20 and Phase 4 PRD §3.2 updated. Next: Stitch screens. |
 | 2026-10-20 | Phase 7 code review (no critical or high): the 4 medium and 9 low findings fixed on `fix/phase-7-review` with tests; 112 integration, 66 API and 271 web unit tests pass; merged as PR #22. Open: whether the dashboard says "No tasks yet" when every task is cancelled (product decision), and the draft wording.                                                                                                                                    |
 | 2026-10-19 | Merge rule from the product owner: Claude merges documentation-only PRs once CI passes, and code PRs when told "merge it".                                                                                                                                                                                                                                                                                                                             |

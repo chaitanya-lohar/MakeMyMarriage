@@ -1,6 +1,7 @@
 # 0026 — Phase 7: tasks
 
-**Status:** Accepted (approved by the product owner on 2026-10-19). Answers P7-TASK-Q01–Q26
+**Status:** Accepted (approved by the product owner on 2026-10-19; #20 amended on
+2026-10-20). Answers P7-TASK-Q01–Q26
 and R1–R3 from the Phase 7 discovery; the full specification is the
 [Phase 7 PRD v1.0](../specs/PHASE_7_PRD_v1.0.md).
 
@@ -92,7 +93,9 @@ routes (Database Design §13, API Design §13), and settles what those left open
       today, excluding `COMPLETED` and `CANCELLED`. Overdue first (oldest due date first),
       then by due date, then by priority. At most five. Tasks without a due date never
       appear.
-    - When the wedding has no tasks: an empty state with an "Add a task" link.
+    - When the wedding has no tasks: an empty state with an "Add a task" link. When tasks
+      exist but every one is cancelled, the card shows the four counts at zero and a "View
+      all tasks" link instead (product owner, 2026-10-20).
 
 ## Superseded and clarified statements
 
