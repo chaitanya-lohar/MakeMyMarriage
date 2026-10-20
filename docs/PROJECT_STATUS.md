@@ -13,8 +13,8 @@ The single place to see where MakeMyMarriage stands. Read this first.
 
 | Item            | State                                                                                                                         |
 | --------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| Current phase   | Phase 8 (Expenses) — specification approved (0028, Phase 8 PRD v1.0); Stitch screens next; not implemented                    |
-| Next phase      | Phase 8 implementation, after its Stitch screens are approved. Open: the DRAFT wording of Phases 4 and 7                      |
+| Current phase   | Phase 8 (Expenses) — specification (0028) and Stitch screens (0029) approved; not implemented                                 |
+| Next phase      | Phase 8 implementation, once approved to start. Open: the DRAFT wording of Phases 4, 7 and 8                                  |
 | `main`          | Scaffold, Phases 1–4, code-review and manual-testing fixes (PRs #1–6, #12); documentation and decisions 0017–0022 (PRs #8–11) |
 | Open PRs        | None                                                                                                                          |
 | Live deployment | None yet                                                                                                                      |
@@ -44,7 +44,9 @@ Every branch below except `fix/phase-4-review` is merged into `main`; new work s
 | `docs/phase-7-tasks`            | Decisions 0026 and 0027, the Phase 7 PRD                                                | Merged (PR #19)   |
 | `feat/phase-7`                  | Phase 7: tasks module, screens and dashboard card (0026, 0027)                          | Merged (PR #20)   |
 | `fix/phase-7-review`            | Phase 7 code-review fixes (4 medium, 9 low) and tests                                   | Merged (PR #22)   |
-| `docs/phase-8-expenses`         | Decision 0028, the Phase 8 PRD, the spec updates and the 0026 #20 amendment             | PR open           |
+| `docs/phase-8-expenses`         | Decision 0028, the Phase 8 PRD, the spec updates and the 0026 #20 amendment             | Merged (PR #24)   |
+| `fix/phase-7-tasks-empty-state` | Tasks card when every task is cancelled (0026 #20)                                      | PR #25 open       |
+| `docs/phase-8-design-approval`  | Decision 0029: Phase 8 Stitch screens approved                                          | PR open           |
 
 The merged branches can be deleted, on GitHub and locally.
 
@@ -65,7 +67,7 @@ questions for it are raised then (0004).
 | 5   | (merged into Phase 4)                | —                           | —                                                                |
 | 6   | (merged into Phase 4)                | —                           | —                                                                |
 | 7   | Tasks                                | Done, merged (PRs #19, #20) | 0010, 0013, 0026, 0027; [Phase 7 PRD](specs/PHASE_7_PRD_v1.0.md) |
-| 8   | Expenses                             | Spec approved; design next  | 0009, 0010, 0028; [Phase 8 PRD](specs/PHASE_8_PRD_v1.0.md)       |
+| 8   | Expenses                             | Spec and design approved    | 0009, 0010, 0028, 0029; [Phase 8 PRD](specs/PHASE_8_PRD_v1.0.md) |
 | 9   | Vendors                              | Not started                 | 0010                                                             |
 | 10  | Organizers and permissions           | Not started                 | 0012                                                             |
 | 11  | Wedding website                      | Not started                 | 0007                                                             |
@@ -184,7 +186,6 @@ mobile navigation drawer, a states board and the copy-drafts board.
 | Delivery webhooks for DELIVERED/FAILED (Sent is the highest status until then)                                            | Delivery statuses | Product / Ops |
 | Live updates on organizer screens (0024, parked): until then, an open page shows a guest's RSVP only after a refresh      | Enhancement       | Product       |
 | Dashboard Tasks card when every task is cancelled: decided (0026 #20, zero counts and "View all tasks"); code fix pending | Phase 7 UI        | Engineering   |
-| Phase 8 Stitch screens (Phase 8 PRD §10): design and approve before implementation                                        | Phase 8 build     | Product       |
 
 ## Working rules
 
@@ -237,6 +238,7 @@ checked only for loading the saved values.
 
 | Date       | Change                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 2026-10-21 | Decision 0029: Phase 8 Stitch screens E1–E8 approved after the product owner corrected them in Stitch; no Remove inside Edit payment; the remove dialog previews paid and pending; shell and small fixes applied in code; wording draft. Implementation awaits approval.                                                                                                                                                                               |
 | 2026-10-20 | Decision 0026 #20 amended: when every task is cancelled, the dashboard Tasks card shows zero counts and "View all tasks"; "No tasks yet" only when the wedding has no tasks. Code fix pending.                                                                                                                                                                                                                                                         |
 | 2026-10-20 | Phase 8 (Expenses) discovery done: decision 0028 and the Phase 8 PRD v1.0 approved. The payer moves to each payment; payment status is calculated; a stored paid total updated in the payment's transaction blocks overpayment; no description field; receipts deferred. PRD §15 and §18, Database Design §12, §20, §22, §24 and §27, API Design §6, §12, §21 and §24, System Design §12.1 and §20 and Phase 4 PRD §3.2 updated. Next: Stitch screens. |
 | 2026-10-20 | Phase 7 code review (no critical or high): the 4 medium and 9 low findings fixed on `fix/phase-7-review` with tests; 112 integration, 66 API and 271 web unit tests pass; merged as PR #22. Open: whether the dashboard says "No tasks yet" when every task is cancelled (product decision), and the draft wording.                                                                                                                                    |

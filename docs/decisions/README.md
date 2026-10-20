@@ -34,6 +34,7 @@ in a specification, the record names that statement.
 | [0026](0026-phase-7-tasks.md)                             | Phase 7: tasks (scope, rules, list, dashboard)                     | Accepted                        |
 | [0027](0027-phase-7-design-approval.md)                   | Phase 7 design approval: screens and corrections; wording draft    | Accepted                        |
 | [0028](0028-phase-8-expenses.md)                          | Phase 8: expenses (scope, money rules, payments, list, dashboard)  | Accepted                        |
+| [0029](0029-phase-8-design-approval.md)                   | Phase 8 design approval: screens and corrections; wording draft    | Accepted                        |
 
 Conflicts between specifications or decision records are handled with the protocol in
 [0004](0004-specification-authority.md) — never resolved silently in code.
