@@ -513,6 +513,79 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/weddings/{weddingId}/expenses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List, filter and search expenses, newest first, with totals for the filters */
+        get: operations["ExpensesController_list"];
+        put?: never;
+        /** Create an expense; it starts PENDING with nothing paid */
+        post: operations["ExpensesController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/expenses/{expenseId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get an expense */
+        get: operations["ExpensesController_get"];
+        put?: never;
+        post?: never;
+        /** Soft-delete an expense; it and its payments are kept, and audited */
+        delete: operations["ExpensesController_delete"];
+        options?: never;
+        head?: never;
+        /** Update an expense; null clears an optional field */
+        patch: operations["ExpensesController_update"];
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/expenses/{expenseId}/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The expense's payments, oldest first */
+        get: operations["ExpensesController_listPayments"];
+        put?: never;
+        /** Add a payment; the paid total and status update with it */
+        post: operations["ExpensesController_addPayment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/expenses/{expenseId}/payments/{paymentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove a payment; the audit entry keeps its details */
+        delete: operations["ExpensesController_removePayment"];
+        options?: never;
+        head?: never;
+        /** Replace a payment's details; the paid total and status update */
+        patch: operations["ExpensesController_updatePayment"];
+        trace?: never;
+    };
     "/api/v1/weddings/{weddingId}/dashboard": {
         parameters: {
             query?: never;
@@ -1112,6 +1185,167 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
         };
+        ExpenseTotalsDto: {
+            /** @example 63500000 */
+            totalMinor: number;
+            /** @example 45000000 */
+            paidMinor: number;
+            /**
+             * @description totalMinor − paidMinor.
+             * @example 18500000
+             */
+            pendingMinor: number;
+        };
+        ExpenseListMetaDto: {
+            /** @example req_3f2a… */
+            requestId: string;
+            /** Format: date-time */
+            timestamp: string;
+            pagination: components["schemas"]["PaginationMetaDto"];
+            /** @description Over the whole filter, not one page. */
+            totals: components["schemas"]["ExpenseTotalsDto"];
+        };
+        ExpenseDto: {
+            /** @example 6650f0c2a1b2c3d4e5f60901 */
+            id: string;
+            /** @example Decorator */
+            title: string;
+            /**
+             * @description The full cost, in paise.
+             * @example 15000000
+             */
+            amountMinor: number;
+            /**
+             * @description The sum of the payments, in paise.
+             * @example 5000000
+             */
+            paidMinor: number;
+            /**
+             * @description amountMinor − paidMinor.
+             * @example 10000000
+             */
+            pendingMinor: number;
+            /** @example INR */
+            currency: string;
+            /** @enum {string} */
+            category: "VENUE" | "CATERING" | "DECORATION" | "PHOTOGRAPHY" | "CLOTHING" | "JEWELLERY" | "MAKEUP" | "ENTERTAINMENT" | "INVITATIONS" | "GIFTS" | "MISCELLANEOUS";
+            /**
+             * Format: date
+             * @example 2027-01-20
+             */
+            expenseDate: string;
+            /** @description Null for a whole-wedding expense. */
+            eventId: string | null;
+            /** @example Sangeet */
+            eventName: string | null;
+            /**
+             * @description Calculated from the payments.
+             * @enum {string}
+             */
+            paymentStatus: "PENDING" | "PARTIALLY_PAID" | "PAID";
+            notes: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        CreateExpenseDto: {
+            /** @example Decorator */
+            title: string;
+            /**
+             * @description Integer paise (₹1,50,000 = 15000000). More than 0, at most ₹10 crore.
+             * @example 15000000
+             */
+            amountMinor: number;
+            /** @enum {string} */
+            category: "VENUE" | "CATERING" | "DECORATION" | "PHOTOGRAPHY" | "CLOTHING" | "JEWELLERY" | "MAKEUP" | "ENTERTAINMENT" | "INVITATIONS" | "GIFTS" | "MISCELLANEOUS";
+            /**
+             * Format: date
+             * @description YYYY-MM-DD; past or future allowed.
+             * @example 2027-01-20
+             */
+            expenseDate: string;
+            /** @description An active event of the wedding; null for a whole-wedding expense. */
+            eventId?: string | null;
+            notes?: string | null;
+        };
+        UpdateExpenseDto: {
+            /** @example Decorator */
+            title?: string;
+            /**
+             * @description Integer paise (₹1,50,000 = 15000000). More than 0, at most ₹10 crore. Never below the paid total (AMOUNT_BELOW_PAID).
+             * @example 15000000
+             */
+            amountMinor?: number;
+            /** @enum {string} */
+            category?: "VENUE" | "CATERING" | "DECORATION" | "PHOTOGRAPHY" | "CLOTHING" | "JEWELLERY" | "MAKEUP" | "ENTERTAINMENT" | "INVITATIONS" | "GIFTS" | "MISCELLANEOUS";
+            /**
+             * Format: date
+             * @example 2027-01-20
+             */
+            expenseDate?: string;
+            /** @description An active event of the wedding; null for a whole-wedding expense. */
+            eventId?: string | null;
+            notes?: string | null;
+        };
+        PaymentDto: {
+            id: string;
+            expenseId: string;
+            /**
+             * @description In paise.
+             * @example 5000000
+             */
+            amountMinor: number;
+            /**
+             * Format: date
+             * @example 2027-01-20
+             */
+            paymentDate: string;
+            /** @enum {string} */
+            paidByType: "WEDDING_MEMBER" | "EXTERNAL_PERSON";
+            /** @description Set for a member payer. */
+            paidByUserId: string | null;
+            /**
+             * @description The member's display name, or the typed name.
+             * @example Bride's father
+             */
+            paidByName: string;
+            /** @enum {string|null} */
+            paymentMethod: "CASH" | "UPI" | "BANK_TRANSFER" | "CARD" | "CHEQUE" | "OTHER" | null;
+            referenceNumber: string | null;
+            notes: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        SavePaymentDto: {
+            /**
+             * @description Integer paise (₹1,50,000 = 15000000). More than 0, at most ₹10 crore.
+             * @example 5000000
+             */
+            amountMinor: number;
+            /**
+             * Format: date
+             * @description YYYY-MM-DD; today or earlier in the wedding timezone.
+             * @example 2027-01-20
+             */
+            paymentDate: string;
+            /** @enum {string} */
+            paidByType: "WEDDING_MEMBER" | "EXTERNAL_PERSON";
+            /** @description For WEDDING_MEMBER: an active member of the wedding (user ID). */
+            paidByUserId?: string | null;
+            /**
+             * @description For EXTERNAL_PERSON: who paid.
+             * @example Bride's father
+             */
+            paidByName?: string | null;
+            /** @enum {string|null} */
+            paymentMethod?: "CASH" | "UPI" | "BANK_TRANSFER" | "CARD" | "CHEQUE" | "OTHER" | null;
+            /** @description For example a UPI or cheque number. */
+            referenceNumber?: string | null;
+            notes?: string | null;
+        };
         DashboardEventDto: {
             id: string;
             /** @example Mehendi */
@@ -1184,6 +1418,35 @@ export interface components {
             isOverdue: boolean;
             isDueToday: boolean;
         };
+        ExpenseCategoryTotalDto: {
+            /** @enum {string} */
+            category: "VENUE" | "CATERING" | "DECORATION" | "PHOTOGRAPHY" | "CLOTHING" | "JEWELLERY" | "MAKEUP" | "ENTERTAINMENT" | "INVITATIONS" | "GIFTS" | "MISCELLANEOUS";
+            /** @example 40000000 */
+            totalMinor: number;
+        };
+        ExpenseEventTotalDto: {
+            /** @description Null for the whole wedding. */
+            eventId: string | null;
+            /** @example Sangeet */
+            eventName: string | null;
+            /** @example 15000000 */
+            totalMinor: number;
+        };
+        ExpenseSummaryDto: {
+            /** @example 63500000 */
+            totalMinor: number;
+            /** @example 45000000 */
+            paidMinor: number;
+            /**
+             * @description totalMinor − paidMinor.
+             * @example 18500000
+             */
+            pendingMinor: number;
+            /** @description Categories with expenses, largest total first. */
+            byCategory: components["schemas"]["ExpenseCategoryTotalDto"][];
+            /** @description Events with expenses and the whole wedding (eventId null), largest first. */
+            byEvent: components["schemas"]["ExpenseEventTotalDto"][];
+        };
         DashboardDto: {
             /** @description At most five events dated today or later (wedding timezone), by date then start time, untimed first. A dashboard limit only. */
             upcomingEvents: components["schemas"]["DashboardEventDto"][];
@@ -1194,6 +1457,8 @@ export interface components {
             taskCounts: components["schemas"]["TaskCountsDto"];
             /** @description Open tasks due up to seven days after today, every overdue task included; by due date (overdue first), then priority. At most five; never undated tasks. */
             upcomingTasks: components["schemas"]["DashboardTaskDto"][];
+            /** @description Over expenses that are not deleted: Total, Paid, Pending; by category and by event, largest first (0028 #23). */
+            expenseSummary: components["schemas"]["ExpenseSummaryDto"];
         };
     };
     responses: never;
@@ -3236,6 +3501,499 @@ export interface operations {
             };
             /** @description WEDDING_NOT_FOUND or TASK_NOT_FOUND — missing, deleted or not a member */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ExpensesController_list: {
+        parameters: {
+            query?: {
+                category?: "VENUE" | "CATERING" | "DECORATION" | "PHOTOGRAPHY" | "CLOTHING" | "JEWELLERY" | "MAKEUP" | "ENTERTAINMENT" | "INVITATIONS" | "GIFTS" | "MISCELLANEOUS";
+                /** @description An event ID, or `none` for whole-wedding expenses. */
+                eventId?: string;
+                paymentStatus?: "PENDING" | "PARTIALLY_PAID" | "PAID";
+                /** @description Title contains the text, ignoring case. */
+                search?: string;
+                limit?: number;
+                /** @description `meta.pagination.nextCursor` of the previous page. */
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                weddingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ExpenseDto"][];
+                        meta: components["schemas"]["ExpenseListMetaDto"];
+                    };
+                };
+            };
+            /** @description VALIDATION_FAILED — invalid query or cursor */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND, or EVENT_NOT_FOUND for the event filter */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ExpensesController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateExpenseDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ExpenseDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description VALIDATION_FAILED */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND or EVENT_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ExpensesController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                expenseId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ExpenseDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND or EXPENSE_NOT_FOUND — missing, deleted or not a member */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ExpensesController_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                expenseId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @description Always null.
+                         * @example null
+                         */
+                        data: unknown;
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND or EXPENSE_NOT_FOUND — missing, deleted or not a member */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ExpensesController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                expenseId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateExpenseDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ExpenseDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description VALIDATION_FAILED */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND, EXPENSE_NOT_FOUND or EVENT_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description AMOUNT_BELOW_PAID — the amount would be below the paid total */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ExpensesController_listPayments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                expenseId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PaymentDto"][];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND or EXPENSE_NOT_FOUND — missing, deleted or not a member */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ExpensesController_addPayment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                expenseId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SavePaymentDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PaymentDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description VALIDATION_FAILED (including a payment date in the future) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND, EXPENSE_NOT_FOUND or MEMBER_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description PAYMENT_EXCEEDS_BALANCE — more than the pending amount */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ExpensesController_removePayment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                expenseId: string;
+                paymentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @description Always null.
+                         * @example null
+                         */
+                        data: unknown;
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND, EXPENSE_NOT_FOUND or PAYMENT_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    ExpensesController_updatePayment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                expenseId: string;
+                paymentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SavePaymentDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PaymentDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description VALIDATION_FAILED (including a payment date in the future) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND, EXPENSE_NOT_FOUND or PAYMENT_NOT_FOUND or MEMBER_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description PAYMENT_EXCEEDS_BALANCE — more than the pending amount */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
