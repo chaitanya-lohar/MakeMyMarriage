@@ -79,10 +79,16 @@ export class PaginatedMetaDto extends ResponseMetaDto {
   pagination!: PaginationMetaDto;
 }
 
-/** Documents a cursor-paginated list: `data` is a list and `meta.pagination` is set. */
-export function ApiPaginatedResponse(model: Type<unknown>) {
+/**
+ * Documents a cursor-paginated list: `data` is a list and `meta.pagination` is set. Pass
+ * `meta`, a subclass of PaginatedMetaDto, when the list adds its own meta fields.
+ */
+export function ApiPaginatedResponse(
+  model: Type<unknown>,
+  meta: Type<PaginatedMetaDto> = PaginatedMetaDto,
+) {
   return applyDecorators(
-    ApiExtraModels(PaginatedMetaDto, model),
+    ApiExtraModels(meta, model),
     ApiResponse({
       status: 200,
       schema: {
@@ -90,7 +96,7 @@ export function ApiPaginatedResponse(model: Type<unknown>) {
         required: ['data', 'meta'],
         properties: {
           data: { type: 'array', items: { $ref: getSchemaPath(model) } },
-          meta: { $ref: getSchemaPath(PaginatedMetaDto) },
+          meta: { $ref: getSchemaPath(meta) },
         },
       },
     }),

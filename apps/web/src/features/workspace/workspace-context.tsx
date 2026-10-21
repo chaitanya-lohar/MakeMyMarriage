@@ -26,6 +26,8 @@ export type WorkspaceNotice =
   | 'event-deleted'
   | 'guest-deleted'
   | 'task-deleted'
+  | 'expense-saved'
+  | 'expense-deleted'
   | null;
 
 interface WorkspaceContextValue {

@@ -10,6 +10,15 @@ export const AuditAction = {
   InvitationLinkRetrieved: 'INVITATION_LINK_RETRIEVED',
   /** Phase 7: other task changes are in the task's own history (decision 0026 #17). */
   TaskDeleted: 'TASK_DELETED',
+  /** Phase 8: every expense and payment change is audited; there is no history (0028 #18). */
+  ExpenseCreated: 'EXPENSE_CREATED',
+  ExpenseUpdated: 'EXPENSE_UPDATED',
+  ExpenseDeleted: 'EXPENSE_DELETED',
+  ExpenseEventUnlinked: 'EXPENSE_EVENT_UNLINKED',
+  ExpensePaymentAdded: 'EXPENSE_PAYMENT_ADDED',
+  ExpensePaymentUpdated: 'EXPENSE_PAYMENT_UPDATED',
+  /** Keeps the removed payment's details; the entry's time is the removal time. */
+  ExpensePaymentRemoved: 'EXPENSE_PAYMENT_REMOVED',
 } as const;
 
 export type AuditAction = (typeof AuditAction)[keyof typeof AuditAction];

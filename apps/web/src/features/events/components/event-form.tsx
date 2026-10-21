@@ -15,10 +15,12 @@ import {
 import { Icon, type IconName } from '@/components/ui/icon';
 import { networkError } from '@/features/weddings/content';
 import type { ApiWedding } from '@/features/weddings/wedding-form-model';
+import { eventExpenseShortcut } from '@/features/expenses/content';
 import { eventTaskShortcut } from '@/features/tasks/content';
 import {
   DASHBOARD_PATH,
   EVENTS_PATH,
+  EXPENSES_PATH,
   TASKS_PATH,
 } from '@/features/workspace/components/shell-parts';
 import { PageHeader, SkeletonCard } from '@/features/workspace/components/workspace-page';
@@ -207,15 +209,25 @@ function EventForm({ wedding, event }: { wedding: ApiWedding; event: ApiEvent | 
         subtitle={eventForm.subtitle}
         back={{ href: EVENTS_PATH, label: eventForm.back }}
         actions={
-          // Stitch "P7 · T7": only this button is added; no per-event task panel (0027).
+          // Stitch "P7 · T7" and "P8 · E8": only these buttons are added; no per-event task or
+          // expense panel and no totals on the event page (0027, 0029).
           current && (
-            <Link
-              href={`${TASKS_PATH}/new?eventId=${current.id}`}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-champagne bg-white px-5 text-label-md text-navy transition-colors hover:bg-ivory focus-visible:outline-2 focus-visible:outline-secondary"
-            >
-              <Icon name="add_task" className="size-5" />
-              {eventTaskShortcut}
-            </Link>
+            <>
+              <Link
+                href={`${TASKS_PATH}/new?eventId=${current.id}`}
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-champagne bg-white px-5 text-label-md text-navy transition-colors hover:bg-ivory focus-visible:outline-2 focus-visible:outline-secondary"
+              >
+                <Icon name="add_task" className="size-5" />
+                {eventTaskShortcut}
+              </Link>
+              <Link
+                href={`${EXPENSES_PATH}/new?eventId=${current.id}`}
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-champagne bg-white px-5 text-label-md text-navy transition-colors hover:bg-ivory focus-visible:outline-2 focus-visible:outline-secondary"
+              >
+                <Icon name="add_card" className="size-5" />
+                {eventExpenseShortcut}
+              </Link>
+            </>
           )
         }
       />
