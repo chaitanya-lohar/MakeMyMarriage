@@ -6,10 +6,12 @@
 export const workspaceNav = {
   dashboard: 'Dashboard',
   weddingDetails: 'Wedding details',
-  // Phase 4 adds Events and Guests & RSVP (decision 0019 #3); Phase 7 adds Tasks (0027).
+  // Phase 4 adds Events and Guests & RSVP (decision 0019 #3); Phase 7 adds Tasks (0027);
+  // Phase 8 adds Expenses (0029).
   events: 'Events',
   guests: 'Guests & RSVP',
   tasks: 'Tasks',
+  expenses: 'Expenses',
   yourWedding: 'Your wedding',
   menu: 'Menu',
   openMenu: 'Open menu',
