@@ -290,6 +290,14 @@ export class TasksRepository {
     };
   }
 
+  /**
+   * Whether the wedding has any task that is not deleted, in any status, Cancelled included —
+   * so the dashboard can tell "no tasks yet" from "every task cancelled" (0026 #20).
+   */
+  async exists(weddingId: string): Promise<boolean> {
+    return (await this.tasks.exists({ weddingId: oid(weddingId), ...notDeleted() })) !== null;
+  }
+
   /** Dashboard counts over tasks that are not deleted (0013, 0026 #20). */
   async counts(weddingId: string, today: string): Promise<TaskCounts> {
     const [byStatus, overdue] = await Promise.all([

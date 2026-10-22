@@ -69,6 +69,7 @@ describe('Dashboard', () => {
       // Phase 7 (0026 #20); the task summaries are tested in tasks.int-spec.ts.
       taskCounts: { pending: 0, blocked: 0, completed: 0, overdue: 0 },
       upcomingTasks: [],
+      hasTasks: false,
       // Phase 8 (0028 #23); the expense summary is tested in expenses.int-spec.ts.
       expenseSummary: {
         totalMinor: 0,

@@ -36,6 +36,8 @@ export interface TaskDashboard {
   counts: TaskCounts;
   upcoming: Task[];
   today: string;
+  /** Any task that is not deleted, Cancelled included (0026 #20). */
+  hasTasks: boolean;
 }
 
 /**
@@ -140,10 +142,11 @@ export class TasksService {
   /** The dashboard's counts and upcoming tasks, computed on every request (0026 #20). */
   async dashboard(weddingId: string, now: Date = new Date()): Promise<TaskDashboard> {
     const today = await this.today(weddingId, now);
-    const [counts, upcoming] = await Promise.all([
+    const [counts, upcoming, hasTasks] = await Promise.all([
       this.tasks.counts(weddingId, today),
       this.tasks.upcoming(weddingId, today),
+      this.tasks.exists(weddingId),
     ]);
-    return { counts, upcoming, today };
+    return { counts, upcoming, today, hasTasks };
   }
 }

@@ -92,8 +92,15 @@ export function DashboardSummaries({ wedding }: { wedding: ApiWedding }) {
     );
   }
 
-  const { upcomingEvents, guestTotals, rsvpBreakdown, taskCounts, upcomingTasks, expenseSummary } =
-    state.data;
+  const {
+    upcomingEvents,
+    guestTotals,
+    rsvpBreakdown,
+    taskCounts,
+    upcomingTasks,
+    hasTasks,
+    expenseSummary,
+  } = state.data;
   return (
     <div className="mt-6 grid gap-6 md:grid-cols-2">
       <Card icon="festival" title={copy.upcomingTitle}>
@@ -129,7 +136,7 @@ export function DashboardSummaries({ wedding }: { wedding: ApiWedding }) {
         )}
       </Card>
 
-      <TasksCard counts={taskCounts} upcoming={upcomingTasks} />
+      <TasksCard counts={taskCounts} upcoming={upcomingTasks} hasTasks={hasTasks} />
 
       <Card icon="group" title={copy.guestsTitle}>
         <p className="font-serif text-navy">
@@ -282,20 +289,23 @@ function ExpensesCard({ summary }: { summary: ApiDashboard['expenseSummary'] }) 
   );
 }
 
-/** The Tasks card (Stitch "P7 · T6"): four counts and up to five upcoming tasks. */
+/**
+ * The Tasks card (Stitch "P7 · T6"): four counts and up to five upcoming tasks. "No tasks
+ * yet" only when the wedding has no tasks at all; when every task is cancelled the counts
+ * show as zero with "View all tasks" (0026 #20).
+ */
 function TasksCard({
   counts,
   upcoming,
+  hasTasks,
 }: {
   counts: ApiDashboard['taskCounts'];
   upcoming: UpcomingTask[];
+  hasTasks: boolean;
 }) {
-  const none =
-    counts.pending + counts.blocked + counts.completed + counts.overdue === 0 &&
-    upcoming.length === 0;
   return (
     <Card icon="checklist" title={dashboardTasks.title}>
-      {none ? (
+      {!hasTasks ? (
         <div className="py-4 text-center">
           <p className="font-medium text-navy">{dashboardTasks.emptyTitle}</p>
           <p className="mb-4 text-body-sm text-on-surface-variant">{dashboardTasks.emptyBody}</p>
