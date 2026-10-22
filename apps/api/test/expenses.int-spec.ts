@@ -806,4 +806,52 @@ describe('Expenses (Phase 8, decision 0028)', () => {
       .expect(200);
     expect(pluck(await audits(payment.id), 'action')).toEqual(['EXPENSE_PAYMENT_ADDED']);
   });
+
+  it('keeps a former member as payer on an edit, but never makes them a new payer (0030)', async () => {
+    const { weddingId, create, pay, agent, base } = await setUp();
+    const expense = await create();
+    // A second member (as Phase 10 will allow), who then leaves the wedding.
+    const helper = await workspace.owner();
+    const helperId = (await helper.agent.get('/api/v1/me').expect(200)).body.data.user.id as string;
+    const memberships = workspace.connection.collection('wedding_memberships');
+    await memberships.insertOne({
+      weddingId: new Types.ObjectId(weddingId),
+      userId: new Types.ObjectId(helperId),
+      memberType: 'MEMBER',
+      role: 'ORGANIZER',
+      status: 'ACTIVE',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    const asHelper = {
+      paidByType: 'WEDDING_MEMBER',
+      paidByUserId: helperId,
+      paidByName: undefined,
+    };
+    const payment = (await pay(expense.id, { amountMinor: 500, ...asHelper }).expect(201)).body
+      .data as Payment;
+    await memberships.updateOne(
+      { weddingId: new Types.ObjectId(weddingId), userId: new Types.ObjectId(helperId) },
+      { $set: { status: 'REVOKED' } },
+    );
+
+    // Correcting the amount keeps the same payer: allowed.
+    const edited = (
+      await agent
+        .patch(`${base}/expenses/${expense.id}/payments/${payment.id}`)
+        .send({ amountMinor: 400, paymentDate: day(0), ...asHelper })
+        .expect(200)
+    ).body.data as Payment;
+    expect(edited).toMatchObject({ amountMinor: 400, paidByUserId: helperId });
+
+    // A new payment by them, or switching another payment to them: refused.
+    expect(
+      (await pay(expense.id, { amountMinor: 100, ...asHelper }).expect(404)).body.error.code,
+    ).toBe('MEMBER_NOT_FOUND');
+    const other = (await pay(expense.id, { amountMinor: 100 }).expect(201)).body.data as Payment;
+    await agent
+      .patch(`${base}/expenses/${expense.id}/payments/${other.id}`)
+      .send({ amountMinor: 100, paymentDate: day(0), ...asHelper })
+      .expect(404);
+  });
 });

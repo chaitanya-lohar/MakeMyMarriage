@@ -601,8 +601,8 @@ function ExpenseTable({ expenses }: { expenses: ApiExpense[] }) {
       <table className="w-full table-fixed">
         <thead className="border-b border-hairline bg-surface-container-low">
           <tr>
-            <th className={`${header} w-[19%] pl-4`}>{expensesPage.columns.title}</th>
-            <th className={`${header} w-[11%]`}>{expensesPage.columns.category}</th>
+            <th className={`${header} w-[17%] pl-4`}>{expensesPage.columns.title}</th>
+            <th className={`${header} w-[13%]`}>{expensesPage.columns.category}</th>
             <th className={`${header} w-[11%]`}>{expensesPage.columns.event}</th>
             <th className={`${header} w-[11%] text-right`}>{expensesPage.columns.amount}</th>
             <th className={`${header} w-[10%] text-right`}>{expensesPage.columns.paid}</th>
@@ -617,7 +617,7 @@ function ExpenseTable({ expenses }: { expenses: ApiExpense[] }) {
               <td className="py-4 pr-3 pl-4">
                 <ExpenseTitle expense={expense} />
               </td>
-              <td className="px-3 py-4 break-words text-on-surface-variant">
+              <td className="px-3 py-4 text-on-surface-variant">
                 {categoryLabels[expense.category]}
               </td>
               <td className="px-3 py-4 break-words text-on-surface-variant">

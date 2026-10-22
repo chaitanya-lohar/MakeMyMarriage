@@ -86,10 +86,10 @@ export class ExpensePaymentsUseCase {
     userId: string,
     details: PaymentDetails,
   ): Promise<ExpensePayment> {
-    await this.check(weddingId, details);
     return this.transactions.run(async (transaction) => {
       const current = await this.payments.find(weddingId, expenseId, paymentId, transaction);
       if (!current) throw await this.missing(weddingId, expenseId, transaction);
+      await this.check(weddingId, details, current.payer.userId);
       await this.paid(
         weddingId,
         expenseId,
@@ -143,11 +143,20 @@ export class ExpensePaymentsUseCase {
     });
   }
 
-  /** A member payer must be an active member; payments are never dated after today. */
-  private async check(weddingId: string, details: PaymentDetails): Promise<void> {
+  /**
+   * A member payer must be an active member, except the member who already made the payment
+   * being edited: keeping them is allowed even after they leave the wedding (decision 0030).
+   * Payments are never dated after today.
+   */
+  private async check(
+    weddingId: string,
+    details: PaymentDetails,
+    keptMemberId: string | null = null,
+  ): Promise<void> {
     if (details.payer.type === PayerType.WeddingMember) {
       const userId = details.payer.userId;
-      if (!userId || !(await this.memberships.findActive(userId, weddingId))) {
+      const kept = userId !== null && userId === keptMemberId;
+      if (!userId || (!kept && !(await this.memberships.findActive(userId, weddingId)))) {
         throw ExpensesErrors.memberNotFound();
       }
     }
