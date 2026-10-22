@@ -103,12 +103,15 @@ export class SaveExpenseUseCase {
     });
   }
 
-  /** An active event of the wedding, or EVENT_NOT_FOUND. */
+  /**
+   * An active event of the wedding, or EVENT_NOT_FOUND. The event is claimed, not only read, so a
+   * deletion at the same moment conflicts with this save (review P8-M1).
+   */
   private async checkEvent(
     weddingId: string,
     eventId: string | null,
     transaction: Transaction,
   ): Promise<void> {
-    if (eventId !== null) await this.events.getActive(weddingId, eventId, transaction);
+    if (eventId !== null) await this.events.claimActive(weddingId, eventId, transaction);
   }
 }

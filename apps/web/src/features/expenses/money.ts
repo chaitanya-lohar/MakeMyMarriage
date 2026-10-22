@@ -13,8 +13,9 @@ export type AmountProblem = 'required' | 'invalid' | 'decimals' | 'zero' | 'tooL
 export function parseRupees(text: string): { minor: number } | { problem: AmountProblem } {
   const cleaned = text.replace(/[\s,]/g, '').replace(/^₹/, '');
   if (cleaned === '') return { problem: 'required' };
-  const match = /^(\d+)(?:\.(\d*))?$/.exec(cleaned);
-  if (!match) return { problem: 'invalid' };
+  // "150000", "150000.", "150000.5" and ".50" are all amounts; "." alone is not.
+  const match = /^(\d*)(?:\.(\d*))?$/.exec(cleaned);
+  if (!match || cleaned === '.') return { problem: 'invalid' };
   const [, whole = '', fraction = ''] = match;
   if (fraction.length > 2) return { problem: 'decimals' };
   // More digits than ₹10 crore can have: too large, whatever they are.

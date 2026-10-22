@@ -105,6 +105,10 @@ export class ExpensePaymentsUseCase {
         transaction,
       );
       if (!payment) throw ExpensesErrors.paymentNotFound();
+      // Saving without a change is not a change: no audit entry (review P8, low).
+      if (JSON.stringify(auditValues(current)) === JSON.stringify(auditValues(payment))) {
+        return payment;
+      }
       await this.record(
         weddingId,
         userId,

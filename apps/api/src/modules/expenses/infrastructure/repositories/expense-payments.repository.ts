@@ -11,6 +11,9 @@ import {
 
 const oid = (id: string) => new Types.ObjectId(id);
 
+/** Both IDs could have been issued by this API; anything else is not found (review P8-M2). */
+const validIds = (...ids: string[]) => ids.every((id) => isValidObjectId(id));
+
 function toStoredDate(calendarDate: string): Date {
   return new Date(`${calendarDate}T00:00:00.000Z`);
 }
@@ -88,7 +91,7 @@ export class ExpensePaymentsRepository {
     paymentId: string,
     transaction?: Transaction,
   ): Promise<ExpensePayment | null> {
-    if (!isValidObjectId(paymentId)) return null;
+    if (!validIds(expenseId, paymentId)) return null;
     const document = await this.payments
       .findOne({ _id: oid(paymentId), weddingId: oid(weddingId), expenseId: oid(expenseId) })
       .session(sessionOf(transaction) ?? null);
@@ -111,7 +114,7 @@ export class ExpensePaymentsRepository {
     details: PaymentDetails,
     transaction: Transaction,
   ): Promise<ExpensePayment | null> {
-    if (!isValidObjectId(paymentId)) return null;
+    if (!validIds(expenseId, paymentId)) return null;
     const { set, unset } = storedFields(details);
     const document = await this.payments.findOneAndUpdate(
       { _id: oid(paymentId), weddingId: oid(weddingId), expenseId: oid(expenseId) },
@@ -128,7 +131,7 @@ export class ExpensePaymentsRepository {
     paymentId: string,
     transaction: Transaction,
   ): Promise<ExpensePayment | null> {
-    if (!isValidObjectId(paymentId)) return null;
+    if (!validIds(expenseId, paymentId)) return null;
     const document = await this.payments.findOneAndDelete(
       { _id: oid(paymentId), weddingId: oid(weddingId), expenseId: oid(expenseId) },
       { session: sessionOf(transaction) },

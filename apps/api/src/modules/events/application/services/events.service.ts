@@ -40,6 +40,21 @@ export class EventsService {
     return event;
   }
 
+  /**
+   * The active event, or EVENT_NOT_FOUND, claimed for a link made in the given transaction: a
+   * concurrent deletion of the event conflicts with it, so MongoDB retries one of the two and
+   * nothing is ever linked to a deleted event (review P8-M1; decisions 0026 #12, 0028 #17).
+   */
+  async claimActive(
+    weddingId: string,
+    eventId: string,
+    transaction: Transaction,
+  ): Promise<WeddingEvent> {
+    const event = await this.events.claimActive(weddingId, eventId, transaction);
+    if (!event) throw EventsErrors.notFound();
+    return event;
+  }
+
   findActive(
     weddingId: string,
     eventId: string,

@@ -10,6 +10,14 @@ describe('rupee amounts (0028 #6)', () => {
     expect(parseRupees('1.005')).toEqual({ problem: 'decimals' });
     expect(parseRupees('19.99')).toEqual({ minor: 1999 });
     expect(parseRupees('100000000')).toEqual({ minor: 10_000_000_000 });
+    // Edge cases from review P8: a leading or trailing point, and ₹10 crore with commas.
+    expect(parseRupees('.5')).toEqual({ minor: 50 });
+    expect(parseRupees('.50')).toEqual({ minor: 50 });
+    expect(parseRupees('100.')).toEqual({ minor: 10_000 });
+    expect(parseRupees('10,00,00,000')).toEqual({ minor: 10_000_000_000 });
+    expect(parseRupees('10,00,00,000.00')).toEqual({ minor: 10_000_000_000 });
+    expect(parseRupees('.')).toEqual({ problem: 'invalid' });
+    expect(parseRupees('1.2.3')).toEqual({ problem: 'invalid' });
   });
 
   it('reports why an amount is not valid', () => {

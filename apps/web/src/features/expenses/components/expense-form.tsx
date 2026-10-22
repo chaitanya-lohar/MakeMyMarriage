@@ -29,7 +29,7 @@ import {
 } from '../expense-model';
 import { ExpenseNotAvailable } from './expense-parts';
 
-type BannerState = 'server' | 'network' | 'amount' | null;
+type BannerState = 'server' | 'network' | 'amount' | 'eventGone' | null;
 
 /** `/expenses/new`: Stitch "P8 · E3"; from an event's shortcut the event is preselected (E8). */
 export function AddExpensePage({ wedding, eventId }: { wedding: ApiWedding; eventId?: string }) {
@@ -117,8 +117,11 @@ function ExpenseForm({
   const [banner, setBanner] = useState<BannerState>(null);
   const [pending, setPending] = useState(false);
   const [gone, setGone] = useState(false);
+  // An event deleted while the form was open; it leaves the select (review P8, low).
+  const [deletedEventId, setDeletedEventId] = useState<string | null>(null);
   // Set synchronously, so a quick second submit is ignored before the button re-renders.
   const submitting = useRef(false);
+  const linkedEventId = expense?.eventId ?? null;
 
   useEffect(() => {
     void call(() =>
@@ -128,6 +131,13 @@ function ExpenseForm({
     ).then((result) => {
       if (!result.data) {
         setEvents([]);
+        // Without the list the select can show only "Whole wedding" (and an edited expense's own
+        // event), so a preset event is dropped: what is sent is what is shown (review P8-M4).
+        setValues((current) =>
+          current.eventId && current.eventId !== linkedEventId
+            ? { ...current, eventId: '' }
+            : current,
+        );
         return;
       }
       const loaded = result.data;
@@ -139,7 +149,7 @@ function ExpenseForm({
           : current,
       );
     });
-  }, [wedding.id]);
+  }, [wedding.id, linkedEventId]);
 
   function change<K extends keyof ExpenseFormValues>(field: K, value: ExpenseFormValues[K]) {
     setValues((previous) => ({ ...previous, [field]: value }));
@@ -188,9 +198,12 @@ function ExpenseForm({
       setErrors((previous) => ({ ...previous, amount: message }));
       setBanner('amount');
     } else if (code === 'EVENT_NOT_FOUND') {
-      // The chosen event was deleted meanwhile: fall back to the whole wedding.
+      // The chosen event was deleted meanwhile: say so, drop it, and fall back to the whole
+      // wedding for the member to check and save again.
+      setDeletedEventId(values.eventId);
+      setEvents((current) => current?.filter((event) => event.id !== values.eventId) ?? current);
       change('eventId', '');
-      setBanner('server');
+      setBanner('eventGone');
     } else if (code === 'EXPENSE_NOT_FOUND' || code === 'WEDDING_NOT_FOUND') setGone(true);
     else if (code === 'VALIDATION_FAILED') setErrors(expenseErrorsFromApi(fields));
     else setBanner(status === 0 ? 'network' : 'server');
@@ -220,6 +233,11 @@ function ExpenseForm({
               {expenseForm.serverError}
             </Banner>
           )}
+          {banner === 'eventGone' && (
+            <Banner tone="error" icon="error">
+              {expenseForm.eventGone}
+            </Banner>
+          )}
           {banner === 'network' && (
             <Banner tone="error" icon="wifi_off">
               {networkError}
@@ -232,7 +250,11 @@ function ExpenseForm({
             values={values}
             errors={errors}
             events={events}
-            linkedEvent={expense?.eventId ? { id: expense.eventId, name: expense.eventName } : null}
+            linkedEvent={
+              expense?.eventId && expense.eventId !== deletedEventId
+                ? { id: expense.eventId, name: expense.eventName }
+                : null
+            }
             fromEvent={Boolean(presetEventId) && values.eventId === presetEventId}
             onChange={change}
             disabled={pending}

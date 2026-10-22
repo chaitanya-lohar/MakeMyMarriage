@@ -97,6 +97,8 @@ export const expenseForm = {
   cancel: 'Cancel',
   checkAmount: 'Check the amount',
   serverError: "We couldn't save the expense. Please try again.",
+  eventGone:
+    'That event was deleted, so this expense is now for the whole wedding. Check it and save again.',
 };
 
 export const expenseErrors = {
@@ -150,6 +152,7 @@ export const expenseDetail = {
   saved: 'Expense saved',
   paymentSaved: 'Payment saved',
   paymentRemoved: 'Payment removed',
+  paymentGone: 'That payment was already removed',
   actionError: "We couldn't update the payments. Please try again.",
 };
 
@@ -171,6 +174,7 @@ export const paymentForm = {
   cancel: 'Cancel',
   close: 'Close',
   serverError: "We couldn't save the payment. Please try again.",
+  memberGone: "That person isn't a member of this wedding any more. Choose who paid.",
 };
 
 export const deleteExpense = {

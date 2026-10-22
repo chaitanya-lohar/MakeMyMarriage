@@ -601,4 +601,209 @@ describe('Expenses (Phase 8, decision 0028)', () => {
     expect((await dashboard()).totalMinor).toBe(150_000 * RUPEE);
     await request(workspace.server()).get(`${base}/expenses`).expect(401);
   });
+
+  // ─── Review P8 ─────────────────────────────────────────────────────────────────────────────
+
+  it('answers malformed and mismatched IDs with 404, never a server error (P8-M2)', async () => {
+    const { create, pay, agent, base, event } = await setUp();
+    const expense = await create();
+    const other = await create({ title: 'Other' });
+    const payment = (await pay(expense.id).expect(201)).body.data as Payment;
+    const body = {
+      amountMinor: 100,
+      paymentDate: day(0),
+      paidByType: 'EXTERNAL_PERSON',
+      paidByName: 'Mama',
+    };
+    const code = async (response: Promise<request.Response>) =>
+      ((await response).body as { error: { code: string } }).error.code;
+
+    for (const [expenseId, paymentId, expected] of [
+      ['not-an-id', payment.id, 'EXPENSE_NOT_FOUND'],
+      [expense.id, 'not-an-id', 'PAYMENT_NOT_FOUND'],
+      // A payment used under a different expense of the same wedding.
+      [other.id, payment.id, 'PAYMENT_NOT_FOUND'],
+    ] as const) {
+      const path = `${base}/expenses/${expenseId}/payments/${paymentId}`;
+      expect(await code(agent.patch(path).send(body).expect(404))).toBe(expected);
+      expect(await code(agent.delete(path).expect(404))).toBe(expected);
+    }
+    expect(
+      await code(agent.post(`${base}/expenses/not-an-id/payments`).send(body).expect(404)),
+    ).toBe('EXPENSE_NOT_FOUND');
+
+    // Another wedding's event on create, edit and the filter.
+    const stranger = await workspace.owner();
+    const foreign = (
+      await stranger.agent
+        .post(`/api/v1/weddings/${stranger.weddingId}/events`)
+        .send({ name: 'Theirs', type: 'CUSTOM', date: day(3) })
+        .expect(201)
+    ).body.data.id as string;
+    expect(
+      await code(
+        agent
+          .post(`${base}/expenses`)
+          .send({
+            title: 'X',
+            amountMinor: 100,
+            category: 'GIFTS',
+            expenseDate: day(0),
+            eventId: foreign,
+          })
+          .expect(404),
+      ),
+    ).toBe('EVENT_NOT_FOUND');
+    expect(
+      await code(
+        agent.patch(`${base}/expenses/${expense.id}`).send({ eventId: foreign }).expect(404),
+      ),
+    ).toBe('EVENT_NOT_FOUND');
+    expect(await code(agent.get(`${base}/expenses?eventId=${foreign}`).expect(404))).toBe(
+      'EVENT_NOT_FOUND',
+    );
+    await event('Ours');
+  });
+
+  it('refuses payment changes on a deleted expense', async () => {
+    const { create, pay, agent, base } = await setUp();
+    const expense = await create();
+    const payment = (await pay(expense.id).expect(201)).body.data as Payment;
+    await agent.delete(`${base}/expenses/${expense.id}`).expect(204);
+    const path = `${base}/expenses/${expense.id}/payments/${payment.id}`;
+    const body = {
+      amountMinor: 100,
+      paymentDate: day(0),
+      paidByType: 'EXTERNAL_PERSON',
+      paidByName: 'Mama',
+    };
+    expect((await pay(expense.id).expect(404)).body.error.code).toBe('EXPENSE_NOT_FOUND');
+    expect((await agent.patch(path).send(body).expect(404)).body.error.code).toBe(
+      'EXPENSE_NOT_FOUND',
+    );
+    expect((await agent.delete(path).expect(404)).body.error.code).toBe('EXPENSE_NOT_FOUND');
+    // The payment is kept, untouched.
+    const stored = await workspace.connection
+      .collection('expense_payments')
+      .findOne({ _id: new Types.ObjectId(payment.id) });
+    expect(stored?.amountMinor).toBe(50_000 * RUPEE);
+  });
+
+  it('keeps paid equal to the sum of payments through concurrent changes (0028 #8–#10)', async () => {
+    const { create, get, pay, payments, agent, base } = await setUp();
+    const expense = await create({ amountMinor: 1_000 * RUPEE });
+    const first = (await pay(expense.id, { amountMinor: 300 * RUPEE }).expect(201)).body
+      .data as Payment;
+    const second = (await pay(expense.id, { amountMinor: 200 * RUPEE }).expect(201)).body
+      .data as Payment;
+    const edit = (paymentId: string, amountMinor: number) =>
+      agent.patch(`${base}/expenses/${expense.id}/payments/${paymentId}`).send({
+        amountMinor,
+        paymentDate: day(0),
+        paidByType: 'EXTERNAL_PERSON',
+        paidByName: 'Mama',
+      });
+
+    // Lowering the amount while a payment arrives: never below what ends up paid.
+    const [lowered, added] = await Promise.all([
+      agent.patch(`${base}/expenses/${expense.id}`).send({ amountMinor: 600 * RUPEE }),
+      pay(expense.id, { amountMinor: 400 * RUPEE }),
+    ]);
+    expect([lowered.status, added.status].sort()).toEqual(
+      lowered.status === 200 ? [200, 409] : [201, 409],
+    );
+
+    // Editing and removing the same payment at once: the removal always succeeds; the edit either
+    // ran first or finds the payment gone.
+    const [edited, removed] = await Promise.all([
+      edit(first.id, 100 * RUPEE),
+      agent.delete(`${base}/expenses/${expense.id}/payments/${first.id}`),
+    ]);
+    expect(removed.status).toBe(204);
+    expect([200, 404]).toContain(edited.status);
+    await Promise.all([edit(second.id, 250 * RUPEE), pay(expense.id, { amountMinor: 50 * RUPEE })]);
+
+    const current = await get(expense.id);
+    const sum = (await payments(expense.id)).reduce(
+      (total, payment) => total + (payment.amountMinor as number),
+      0,
+    );
+    expect(current.paidMinor).toBe(sum);
+    expect(sum).toBeLessThanOrEqual(current.amountMinor as number);
+    expect(current.pendingMinor).toBe((current.amountMinor as number) - sum);
+  });
+
+  it('pages through equal dates and creation times without gaps, and rejects a bad cursor', async () => {
+    const { create, list, agent, base } = await setUp();
+    const ids = new Set<string>();
+    for (let index = 0; index < 5; index += 1) {
+      ids.add((await create({ title: `Same day ${index}`, expenseDate: day(-2) })).id);
+    }
+    // Force identical creation times: the ID is the final tie-break.
+    await workspace.connection
+      .collection('expenses')
+      .updateMany(
+        { _id: { $in: [...ids].map((id) => new Types.ObjectId(id)) } },
+        { $set: { createdAt: new Date('2027-01-01T00:00:00.000Z') } },
+      );
+    const seen: unknown[] = [];
+    let cursor: string | null = null;
+    do {
+      const page = await list(`?limit=2${cursor ? `&cursor=${cursor}` : ''}`);
+      seen.push(...pluck(page.data, 'id'));
+      cursor = page.meta.pagination.nextCursor;
+    } while (cursor);
+    expect(seen).toHaveLength(5);
+    expect(new Set(seen)).toEqual(ids);
+
+    for (const bad of ['not-a-cursor', Buffer.from('["x","y","z"]').toString('base64url')]) {
+      expect(
+        (await agent.get(`${base}/expenses?cursor=${bad}`).expect(400)).body.error.details.fields,
+      ).toEqual({ cursor: ['The cursor is not valid.'] });
+    }
+  });
+
+  it('never leaves an expense linked to an event deleted at the same moment (P8-M1)', async () => {
+    const { agent, base, event } = await setUp();
+    for (let round = 0; round < 6; round += 1) {
+      const eventId = await event(`Race ${round}`);
+      await Promise.all([
+        agent.post(`${base}/expenses`).send({
+          title: `Race ${round}`,
+          amountMinor: 100,
+          category: 'GIFTS',
+          expenseDate: day(0),
+          eventId,
+        }),
+        agent.delete(`${base}/events/${eventId}`),
+      ]);
+    }
+    const deleted = await workspace.connection
+      .collection('events')
+      .find({ deletedAt: { $exists: true } }, { projection: { _id: 1 } })
+      .toArray();
+    const dangling = await workspace.connection.collection('expenses').countDocuments({
+      eventId: { $in: deleted.map((row) => row._id) },
+      deletedAt: { $exists: false },
+    });
+    expect(dangling).toBe(0);
+  });
+
+  it('writes no audit entry when a payment is saved unchanged', async () => {
+    const { create, pay, agent, base, audits } = await setUp();
+    const expense = await create();
+    const payment = (await pay(expense.id, { amountMinor: 100, notes: 'Advance' }).expect(201)).body
+      .data as Payment;
+    await agent
+      .patch(`${base}/expenses/${expense.id}/payments/${payment.id}`)
+      .send({
+        amountMinor: 100,
+        paymentDate: day(0),
+        paidByType: 'EXTERNAL_PERSON',
+        paidByName: "Bride's father",
+        notes: 'Advance',
+      })
+      .expect(200);
+    expect(pluck(await audits(payment.id), 'action')).toEqual(['EXPENSE_PAYMENT_ADDED']);
+  });
 });

@@ -494,4 +494,24 @@ describe('Tasks (Phase 7, decision 0026)', () => {
       .body.data as Agent[];
     expect(ownList).toEqual([]);
   });
+
+  it('never leaves a task linked to an event deleted at the same moment (review P8-M1)', async () => {
+    const { agent, base, event } = await setUp();
+    for (let round = 0; round < 6; round += 1) {
+      const eventId = await event(`Race ${round}`);
+      await Promise.all([
+        agent.post(`${base}/tasks`).send({ title: `Race ${round}`, eventId }),
+        agent.delete(`${base}/events/${eventId}`),
+      ]);
+    }
+    const deleted = await workspace.connection
+      .collection('events')
+      .find({ deletedAt: { $exists: true } }, { projection: { _id: 1 } })
+      .toArray();
+    const dangling = await workspace.connection.collection('tasks').countDocuments({
+      eventId: { $in: deleted.map((row) => row._id) },
+      deletedAt: { $exists: false },
+    });
+    expect(dangling).toBe(0);
+  });
 });
