@@ -48,6 +48,8 @@ export function PaymentDialog({
   today,
   user,
   onSaved,
+  onRefresh,
+  onPaymentGone,
   onError,
   onClose,
 }: {
@@ -58,6 +60,10 @@ export function PaymentDialog({
   today: string;
   user: { id: string; displayName: string };
   onSaved: () => void;
+  /** Reloads the expense and its payments behind the dialog, e.g. after an overpayment. */
+  onRefresh: () => void;
+  /** The payment being edited was removed meanwhile, e.g. in another tab. */
+  onPaymentGone: () => void;
   /** For errors the page handles itself: signed out, or the expense gone. */
   onError: (error: ApiError) => void;
   onClose: () => void;
@@ -133,8 +139,13 @@ export function PaymentDialog({
       return;
     }
     const error = result.error;
-    if (error.code === 'PAYMENT_EXCEEDS_BALANCE') setErrors({ amount: error.message });
-    else if (error.code === 'VALIDATION_FAILED') setErrors(paymentErrorsFromApi(error.fields));
+    if (error.code === 'PAYMENT_EXCEEDS_BALANCE') {
+      // Someone else paid meanwhile: show the new pending amount behind the dialog (P8-M3).
+      setErrors({ amount: error.message });
+      onRefresh();
+    } else if (error.code === 'VALIDATION_FAILED') setErrors(paymentErrorsFromApi(error.fields));
+    else if (error.code === 'PAYMENT_NOT_FOUND') onPaymentGone();
+    else if (error.code === 'MEMBER_NOT_FOUND') setBanner(paymentForm.memberGone);
     else if (
       error.status === 401 ||
       error.code === 'EXPENSE_NOT_FOUND' ||

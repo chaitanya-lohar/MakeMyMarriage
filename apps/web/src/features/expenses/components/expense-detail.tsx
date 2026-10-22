@@ -287,6 +287,11 @@ export function ExpenseDetail({ wedding, expenseId }: { wedding: ApiWedding; exp
             setDialog(null);
             reloadWith(expenseDetail.paymentSaved);
           }}
+          onRefresh={() => setAttempt((value) => value + 1)}
+          onPaymentGone={() => {
+            setDialog(null);
+            reloadWith(expenseDetail.paymentGone);
+          }}
           onError={(error) => {
             setDialog(null);
             handleFatal(error);

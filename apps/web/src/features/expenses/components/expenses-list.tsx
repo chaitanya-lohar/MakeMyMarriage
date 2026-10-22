@@ -176,6 +176,11 @@ export function ExpensesList({ wedding }: { wedding: ApiWedding }) {
           : current,
       );
     } else if (result.error.status === 401) router.replace(SESSION_ENDED_PATH);
+    else if (result.error.code === 'EVENT_NOT_FOUND' && filters.eventId) {
+      // The filtered event was deleted meanwhile; every retry would fail, so the list reloads
+      // without that filter (review P8, low).
+      applyFilters({ ...filters, eventId: '' });
+    }
     // Keep what is already loaded; the retry asks for the same page again.
     else setLoadMoreFailed(true);
   }
