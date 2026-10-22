@@ -76,6 +76,26 @@ export class EventsRepository {
     return document ? toEvent(document) : null;
   }
 
+  /**
+   * The active event, written to as part of the caller's transaction so that linking a task or
+   * an expense to it conflicts with deleting it at the same moment (review P8-M1). A read alone
+   * does not: both transactions would commit and leave a link to a deleted event. The write only
+   * bumps the internal version key; the event's fields and `updatedAt` are unchanged.
+   */
+  async claimActive(
+    weddingId: string,
+    eventId: string,
+    transaction: Transaction,
+  ): Promise<WeddingEvent | null> {
+    if (!isValidObjectId(eventId)) return null;
+    const document = await this.events.findOneAndUpdate(
+      { _id: oid(eventId), weddingId: oid(weddingId), ...notDeleted() },
+      { $inc: { __v: 1 } },
+      { returnDocument: 'after', session: sessionOf(transaction), timestamps: false },
+    );
+    return document ? toEvent(document) : null;
+  }
+
   /** The wedding's active events with these IDs, in event order; others are skipped. */
   async findActiveMany(weddingId: string, eventIds: string[]): Promise<WeddingEvent[]> {
     const valid = eventIds.filter((id) => isValidObjectId(id));
