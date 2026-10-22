@@ -2,7 +2,7 @@
 
 The single place to see where MakeMyMarriage stands. Read this first.
 
-- **Updated:** 2026-10-22, after merging Phase 8 (PR #27) and fixing its code review on `fix/phase-8-review`.
+- **Updated:** 2026-10-22, after merging Phase 8 with its review fixes, PR #25 and decision 0030.
 - **Source of truth:** the canonical documents listed in the [documentation index](README.md)
   and the decision records in [`decisions/`](decisions/README.md). This page only summarises
   and links; where they differ, the decision record wins.
@@ -13,7 +13,7 @@ The single place to see where MakeMyMarriage stands. Read this first.
 
 | Item            | State                                                                                                                         |
 | --------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| Current phase   | Phase 8 (Expenses) — merged to `main` (PR #27); review fixes on `fix/phase-8-review`, not pushed                              |
+| Current phase   | Phase 8 (Expenses) — merged to `main` (PRs #27, #28); decision 0030 and a list fix on `fix/expenses-payer-and-category`       |
 | Next phase      | Not chosen yet — needs approval. Open: the DRAFT wording of Phases 4, 7 and 8                                                 |
 | `main`          | Scaffold, Phases 1–4, code-review and manual-testing fixes (PRs #1–6, #12); documentation and decisions 0017–0022 (PRs #8–11) |
 | Open PRs        | None                                                                                                                          |
@@ -23,32 +23,33 @@ The single place to see where MakeMyMarriage stands. Read this first.
 
 Every branch below except `fix/phase-4-review` is merged into `main`; new work starts from `main`.
 
-| Branch                          | Contains                                                                                | State             |
-| ------------------------------- | --------------------------------------------------------------------------------------- | ----------------- |
-| `main`                          | Everything below                                                                        | Up to date        |
-| `feat/home-page`                | Phase 1: design system and home page                                                    | Merged (PR #2)    |
-| `feat/auth`                     | Phase 2: authentication                                                                 | Merged (PR #3)    |
-| `chore/pre-phase-3`             | The three branches below, `.mcp.json`, this page                                        | Merged (PR #4)    |
-| ↳ `fix/auth-hardening`          | Code-review fixes (4 commits)                                                           | Merged via #4     |
-| ↳ `fix/auth-test-findings`      | Manual-testing fixes (3 commits)                                                        | Merged via #4     |
-| ↳ `docs/status-after-phase-2`   | This page after the Phase 1/2 merges (1 commit)                                         | Merged via #4     |
-| `feat/weddings`                 | Phase 3: wedding setup and dashboard shell                                              | Merged (PR #5)    |
-| `fix/workspace-logo-home`       | Workspace logo opens the home page (manual-testing fix)                                 | Merged (PR #6)    |
-| `docs/consolidation`            | Consolidated documentation, decisions 0017–0018                                         | Merged (PR #8)    |
-| `docs/phase-4-design-decisions` | Decision 0019 and the matching spec updates                                             | Merged (PR #9)    |
-| `docs/regenerate-email-status`  | Decisions 0020–0022 and the matching spec updates                                       | Merged (PR #10)   |
-| `feat/phase-4`                  | Phase 4: events, guests, RSVP, invitations and dashboard                                | Merged (PR #12)   |
-| `fix/phase-4-review`            | Decision 0023 and the code-review fixes (includes `feat/phase-4-engineering-decisions`) | Merged (PR #14)   |
-| `feat/event-date-picker`        | Date pickers, save returns to the dashboard, decision 0024 parked                       | Merged (PR #15)   |
-| `feat/vercel-single-runtime`    | Decision 0025: Vercel-only hosting, no worker, emails sent directly, deployment guide   | Local, not pushed |
-| `docs/phase-7-tasks`            | Decisions 0026 and 0027, the Phase 7 PRD                                                | Merged (PR #19)   |
-| `feat/phase-7`                  | Phase 7: tasks module, screens and dashboard card (0026, 0027)                          | Merged (PR #20)   |
-| `fix/phase-7-review`            | Phase 7 code-review fixes (4 medium, 9 low) and tests                                   | Merged (PR #22)   |
-| `docs/phase-8-expenses`         | Decision 0028, the Phase 8 PRD, the spec updates and the 0026 #20 amendment             | Merged (PR #24)   |
-| `fix/phase-7-tasks-empty-state` | Tasks card when every task is cancelled (0026 #20)                                      | PR #25 open       |
-| `docs/phase-8-design-approval`  | Decision 0029: Phase 8 Stitch screens approved                                          | Merged (PR #26)   |
-| `feat/phase-8`                  | Phase 8: expenses module, payments, dashboard card, screens (0028, 0029)                | Merged (PR #27)   |
-| `fix/phase-8-review`            | Phase 8 code-review fixes (4 medium, 4 low) and tests, incl. the tasks event race       | Local, not pushed |
+| Branch                            | Contains                                                                                | State             |
+| --------------------------------- | --------------------------------------------------------------------------------------- | ----------------- |
+| `main`                            | Everything below                                                                        | Up to date        |
+| `feat/home-page`                  | Phase 1: design system and home page                                                    | Merged (PR #2)    |
+| `feat/auth`                       | Phase 2: authentication                                                                 | Merged (PR #3)    |
+| `chore/pre-phase-3`               | The three branches below, `.mcp.json`, this page                                        | Merged (PR #4)    |
+| ↳ `fix/auth-hardening`            | Code-review fixes (4 commits)                                                           | Merged via #4     |
+| ↳ `fix/auth-test-findings`        | Manual-testing fixes (3 commits)                                                        | Merged via #4     |
+| ↳ `docs/status-after-phase-2`     | This page after the Phase 1/2 merges (1 commit)                                         | Merged via #4     |
+| `feat/weddings`                   | Phase 3: wedding setup and dashboard shell                                              | Merged (PR #5)    |
+| `fix/workspace-logo-home`         | Workspace logo opens the home page (manual-testing fix)                                 | Merged (PR #6)    |
+| `docs/consolidation`              | Consolidated documentation, decisions 0017–0018                                         | Merged (PR #8)    |
+| `docs/phase-4-design-decisions`   | Decision 0019 and the matching spec updates                                             | Merged (PR #9)    |
+| `docs/regenerate-email-status`    | Decisions 0020–0022 and the matching spec updates                                       | Merged (PR #10)   |
+| `feat/phase-4`                    | Phase 4: events, guests, RSVP, invitations and dashboard                                | Merged (PR #12)   |
+| `fix/phase-4-review`              | Decision 0023 and the code-review fixes (includes `feat/phase-4-engineering-decisions`) | Merged (PR #14)   |
+| `feat/event-date-picker`          | Date pickers, save returns to the dashboard, decision 0024 parked                       | Merged (PR #15)   |
+| `feat/vercel-single-runtime`      | Decision 0025: Vercel-only hosting, no worker, emails sent directly, deployment guide   | Local, not pushed |
+| `docs/phase-7-tasks`              | Decisions 0026 and 0027, the Phase 7 PRD                                                | Merged (PR #19)   |
+| `feat/phase-7`                    | Phase 7: tasks module, screens and dashboard card (0026, 0027)                          | Merged (PR #20)   |
+| `fix/phase-7-review`              | Phase 7 code-review fixes (4 medium, 9 low) and tests                                   | Merged (PR #22)   |
+| `docs/phase-8-expenses`           | Decision 0028, the Phase 8 PRD, the spec updates and the 0026 #20 amendment             | Merged (PR #24)   |
+| `fix/phase-7-tasks-empty-state`   | Tasks card when every task is cancelled (0026 #20)                                      | Merged (PR #25)   |
+| `docs/phase-8-design-approval`    | Decision 0029: Phase 8 Stitch screens approved                                          | Merged (PR #26)   |
+| `feat/phase-8`                    | Phase 8: expenses module, payments, dashboard card, screens (0028, 0029)                | Merged (PR #27)   |
+| `fix/phase-8-review`              | Phase 8 code-review fixes (4 medium, 4 low) and tests, incl. the tasks event race       | Merged (PR #28)   |
+| `fix/expenses-payer-and-category` | Decision 0030 (former-member payers) and the category column fix from Manual QA         | In progress       |
 
 The merged branches can be deleted, on GitHub and locally.
 
@@ -175,23 +176,21 @@ mobile navigation drawer, a states board and the copy-drafts board.
 
 ## Open decisions and blockers
 
-| Item                                                                                                                                      | Blocks            | Owner         |
-| ----------------------------------------------------------------------------------------------------------------------------------------- | ----------------- | ------------- |
-| A4 — what partners share by default (0011)                                                                                                | Phase 16          | Product       |
-| A5 — what happens on partner disconnect (0011)                                                                                            | Phase 16          | Product       |
-| Usage rights for the Stitch-generated photos                                                                                              | Public launch     | Product       |
-| Privacy Policy and Terms of Service text                                                                                                  | Public launch     | Legal         |
-| A domain verified in Resend (none owned yet; until then email reaches only the Resend account owner — 0025)                               | Email to guests   | Product / Ops |
-| Delete the outdated first "Sign In (V1)" screen in Stitch                                                                                 | Housekeeping      | Product       |
-| Deployment accounts: Vercel (two projects), MongoDB Atlas, Upstash Redis (0025)                                                           | First deployment  | Ops           |
-| Scheduled and background work (reminders, exports, media cleanup, webhooks) on Vercel-only hosting (0025)                                 | Later phases      | Product       |
-| Forgot-password response time hints whether an email is registered (code review, deferred)                                                | Public launch     | Engineering   |
-| Reset email says "signs you out on all your devices", but access tokens live ≤15 min (0015) — reword or revoke instantly                  | Public launch     | Product       |
-| Phase 4 wording on the copy-drafts screen: confirm or change (0019 #7, 0021)                                                              | Phase 4 UI        | Product       |
-| Delivery webhooks for DELIVERED/FAILED (Sent is the highest status until then)                                                            | Delivery statuses | Product / Ops |
-| Live updates on organizer screens (0024, parked): until then, an open page shows a guest's RSVP only after a refresh                      | Enhancement       | Product       |
-| A payment by a member who has since left the wedding: keep them as payer when editing, or require a new payer (review P8; API Design §12) | Phase 10          | Product       |
-| Dashboard Tasks card when every task is cancelled: decided (0026 #20, zero counts and "View all tasks"); code fix pending                 | Phase 7 UI        | Engineering   |
+| Item                                                                                                                     | Blocks            | Owner         |
+| ------------------------------------------------------------------------------------------------------------------------ | ----------------- | ------------- |
+| A4 — what partners share by default (0011)                                                                               | Phase 16          | Product       |
+| A5 — what happens on partner disconnect (0011)                                                                           | Phase 16          | Product       |
+| Usage rights for the Stitch-generated photos                                                                             | Public launch     | Product       |
+| Privacy Policy and Terms of Service text                                                                                 | Public launch     | Legal         |
+| A domain verified in Resend (none owned yet; until then email reaches only the Resend account owner — 0025)              | Email to guests   | Product / Ops |
+| Delete the outdated first "Sign In (V1)" screen in Stitch                                                                | Housekeeping      | Product       |
+| Deployment accounts: Vercel (two projects), MongoDB Atlas, Upstash Redis (0025)                                          | First deployment  | Ops           |
+| Scheduled and background work (reminders, exports, media cleanup, webhooks) on Vercel-only hosting (0025)                | Later phases      | Product       |
+| Forgot-password response time hints whether an email is registered (code review, deferred)                               | Public launch     | Engineering   |
+| Reset email says "signs you out on all your devices", but access tokens live ≤15 min (0015) — reword or revoke instantly | Public launch     | Product       |
+| Phase 4 wording on the copy-drafts screen: confirm or change (0019 #7, 0021)                                             | Phase 4 UI        | Product       |
+| Delivery webhooks for DELIVERED/FAILED (Sent is the highest status until then)                                           | Delivery statuses | Product / Ops |
+| Live updates on organizer screens (0024, parked): until then, an open page shows a guest's RSVP only after a refresh     | Enhancement       | Product       |
 
 ## Working rules
 
@@ -244,6 +243,7 @@ checked only for loading the saved values.
 
 | Date       | Change                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-22 | Review fixes merged (PR #28) and PR #25 merged (the dashboard Tasks card shows zero counts when every task is cancelled — 0026 #20); main CI and both Vercel builds passed. Manual QA of Phase 8: 29/29 checks pass; one low finding (category names breaking mid-word) fixed. Decision 0030 approved: editing a payment may keep a member payer who has since left the wedding.                                                                                                                                                                                                |
 | 2026-10-22 | Phase 8 merged to `main` (PR #27; CI and both Vercel builds passed). Code review: no critical or high; 4 medium and 4 low fixed on `fix/phase-8-review` — linking an expense or task to an event now claims the event so a concurrent deletion conflicts (also fixes the same race in tasks), malformed IDs are 404, the payment dialog handles removed payments, former members and refused overpayments, and the form never sends an event it does not show. 134 integration, 68 API unit and 312 web unit tests pass. Open: former-member payers on edit (product decision). |
 | 2026-10-21 | Phase 8 (Expenses) built on `feat/phase-8`: expenses module (expenses, payments, list with totals, event-deletion effect, audit), dashboard summary, and the E1–E8 screens with the 0029 corrections. 17 new API tests (15 integration, 2 unit) and 41 web unit tests; browser check of every screen and flow at 1280px and 500px (no horizontal scrolling). Checks: 127 integration, 68 API unit and 312 web unit tests, both builds. The wording is draft. Pushed as PR #27; CI passed.                                                                                       |
 | 2026-10-21 | Decision 0029: Phase 8 Stitch screens E1–E8 approved after the product owner corrected them in Stitch; no Remove inside Edit payment; the remove dialog previews paid and pending; shell and small fixes applied in code; wording draft. Implementation awaits approval.                                                                                                                                                                                                                                                                                                        |

@@ -456,7 +456,8 @@ POST /api/v1/weddings/{weddingId}/expenses/{expenseId}/payments
   (calculated — 0028 #7), `eventName` and timestamps. Create returns `201`, update `200`.
 - **Payment fields:** `amountMinor` (required, more than 0), `paymentDate` (required,
   `YYYY-MM-DD`, today or earlier in the wedding's timezone), `paidByType` (`WEDDING_MEMBER`
-  with `paidByUserId` of an active member, or `EXTERNAL_PERSON` with `paidByName`, 1–100),
+  with `paidByUserId` of an active member — or, on an edit, the payment's existing member payer
+  even after they leave the wedding (0030) —, or `EXTERNAL_PERSON` with `paidByName`, 1–100),
   `paymentMethod` (optional), `referenceNumber` (at most 100), `notes` (at most 500).
 - **Payment DTO** adds `id`, `paidByName` (the member's display name for a member) and
   timestamps. Add returns `201`, update `200`, remove `204`; the list is oldest first. Each

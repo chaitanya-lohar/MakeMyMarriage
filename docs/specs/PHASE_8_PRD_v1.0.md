@@ -57,14 +57,14 @@ It is an expense tracker, not a budgeting tool.
 
 ### 3.2 Payment
 
-| Field     | Rule                                                                                                            |
-| --------- | --------------------------------------------------------------------------------------------------------------- |
-| Amount    | Required; more than ₹0, at most two decimals; with the other payments, never more than the expense amount (§4). |
-| Date      | Required; today or earlier in the wedding's timezone.                                                           |
-| Payer     | Required; either a wedding member, or a typed name (1–100 characters), such as "Bride's father".                |
-| Method    | Optional; `CASH`, `UPI`, `BANK_TRANSFER`, `CARD`, `CHEQUE`, `OTHER`.                                            |
-| Reference | Optional; at most 100 characters (for example a UPI or cheque number).                                          |
-| Notes     | Optional; at most 500 characters.                                                                               |
+| Field     | Rule                                                                                                                                                              |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Amount    | Required; more than ₹0, at most two decimals; with the other payments, never more than the expense amount (§4).                                                   |
+| Date      | Required; today or earlier in the wedding's timezone.                                                                                                             |
+| Payer     | Required; either a wedding member, or a typed name (1–100 characters), such as "Bride's father". An edit may keep a member who has since left the wedding (0030). |
+| Method    | Optional; `CASH`, `UPI`, `BANK_TRANSFER`, `CARD`, `CHEQUE`, `OTHER`.                                                                                              |
+| Reference | Optional; at most 100 characters (for example a UPI or cheque number).                                                                                            |
+| Notes     | Optional; at most 500 characters.                                                                                                                                 |
 
 ## 4. Money rules
 
