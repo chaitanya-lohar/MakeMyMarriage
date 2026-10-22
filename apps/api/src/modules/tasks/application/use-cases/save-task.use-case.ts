@@ -162,14 +162,18 @@ export class SaveTaskUseCase {
     });
   }
 
-  /** The name of an active event of the wedding, or EVENT_NOT_FOUND (0026 #11). */
+  /**
+   * The name of an active event of the wedding, or EVENT_NOT_FOUND (0026 #11). The event is
+   * claimed, not only read, so a deletion at the same moment conflicts with this save and the
+   * task can never end up linked to a deleted event (review P8-M1).
+   */
   private async eventName(
     weddingId: string,
     eventId: string | null,
     transaction: Transaction,
   ): Promise<string | null> {
     if (eventId === null) return null;
-    return (await this.events.getActive(weddingId, eventId, transaction)).name;
+    return (await this.events.claimActive(weddingId, eventId, transaction)).name;
   }
 
   /** The current event's name for the history; null if it is gone. */

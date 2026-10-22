@@ -70,6 +70,14 @@ describe('Dashboard', () => {
       taskCounts: { pending: 0, blocked: 0, completed: 0, overdue: 0 },
       upcomingTasks: [],
       hasTasks: false,
+      // Phase 8 (0028 #23); the expense summary is tested in expenses.int-spec.ts.
+      expenseSummary: {
+        totalMinor: 0,
+        paidMinor: 0,
+        pendingMinor: 0,
+        byCategory: [],
+        byEvent: [],
+      },
     });
   });
 

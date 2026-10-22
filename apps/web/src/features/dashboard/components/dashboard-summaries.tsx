@@ -7,12 +7,19 @@ import { useEffect, useState } from 'react';
 import { Banner, SecondaryButton } from '@/components/ui/form';
 import { Icon, type IconName } from '@/components/ui/icon';
 import { formatTimes } from '@/features/events/event-model';
+import { MoneyFigures } from '@/features/expenses/components/expense-parts';
+import { categoryLabels, dashboardExpenses } from '@/features/expenses/content';
+import { formatRupees } from '@/features/expenses/money';
 import { rsvpLabels } from '@/features/guests/content';
 import { DueTag } from '@/features/tasks/components/task-parts';
 import { dashboardTasks, priorityLabels } from '@/features/tasks/content';
 import { formatShortDate } from '@/features/tasks/task-model';
 import type { ApiWedding } from '@/features/weddings/wedding-form-model';
-import { EVENTS_PATH, TASKS_PATH } from '@/features/workspace/components/shell-parts';
+import {
+  EVENTS_PATH,
+  EXPENSES_PATH,
+  TASKS_PATH,
+} from '@/features/workspace/components/shell-parts';
 import { SkeletonCard } from '@/features/workspace/components/workspace-page';
 import { SESSION_ENDED_PATH } from '@/features/workspace/workspace-context';
 import { api, call } from '@/lib/api';
@@ -62,6 +69,7 @@ export function DashboardSummaries({ wedding }: { wedding: ApiWedding }) {
         <SkeletonCard className="h-56" />
         <SkeletonCard className="h-56" />
         <SkeletonCard className="h-56" />
+        <SkeletonCard className="h-56" />
       </div>
     );
   }
@@ -84,8 +92,15 @@ export function DashboardSummaries({ wedding }: { wedding: ApiWedding }) {
     );
   }
 
-  const { upcomingEvents, guestTotals, rsvpBreakdown, taskCounts, upcomingTasks, hasTasks } =
-    state.data;
+  const {
+    upcomingEvents,
+    guestTotals,
+    rsvpBreakdown,
+    taskCounts,
+    upcomingTasks,
+    hasTasks,
+    expenseSummary,
+  } = state.data;
   return (
     <div className="mt-6 grid gap-6 md:grid-cols-2">
       <Card icon="festival" title={copy.upcomingTitle}>
@@ -185,7 +200,92 @@ export function DashboardSummaries({ wedding }: { wedding: ApiWedding }) {
           {copy.attendeesNote}
         </p>
       </Card>
+
+      <ExpensesCard summary={expenseSummary} />
     </div>
+  );
+}
+
+/**
+ * The Expenses card (Stitch "P8 · E7", decision 0029): Total, Paid and Pending, then spending
+ * by category and by event, largest first, as plain amounts — no charts.
+ */
+function ExpensesCard({ summary }: { summary: ApiDashboard['expenseSummary'] }) {
+  const none = summary.byCategory.length === 0;
+  const rows = (items: { key: string; label: string; minor: number }[]) => (
+    <ul className="divide-y divide-hairline">
+      {items.map((item) => (
+        <li key={item.key} className="flex items-center justify-between gap-3 py-2">
+          <span className="min-w-0 text-body-sm break-words text-navy">{item.label}</span>
+          <span className="text-body-sm font-semibold whitespace-nowrap text-navy tabular-nums">
+            {formatRupees(item.minor)}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+  return (
+    <Card icon="payments" title={dashboardExpenses.title}>
+      {none ? (
+        <div className="py-4 text-center">
+          <p className="font-medium text-navy">{dashboardExpenses.emptyTitle}</p>
+          <p className="mb-4 text-body-sm text-on-surface-variant">{dashboardExpenses.emptyBody}</p>
+          <Link
+            href={`${EXPENSES_PATH}/new`}
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-navy px-5 text-label-md text-on-primary hover:bg-[#1e293b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+          >
+            <Icon name="add" className="size-5" />
+            {dashboardExpenses.add}
+          </Link>
+        </div>
+      ) : (
+        <>
+          <div className="rounded-lg border border-hairline bg-surface-container-low p-3">
+            <MoneyFigures
+              size="md"
+              figures={[
+                { label: dashboardExpenses.total, minor: summary.totalMinor },
+                { label: dashboardExpenses.paid, minor: summary.paidMinor },
+                { label: dashboardExpenses.pending, minor: summary.pendingMinor, tone: 'pending' },
+              ]}
+            />
+          </div>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div>
+              <h3 className="mb-1 text-label-sm font-semibold tracking-wide text-on-surface-variant uppercase">
+                {dashboardExpenses.byCategory}
+              </h3>
+              {rows(
+                summary.byCategory.map((row) => ({
+                  key: row.category,
+                  label: categoryLabels[row.category],
+                  minor: row.totalMinor,
+                })),
+              )}
+            </div>
+            <div>
+              <h3 className="mb-1 text-label-sm font-semibold tracking-wide text-on-surface-variant uppercase">
+                {dashboardExpenses.byEvent}
+              </h3>
+              {rows(
+                summary.byEvent.map((row) => ({
+                  key: row.eventId ?? 'whole-wedding',
+                  label: row.eventName ?? dashboardExpenses.wholeWedding,
+                  minor: row.totalMinor,
+                })),
+              )}
+            </div>
+          </div>
+          <Link
+            href={EXPENSES_PATH}
+            className="mt-3 inline-flex min-h-11 items-center gap-1 rounded-lg text-label-md text-navy hover:underline focus-visible:outline-2 focus-visible:outline-secondary"
+          >
+            {dashboardExpenses.viewAll}
+            <Icon name="arrow_forward" className="size-4" />
+          </Link>
+        </>
+      )}
+    </Card>
   );
 }
 

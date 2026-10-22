@@ -14,10 +14,12 @@ export const WEDDING_DETAILS_PATH = '/wedding';
 export const EVENTS_PATH = '/events';
 export const GUESTS_PATH = '/guests';
 export const TASKS_PATH = '/tasks';
+export const EXPENSES_PATH = '/expenses';
 
 /**
  * The workspace navigation (0016); Phase 4 adds Events and Guests & RSVP (0019 #3), Phase 7
- * adds Tasks after them (0027), with no count badge.
+ * adds Tasks after them (0027), with no count badge, and Phase 8 adds Expenses after Tasks
+ * (0029).
  */
 const navItems: { href: string; label: string; icon: IconName }[] = [
   { href: DASHBOARD_PATH, label: workspaceNav.dashboard, icon: 'space_dashboard' },
@@ -25,11 +27,14 @@ const navItems: { href: string; label: string; icon: IconName }[] = [
   { href: EVENTS_PATH, label: workspaceNav.events, icon: 'festival' },
   { href: GUESTS_PATH, label: workspaceNav.guests, icon: 'group' },
   { href: TASKS_PATH, label: workspaceNav.tasks, icon: 'checklist' },
+  { href: EXPENSES_PATH, label: workspaceNav.expenses, icon: 'payments' },
 ];
 
-/** Events, guests and tasks stay highlighted on their sub-pages, e.g. a guest's detail page. */
+/** Items with sub-pages stay highlighted on them, e.g. a guest's detail page. */
+const SECTIONS = [EVENTS_PATH, GUESTS_PATH, TASKS_PATH, EXPENSES_PATH];
+
 function isActive(pathname: string, href: string): boolean {
-  if (href === EVENTS_PATH || href === GUESTS_PATH || href === TASKS_PATH) {
+  if (SECTIONS.includes(href)) {
     return pathname === href || pathname.startsWith(`${href}/`);
   }
   return pathname === href;

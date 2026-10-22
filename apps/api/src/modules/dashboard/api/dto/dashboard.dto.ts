@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { EVENT_TYPES } from '../../../events/index.js';
+import { ExpenseSummaryDto } from '../../../expenses/index.js';
 import { isDueToday, isOverdue, TASK_PRIORITIES, TASK_STATUSES } from '../../../tasks/index.js';
 import type { Dashboard } from '../../application/use-cases/get-dashboard.use-case.js';
 
@@ -128,6 +129,14 @@ export class DashboardDto {
   })
   upcomingTasks!: DashboardTaskDto[];
 
+  @ApiProperty({
+    type: ExpenseSummaryDto,
+    description:
+      'Over expenses that are not deleted: Total, Paid, Pending; by category and by event, ' +
+      'largest first (0028 #23).',
+  })
+  expenseSummary!: ExpenseSummaryDto;
+
   static from(dashboard: Dashboard): DashboardDto {
     const { PENDING, ATTENDING, DECLINED, MAYBE } = dashboard.rsvpBreakdown;
     return {
@@ -154,6 +163,7 @@ export class DashboardDto {
         isOverdue: isOverdue(task.dueDate, task.status, dashboard.tasks.today),
         isDueToday: isDueToday(task.dueDate, task.status, dashboard.tasks.today),
       })),
+      expenseSummary: ExpenseSummaryDto.from(dashboard.expenses),
     };
   }
 }

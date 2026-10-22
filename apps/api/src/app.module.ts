@@ -7,6 +7,7 @@ import { CoreModule } from './core.module.js';
 import { AuthModule } from './modules/auth/index.js';
 import { DashboardModule } from './modules/dashboard/index.js';
 import { EventsModule } from './modules/events/index.js';
+import { ExpensesModule } from './modules/expenses/index.js';
 import { GuestsModule } from './modules/guests/index.js';
 import { InvitationsModule } from './modules/invitations/index.js';
 import { TasksModule } from './modules/tasks/index.js';
@@ -32,6 +33,7 @@ import { HealthModule } from './platform/health/health.module.js';
     GuestsModule,
     InvitationsModule,
     TasksModule,
+    ExpensesModule,
     DashboardModule,
   ],
   controllers: [HealthController],

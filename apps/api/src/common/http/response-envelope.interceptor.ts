@@ -43,7 +43,7 @@ export class ResponseEnvelopeInterceptor implements NestInterceptor {
         };
         if (data instanceof Paginated) {
           meta.pagination = { nextCursor: data.nextCursor, hasNextPage: data.nextCursor !== null };
-          return { data: data.items, meta };
+          return { data: data.items, meta: { ...data.extraMeta, ...meta } };
         }
         return { data: data ?? null, meta };
       }),
