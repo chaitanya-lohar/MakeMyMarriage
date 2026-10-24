@@ -532,7 +532,7 @@ Behaviour: [Phase 7 PRD v1.0](PHASE_7_PRD_v1.0.md).
   `404 EVENT_NOT_FOUND` (event outside the wedding or deleted), `404 MEMBER_NOT_FOUND`
   (assignee who is not an active member).
 
-## 14. Vendor API (Planned — Phase 9, decision 0032)
+## 14. Vendor API (Phase 9, decision 0032; implemented in PR #31)
 
 | Method | Endpoint                                                          | Purpose                  |
 | ------ | ----------------------------------------------------------------- | ------------------------ |

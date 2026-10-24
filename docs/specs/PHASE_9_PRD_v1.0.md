@@ -2,7 +2,7 @@
 
 | Item         | Value                                                                                                                                                                                                         |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status       | **Canonical** for Phase 9. Approved scope; screens approved (0033); **not implemented**.                                                                                                                      |
+| Status       | **Canonical** for Phase 9. Approved scope and screens (0033); implementation merged to `main` in PR #31.                                                                                                      |
 | Date         | 2026-10-24                                                                                                                                                                                                    |
 | Parent       | [PRD v1.2](PRD_v1.2.md) (sections 15, 17 and 18)                                                                                                                                                              |
 | Decision     | [0032](../decisions/0032-phase-9-vendors.md), with 0010 #6, [0028](../decisions/0028-phase-8-expenses.md) and [0030](../decisions/0030-payments-by-former-members.md)                                         |
