@@ -171,12 +171,11 @@ describe('Expenses (Phase 8, decision 0028)', () => {
     await send({ expenseDate: day(200) }).expect(201);
   });
 
-  it('never lets a client set the status, currency, vendor or a description (0028 #4, #7)', async () => {
+  it('never lets a client set the status, currency or a description (0028 #4, #7)', async () => {
     const { agent, base, create } = await setUp();
     for (const extra of [
       { paymentStatus: 'PAID' },
       { currency: 'USD' },
-      { vendorId: new Types.ObjectId().toString() },
       { description: 'Lights' },
       { paidMinor: 100 },
     ]) {
@@ -185,6 +184,16 @@ describe('Expenses (Phase 8, decision 0028)', () => {
         .send({ title: 'X', amountMinor: 100, category: 'GIFTS', expenseDate: day(0), ...extra })
         .expect(400);
     }
+    await agent
+      .post(`${base}/expenses`)
+      .send({
+        title: 'X',
+        amountMinor: 100,
+        category: 'GIFTS',
+        expenseDate: day(0),
+        vendorId: new Types.ObjectId().toString(),
+      })
+      .expect(404);
     const expense = await create();
     await agent.patch(`${base}/expenses/${expense.id}`).send({ paymentStatus: 'PAID' }).expect(400);
   });
