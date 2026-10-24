@@ -18,6 +18,9 @@ coverage/
 .env.*
 !.env.example
 
+# Local Codex MCP configuration may contain service API keys.
+.codex/config.toml
+
 # Logs
 *.log
 npm-debug.log*
