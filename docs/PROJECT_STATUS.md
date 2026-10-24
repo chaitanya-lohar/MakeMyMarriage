@@ -2,7 +2,7 @@
 
 The single place to see where MakeMyMarriage stands. Read this first.
 
-- **Updated:** 2026-10-24, after the Phase 9 (Vendors) design approval: decisions 0032 and 0033 and the Phase 9 PRD.
+- **Updated:** 2026-10-24, after merging the Phase 9 (Vendors) documentation (decisions 0032, 0033 and the Phase 9 PRD) to `main`.
 - **Source of truth:** the canonical documents listed in the [documentation index](README.md)
   and the decision records in [`decisions/`](decisions/README.md). This page only summarises
   and links; where they differ, the decision record wins.
@@ -11,47 +11,48 @@ The single place to see where MakeMyMarriage stands. Read this first.
 
 ## Snapshot
 
-| Item            | State                                                                                                                       |
-| --------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Current phase   | Phase 9 (Vendors) — discovery and screens approved (0032, 0033, Phase 9 PRD v1.0) on `docs/phase-9-vendors`, not yet merged |
-| Next phase      | Phase 9 implementation (`feat/phase-9`) — needs explicit approval; merge the docs PR first                                  |
-| `main`          | Scaffold, Phases 1–4, 7 and 8 with their review fixes (PRs #1–29); decisions 0001–0031                                      |
-| Open PRs        | None yet — `docs/phase-9-vendors` is pushed; its PR is to be opened (no GitHub CLI on this machine)                         |
-| Live deployment | None yet                                                                                                                    |
+| Item            | State                                                                                                             |
+| --------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Current phase   | Phase 9 (Vendors) — discovery and screens approved and merged (0032, 0033, Phase 9 PRD v1.0). Implementation next |
+| Next phase      | Phase 9 implementation on `feat/phase-9`, assigned to Codex by the product owner (prompt prepared 2026-10-24)     |
+| `main`          | Scaffold, Phases 1–4, 7 and 8 with their review fixes (PRs #1–29); decisions 0001–0033; Phase 9 PRD               |
+| Open PRs        | None                                                                                                              |
+| Live deployment | None yet                                                                                                          |
 
 ### Branches
 
 Every branch below except `fix/phase-4-review` is merged into `main`; new work starts from `main`.
 
-| Branch                            | Contains                                                                                | State              |
-| --------------------------------- | --------------------------------------------------------------------------------------- | ------------------ |
-| `main`                            | Everything below                                                                        | Up to date         |
-| `feat/home-page`                  | Phase 1: design system and home page                                                    | Merged (PR #2)     |
-| `feat/auth`                       | Phase 2: authentication                                                                 | Merged (PR #3)     |
-| `chore/pre-phase-3`               | The three branches below, `.mcp.json`, this page                                        | Merged (PR #4)     |
-| ↳ `fix/auth-hardening`            | Code-review fixes (4 commits)                                                           | Merged via #4      |
-| ↳ `fix/auth-test-findings`        | Manual-testing fixes (3 commits)                                                        | Merged via #4      |
-| ↳ `docs/status-after-phase-2`     | This page after the Phase 1/2 merges (1 commit)                                         | Merged via #4      |
-| `feat/weddings`                   | Phase 3: wedding setup and dashboard shell                                              | Merged (PR #5)     |
-| `fix/workspace-logo-home`         | Workspace logo opens the home page (manual-testing fix)                                 | Merged (PR #6)     |
-| `docs/consolidation`              | Consolidated documentation, decisions 0017–0018                                         | Merged (PR #8)     |
-| `docs/phase-4-design-decisions`   | Decision 0019 and the matching spec updates                                             | Merged (PR #9)     |
-| `docs/regenerate-email-status`    | Decisions 0020–0022 and the matching spec updates                                       | Merged (PR #10)    |
-| `feat/phase-4`                    | Phase 4: events, guests, RSVP, invitations and dashboard                                | Merged (PR #12)    |
-| `fix/phase-4-review`              | Decision 0023 and the code-review fixes (includes `feat/phase-4-engineering-decisions`) | Merged (PR #14)    |
-| `feat/event-date-picker`          | Date pickers, save returns to the dashboard, decision 0024 parked                       | Merged (PR #15)    |
-| `feat/vercel-single-runtime`      | Decision 0025: Vercel-only hosting, no worker, emails sent directly, deployment guide   | Local, not pushed  |
-| `docs/phase-7-tasks`              | Decisions 0026 and 0027, the Phase 7 PRD                                                | Merged (PR #19)    |
-| `feat/phase-7`                    | Phase 7: tasks module, screens and dashboard card (0026, 0027)                          | Merged (PR #20)    |
-| `fix/phase-7-review`              | Phase 7 code-review fixes (4 medium, 9 low) and tests                                   | Merged (PR #22)    |
-| `docs/phase-8-expenses`           | Decision 0028, the Phase 8 PRD, the spec updates and the 0026 #20 amendment             | Merged (PR #24)    |
-| `fix/phase-7-tasks-empty-state`   | Tasks card when every task is cancelled (0026 #20)                                      | Merged (PR #25)    |
-| `docs/phase-8-design-approval`    | Decision 0029: Phase 8 Stitch screens approved                                          | Merged (PR #26)    |
-| `feat/phase-8`                    | Phase 8: expenses module, payments, dashboard card, screens (0028, 0029)                | Merged (PR #27)    |
-| `fix/phase-8-review`              | Phase 8 code-review fixes (4 medium, 4 low) and tests, incl. the tasks event race       | Merged (PR #28)    |
-| `fix/expenses-payer-and-category` | Decision 0030 (former-member payers) and the category column fix from Manual QA         | Merged (PR #29)    |
-| `docs/wording-approval`           | Decision 0031: wording of Phases 4, 7 and 8 approved                                    | Merged (PR #30)    |
-| `docs/phase-9-vendors`            | Decisions 0032 and 0033, the Phase 9 PRD and the spec updates                           | Pushed, PR to open |
+| Branch                            | Contains                                                                                | State             |
+| --------------------------------- | --------------------------------------------------------------------------------------- | ----------------- |
+| `main`                            | Everything below                                                                        | Up to date        |
+| `feat/home-page`                  | Phase 1: design system and home page                                                    | Merged (PR #2)    |
+| `feat/auth`                       | Phase 2: authentication                                                                 | Merged (PR #3)    |
+| `chore/pre-phase-3`               | The three branches below, `.mcp.json`, this page                                        | Merged (PR #4)    |
+| ↳ `fix/auth-hardening`            | Code-review fixes (4 commits)                                                           | Merged via #4     |
+| ↳ `fix/auth-test-findings`        | Manual-testing fixes (3 commits)                                                        | Merged via #4     |
+| ↳ `docs/status-after-phase-2`     | This page after the Phase 1/2 merges (1 commit)                                         | Merged via #4     |
+| `feat/weddings`                   | Phase 3: wedding setup and dashboard shell                                              | Merged (PR #5)    |
+| `fix/workspace-logo-home`         | Workspace logo opens the home page (manual-testing fix)                                 | Merged (PR #6)    |
+| `docs/consolidation`              | Consolidated documentation, decisions 0017–0018                                         | Merged (PR #8)    |
+| `docs/phase-4-design-decisions`   | Decision 0019 and the matching spec updates                                             | Merged (PR #9)    |
+| `docs/regenerate-email-status`    | Decisions 0020–0022 and the matching spec updates                                       | Merged (PR #10)   |
+| `feat/phase-4`                    | Phase 4: events, guests, RSVP, invitations and dashboard                                | Merged (PR #12)   |
+| `fix/phase-4-review`              | Decision 0023 and the code-review fixes (includes `feat/phase-4-engineering-decisions`) | Merged (PR #14)   |
+| `feat/event-date-picker`          | Date pickers, save returns to the dashboard, decision 0024 parked                       | Merged (PR #15)   |
+| `feat/vercel-single-runtime`      | Decision 0025: Vercel-only hosting, no worker, emails sent directly, deployment guide   | Local, not pushed |
+| `docs/phase-7-tasks`              | Decisions 0026 and 0027, the Phase 7 PRD                                                | Merged (PR #19)   |
+| `feat/phase-7`                    | Phase 7: tasks module, screens and dashboard card (0026, 0027)                          | Merged (PR #20)   |
+| `fix/phase-7-review`              | Phase 7 code-review fixes (4 medium, 9 low) and tests                                   | Merged (PR #22)   |
+| `docs/phase-8-expenses`           | Decision 0028, the Phase 8 PRD, the spec updates and the 0026 #20 amendment             | Merged (PR #24)   |
+| `fix/phase-7-tasks-empty-state`   | Tasks card when every task is cancelled (0026 #20)                                      | Merged (PR #25)   |
+| `docs/phase-8-design-approval`    | Decision 0029: Phase 8 Stitch screens approved                                          | Merged (PR #26)   |
+| `feat/phase-8`                    | Phase 8: expenses module, payments, dashboard card, screens (0028, 0029)                | Merged (PR #27)   |
+| `fix/phase-8-review`              | Phase 8 code-review fixes (4 medium, 4 low) and tests, incl. the tasks event race       | Merged (PR #28)   |
+| `fix/expenses-payer-and-category` | Decision 0030 (former-member payers) and the category column fix from Manual QA         | Merged (PR #29)   |
+| `docs/wording-approval`           | Decision 0031: wording of Phases 4, 7 and 8 approved                                    | Merged (PR #30)   |
+| `docs/phase-9-vendors`            | Decisions 0032 and 0033, the Phase 9 PRD and the spec updates                           | Merged (direct)   |
+| `chore/ignore-codex-config`       | `.gitignore` ignores the local Codex MCP configuration (`.codex/config.toml`)           | Merged (direct)   |
 
 The merged branches can be deleted, on GitHub and locally.
 
@@ -248,6 +249,7 @@ checked only for loading the saved values.
 
 | Date       | Change                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-24 | `docs/phase-9-vendors` and `chore/ignore-codex-config` merged into `main` and pushed directly (c1a2831), without pull requests, at the product owner's instruction (no GitHub CLI on this machine); CI runs after the push. Phase 9 implementation assigned to Codex with a prepared prompt.                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | 2026-10-24 | Decision 0033: Phase 9 Stitch screens V1–V9 approved after two review rounds (the first round, with a booking delete button, the unapproved "Expenses & Budget" shell and invented features, is not approved). Cancelling a booking needs no confirmation; the event shortcut stays visible with a "No vendors yet" state; no Undo toast; a reopening note; the refused-delete dialog lists active bookings; no total count. Shell and small fixes applied in code; wording draft. Phase 9 PRD §4.2 and §10 updated. Implementation awaits approval.                                                                                                                                                                                            |
 | 2026-10-24 | Phase 9 (Vendors) discovery done: decision 0032 and the Phase 9 PRD v1.0 approved. Vendors with several bookings each (statuses Not contacted to Booked, and Cancelled; any change allowed; cancelled, never deleted); an optional agreed price per booking; a vendor cannot be deleted while a booking is active; the expense `vendorId` is set through a picker; four dashboard summaries. Discovery, attachments and copying between weddings deferred. PRD §15, §17, §18, §30, Database Design §12.1, §14, §18–§20, §22, §24, §26, §27, API Design §6, §12, §14, §21, System Design §6, §12.1, §13, §20, Phase 4 PRD §3.2, Phase 8 PRD §3.1, §12 and 0010 updated. The separate .docx draft was discovery input only. Next: Stitch screens. |
 | 2026-10-22 | Decision 0031: the draft wording of Phases 4, 7 and 8 is approved. Decision 0030 and the category column fix merged (PR #29).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
