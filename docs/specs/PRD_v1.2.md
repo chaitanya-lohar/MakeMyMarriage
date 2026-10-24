@@ -2,16 +2,16 @@
 
 Production-ready wedding planning and management platform for Indian weddings.
 
-| Item         | Value                                                                                                                                                    |
-| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Product      | MakeMyMarriage                                                                                                                                           |
-| Version      | 1.2 (consolidated master)                                                                                                                                |
-| Status       | **Canonical** product baseline                                                                                                                           |
-| Date         | 2026-10-10                                                                                                                                               |
-| Users        | Bride, Groom, Organizers, Guests                                                                                                                         |
-| Deployment   | Public online product                                                                                                                                    |
-| Supersedes   | PRD v1.1 and PRD v1.0 (archived in `docs/archive/specs/`)                                                                                                |
-| Feature PRDs | [Phase 4 — Events, guests, RSVP and invitations](PHASE_4_PRD_v1.2.md); [Phase 7 — Tasks](PHASE_7_PRD_v1.0.md); [Phase 8 — Expenses](PHASE_8_PRD_v1.0.md) |
+| Item         | Value                                                                                                                                                                                              |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Product      | MakeMyMarriage                                                                                                                                                                                     |
+| Version      | 1.2 (consolidated master)                                                                                                                                                                          |
+| Status       | **Canonical** product baseline                                                                                                                                                                     |
+| Date         | 2026-10-10                                                                                                                                                                                         |
+| Users        | Bride, Groom, Organizers, Guests                                                                                                                                                                   |
+| Deployment   | Public online product                                                                                                                                                                              |
+| Supersedes   | PRD v1.1 and PRD v1.0 (archived in `docs/archive/specs/`)                                                                                                                                          |
+| Feature PRDs | [Phase 4 — Events, guests, RSVP and invitations](PHASE_4_PRD_v1.2.md); [Phase 7 — Tasks](PHASE_7_PRD_v1.0.md); [Phase 8 — Expenses](PHASE_8_PRD_v1.0.md); [Phase 9 — Vendors](PHASE_9_PRD_v1.0.md) |
 
 ## Document control
 
@@ -30,6 +30,7 @@ Production-ready wedding planning and management platform for Indian weddings.
 | 1.1     | 2026-09    | Product scope baseline.                                                                                                                      |
 | 1.2     | 2026-10-10 | Consolidated master: PRD v1.1 plus decisions 0008–0018 and the product-owner answers of 2026-10-10 (Q1–Q8, invitation token, smaller rules). |
 | 1.2     | 2026-10-20 | Decision 0028: §15 and §18 updated for Phase 8 (expenses).                                                                                   |
+| 1.2     | 2026-10-24 | Decision 0032: §15, §17, §18 and §30 updated for Phase 9 (vendors and bookings; discovery and attachments deferred).                         |
 
 ## 1. Executive summary
 
@@ -287,7 +288,7 @@ Decisions 0009, 0010 (#5–#8), 0018 and 0028; specified in the
 
 - Track actual expenses rather than a full budgeting product.
 - Expense fields: title, amount (the full cost), category, date, optional event, optional
-  vendor (linked from Phase 9 — 0028 #4) and notes. Receipts are deferred until a
+  vendor (chosen from the wedding's vendors from Phase 9 — 0032 #8) and notes. Receipts are deferred until a
   file-storage decision (0028 #3).
 - Category is one fixed value: `VENUE`, `CATERING`, `DECORATION`, `PHOTOGRAPHY`, `CLOTHING`,
   `JEWELLERY`, `MAKEUP`, `ENTERTAINMENT`, `INVITATIONS`, `GIFTS`, `MISCELLANEOUS`.
@@ -320,18 +321,26 @@ Decisions 0010 (#3, #4), 0013 and 0026; specified in the
 
 ## 17. Vendor management and vendor discovery
 
-- Vendor management is in scope: maintain wedding vendors and associate them with events
-  and categories. Records can include contact details, category, associated events, notes,
-  status, quotation and final cost, payment information and attachments.
-- Vendor status: Prospect, Contacted, Quotation received, Negotiating, Confirmed, Completed,
-  Cancelled.
-- Vendor discovery finds nearby wedding vendors through Google Maps Platform Places API
-  (New), behind a provider abstraction. Categories can include photographers, caterers,
-  venues and marriage gardens, decorators, makeup artists, DJs and mehendi artists.
-- A discovered vendor is added to the managed list only when the user explicitly chooses
-  "Add to My Vendors".
-- **Deferred:** detailed vendor workflow beyond the above, and the exact Google fields that
-  may be stored under the provider's terms.
+Decision 0032; specified in the [Phase 9 PRD v1.0](PHASE_9_PRD_v1.0.md).
+
+- Vendor management is in scope: each wedding keeps its own vendors — name, fixed category,
+  contact person, phone, email, address, website and notes.
+- A vendor can have several **bookings**, one per service. Each booking has its own status,
+  event or whole wedding, booking date, service date, optional agreed price and notes
+  (0032 #4, #5).
+- Booking status: Not contacted, Contacted, Quotation received, Negotiating, Booked,
+  Cancelled. Any status may change to any other; bookings are cancelled, never deleted
+  (0032 #12–#14).
+- Categories: Venue (including marriage gardens), Catering, Photography & Videography,
+  Decoration & Flowers, Makeup & Beauty, Clothing & Jewellery, Entertainment & DJ,
+  Invitations & Printing, Transportation, Wedding Planner, Mehendi, Other (0032 #9).
+- Vendor money is recorded as expenses linked to the vendor, never in a separate ledger
+  (0032 #8). Deleting a vendor is soft, is refused while it has bookings that are not
+  cancelled, and never changes its expenses (0032 #15).
+- **Deferred (0032 #3, #6, #7):** vendor discovery through Google Maps Platform Places API
+  (New), behind a provider abstraction, with "Add to My Vendors" and the exact Google fields
+  that may be stored under the provider's terms; vendor attachments; copying vendors between
+  weddings. Quotation tracking is not planned. There is no public vendor marketplace.
 
 ## 18. Wedding dashboard
 
@@ -344,7 +353,9 @@ Decisions 0010 (#3, #4), 0013 and 0026; specified in the
   the Phase 4 PRD §10.2 (0019). Phase 7 adds task counts (Pending, Blocked, Completed,
   Overdue) and up to five upcoming tasks (Phase 7 PRD §8, 0026 #20). Phase 8 adds the
   expense summary: Total, Paid and Pending, and spending by category and by event (Phase 8
-  PRD §8, 0028 #23).
+  PRD §8, 0028 #23). Phase 9 adds the vendor summary: active vendors, booked vendors,
+  bookings needing follow-up and up to five upcoming booked services (Phase 9 PRD §7,
+  0032 #24).
 
 ## 19. Wedding website
 
@@ -502,7 +513,7 @@ Public website: Home, Our Story, Events, RSVP, Gallery, Live Stream, Share Your 
 | A4 — partner sharing scope       | **Open** (0011). Expenses already decided: automatically shared (0009). |
 | A5 — partner disconnection       | **Open** (0011).                                                        |
 | Guest fields beyond the core set | Deferred until a real need is established.                              |
-| Vendor management depth          | Feature included; detailed workflow deferred.                           |
+| Vendor management depth          | Decided for Phase 9 (0032); discovery and attachments deferred.         |
 | Reminder cadence and channels    | Engine included; schedules, channels and customization deferred.        |
 | Roles and permission templates   | Granular authorization required; default matrix deferred.               |
 | QR expiry                        | Deferred. Revoke and regenerate are approved.                           |

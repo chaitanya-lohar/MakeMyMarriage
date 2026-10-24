@@ -10,12 +10,13 @@
 | Base path  | `/api/v1`                                                         |
 | Supersedes | API Design v1.0 (archived in `docs/archive/specs/`)               |
 
-| Version | Date       | Change                                                                                                           |
-| ------- | ---------- | ---------------------------------------------------------------------------------------------------------------- |
-| 1.0     | 2026-09-24 | Baseline contract.                                                                                               |
-| 1.1     | 2026-10-10 | Consolidated: v1.0 plus decisions 0001, 0008, 0009, 0010, 0012, 0015–0019 and the endpoints built in Phases 2–3. |
-| 1.1     | 2026-10-14 | Decision 0025: the API runs on Vercel; emails are sent directly, with no worker or job queue.                    |
-| 1.1     | 2026-10-20 | Decision 0028 (Phase 8): expense and payment payloads, list filters and totals, dashboard expense summary.       |
+| Version | Date       | Change                                                                                                                |
+| ------- | ---------- | --------------------------------------------------------------------------------------------------------------------- |
+| 1.0     | 2026-09-24 | Baseline contract.                                                                                                    |
+| 1.1     | 2026-10-10 | Consolidated: v1.0 plus decisions 0001, 0008, 0009, 0010, 0012, 0015–0019 and the endpoints built in Phases 2–3.      |
+| 1.1     | 2026-10-14 | Decision 0025: the API runs on Vercel; emails are sent directly, with no worker or job queue.                         |
+| 1.1     | 2026-10-20 | Decision 0028 (Phase 8): expense and payment payloads, list filters and totals, dashboard expense summary.            |
+| 1.1     | 2026-10-24 | Decision 0032 (Phase 9): vendor and booking routes, expense `vendorId`, dashboard vendor summary; discovery deferred. |
 
 **Status of each route group** — _Built_: implemented; the generated OpenAPI contract
 (`packages/api-client/openapi.json`) is the exact reference. _Phase 4_: approved, not built.
@@ -187,6 +188,15 @@ byCategory: [{ category, totalMinor }], byEvent: [{ eventId, eventName, totalMin
   expenses that are not deleted. `byCategory` lists only categories with expenses and
   `byEvent` only events with expenses plus whole-wedding expenses (`eventId: null`), each
   largest total first; each adds up to `totalMinor`.
+- **Vendors (Phase 9 — 0032 #24):** `vendorSummary { activeVendors, bookedVendors,
+bookingsNeedingFollowUp, upcomingServices: [{ bookingId, vendorId, vendorName, title,
+serviceDate, eventId, eventName }] }`, counting only vendors that are not deleted and their
+  bookings. `bookedVendors`: distinct vendors with a `BOOKED` booking.
+  `bookingsNeedingFollowUp`: bookings in `NOT_CONTACTED`, `CONTACTED` or `NEGOTIATING`.
+  `upcomingServices`: `BOOKED` bookings with a `serviceDate` today or later in the wedding's
+  timezone, soonest first, then the earliest created; **at most five**; never undated
+  bookings; `eventId: null` for whole-wedding bookings. `activeVendors: 0` means "No vendors
+  yet".
 - The countdown and wedding details come from `GET /weddings/{weddingId}`. Later modules add
   their own summaries when they are built (PRD §18).
 
@@ -450,10 +460,13 @@ POST /api/v1/weddings/{weddingId}/expenses/{expenseId}/payments
 - **Expense fields:** `title` (required, 1–150), `amountMinor` (required), `category`
   (required, a fixed `ExpenseCategory` value — 0010 #7), `expenseDate` (required,
   `YYYY-MM-DD`), `eventId` (an active event of the wedding, or `null` for the whole wedding),
-  `notes` (at most 1,000). `paymentStatus`, `currency`, `vendorId` and `description` are not
-  accepted (0028 #4, #7, #11).
+  `notes` (at most 1,000), and from Phase 9 `vendorId` (a vendor of the wedding that is not
+  deleted, or `null` for none — or, on an edit, the expense's existing vendor even after it
+  is deleted (0032 #17)). `paymentStatus`, `currency` and `description` are not accepted
+  (0028 #7, #11).
 - **Expense DTO** adds `id`, `currency`, `paidMinor`, `pendingMinor`, `paymentStatus`
-  (calculated — 0028 #7), `eventName` and timestamps. Create returns `201`, update `200`.
+  (calculated — 0028 #7), `eventName`, `vendorName` and `vendorDeleted` (Phase 9) and
+  timestamps. Create returns `201`, update `200`.
 - **Payment fields:** `amountMinor` (required, more than 0), `paymentDate` (required,
   `YYYY-MM-DD`, today or earlier in the wedding's timezone), `paidByType` (`WEDDING_MEMBER`
   with `paidByUserId` of an active member — or, on an edit, the payment's existing member payer
@@ -469,12 +482,14 @@ POST /api/v1/weddings/{weddingId}/expenses/{expenseId}/payments
   expenses), `paymentStatus`, `search` (title contains, ignoring case), `limit` (25) and
   `cursor` (§24). Order: `expenseDate` newest first, then `createdAt` newest first.
   `meta.totals` `{ totalMinor, paidMinor, pendingMinor }` covers every expense matching the
-  filters, not only the page.
+  filters, not only the page. From Phase 9, `vendorId` filters to one vendor's expenses; it is
+  used by the vendor page only — the expense list screen has no vendor filter (0032 #23).
 - **Delete** is a soft delete: the expense leaves every list, total and route (`404`); its
   payments are kept. Expense and payment changes are audited (0028 #18).
 - **Errors:** `400 VALIDATION_FAILED`; `404 WEDDING_NOT_FOUND`, `404 EXPENSE_NOT_FOUND`,
   `404 PAYMENT_NOT_FOUND`, `404 EVENT_NOT_FOUND` (event outside the wedding or deleted),
-  `404 MEMBER_NOT_FOUND` (payer who is not an active member); the two `409` codes above.
+  `404 MEMBER_NOT_FOUND` (payer who is not an active member), `404 VENDOR_NOT_FOUND` (vendor
+  outside the wedding, or newly chosen and deleted); the two `409` codes above.
 
 ## 13. Task API (Planned — Phase 7, decision 0026)
 
@@ -517,23 +532,73 @@ Behaviour: [Phase 7 PRD v1.0](PHASE_7_PRD_v1.0.md).
   `404 EVENT_NOT_FOUND` (event outside the wedding or deleted), `404 MEMBER_NOT_FOUND`
   (assignee who is not an active member).
 
-## 14. Vendor API (Planned)
+## 14. Vendor API (Planned — Phase 9, decision 0032)
 
-| Method | Endpoint                                                          | Purpose                 |
-| ------ | ----------------------------------------------------------------- | ----------------------- |
-| GET    | `/weddings/{weddingId}/vendors`                                   | List managed vendors    |
-| POST   | `/weddings/{weddingId}/vendors`                                   | Add a vendor            |
-| GET    | `/weddings/{weddingId}/vendors/{vendorId}`                        | Get                     |
-| PATCH  | `/weddings/{weddingId}/vendors/{vendorId}`                        | Update                  |
-| DELETE | `/weddings/{weddingId}/vendors/{vendorId}`                        | Soft-delete             |
-| POST   | `/weddings/{weddingId}/vendors/{vendorId}/attachments/upload-url` | S3 upload URL           |
-| GET    | `/weddings/{weddingId}/vendor-discovery/search`                   | Search nearby vendors   |
-| GET    | `/weddings/{weddingId}/vendor-discovery/{providerPlaceId}`        | Discovery detail        |
-| POST   | `/weddings/{weddingId}/vendor-discovery/{providerPlaceId}/add`    | Add a discovered vendor |
+| Method | Endpoint                                                          | Purpose                  |
+| ------ | ----------------------------------------------------------------- | ------------------------ |
+| GET    | `/weddings/{weddingId}/vendors`                                   | List, search, filter     |
+| POST   | `/weddings/{weddingId}/vendors`                                   | Add a vendor             |
+| GET    | `/weddings/{weddingId}/vendors/{vendorId}`                        | Get                      |
+| PATCH  | `/weddings/{weddingId}/vendors/{vendorId}`                        | Update                   |
+| DELETE | `/weddings/{weddingId}/vendors/{vendorId}`                        | Soft-delete              |
+| GET    | `/weddings/{weddingId}/vendors/{vendorId}/bookings`               | The vendor's bookings    |
+| POST   | `/weddings/{weddingId}/vendors/{vendorId}/bookings`               | Add a booking            |
+| GET    | `/weddings/{weddingId}/vendors/{vendorId}/bookings/{bookingId}`   | Get a booking            |
+| PATCH  | `/weddings/{weddingId}/vendors/{vendorId}/bookings/{bookingId}`   | Update, cancel or reopen |
+| POST   | `/weddings/{weddingId}/vendors/{vendorId}/attachments/upload-url` | Deferred (0032 #6)       |
+| GET    | `/weddings/{weddingId}/vendor-discovery/search`                   | Deferred (0032 #3)       |
+| GET    | `/weddings/{weddingId}/vendor-discovery/{providerPlaceId}`        | Deferred (0032 #3)       |
+| POST   | `/weddings/{weddingId}/vendor-discovery/{providerPlaceId}/add`    | Deferred (0032 #3)       |
 
-`GET …/vendor-discovery/search?q=photographer&lat=26.9124&lng=75.7873&radius=10000`. The web
-app calls MakeMyMarriage, never Google directly; results are not managed vendors until
-added.
+Behaviour: [Phase 9 PRD v1.0](PHASE_9_PRD_v1.0.md).
+
+```json
+POST /api/v1/weddings/{weddingId}/vendors
+{ "name": "Shree Mehendi Arts", "category": "MEHENDI", "contactPerson": "Kavita",
+  "phone": "+91 98765 43210", "email": null, "address": null, "website": null, "notes": null }
+
+POST /api/v1/weddings/{weddingId}/vendors/{vendorId}/bookings
+{ "title": "Bridal mehendi", "status": "NEGOTIATING", "bookingDate": null,
+  "serviceDate": "2027-02-16", "eventId": "…", "agreedPriceMinor": 2500000, "notes": null }
+```
+
+- Any `ACTIVE` member may use every route in Phase 9 (0032 #19). Vendor data is never
+  returned by public or guest endpoints.
+- **Vendor fields:** `name` (required, 1–150), `category` (required, a fixed `VendorCategory`
+  value — 0032 #9), `contactPerson` (at most 150), `phone` (7–15 digits, optional leading `+`,
+  spaces and hyphens), `email` (valid, at most 254, lower-cased), `address` (at most 500),
+  `website` (absolute `http`/`https` URL, at most 500), `notes` (at most 1,000).
+- **Vendor DTO** adds `id`, `bookingCounts { booked, inProgress, cancelled }` (`inProgress`:
+  `NOT_CONTACTED`, `CONTACTED`, `QUOTATION_RECEIVED` and `NEGOTIATING`) and timestamps. Create
+  returns `201`, update `200`, delete `204`.
+- **List** `GET …/vendors`: `search` (name contains, ignoring case), `category`,
+  `bookingStatus`, `eventId` (an event ID, or `none` for whole-wedding bookings), `limit` (25)
+  and `cursor` (§24). `bookingStatus` and `eventId` select vendors with at least one booking
+  matching both. Order: `name` ascending, ignoring case, then `_id`.
+- **Delete** is a soft delete. While any booking of the vendor is not `CANCELLED` it returns
+  `409 VENDOR_HAS_ACTIVE_BOOKINGS` with `details.activeBookings`. A deleted vendor's routes,
+  bookings included, return `404`; its bookings and linked expenses are kept (0032 #15).
+- **Booking fields:** `title` (required, 1–150), `status` (default `NOT_CONTACTED`; one of
+  `NOT_CONTACTED`, `CONTACTED`, `QUOTATION_RECEIVED`, `NEGOTIATING`, `BOOKED`, `CANCELLED`),
+  `bookingDate` and `serviceDate` (`YYYY-MM-DD` or `null`), `eventId` (an active event of the
+  wedding, or `null` for the whole wedding), `agreedPriceMinor` (`null`, or 1 to
+  10,000,000,000), `notes` (at most 1,000). The vendor is the one in the path and cannot be
+  changed.
+- **Booking DTO** adds `id`, `vendorId`, `vendorName`, `eventName` and timestamps. Create
+  returns `201`, update `200`. There is no booking `DELETE`: cancelling is `PATCH` with
+  `status: "CANCELLED"`, and any status may change to any other (0032 #13, #14).
+- **Bookings list** `GET …/bookings`: every booking of the vendor, `CANCELLED` included;
+  `serviceDate` ascending with undated last, then `createdAt` newest first. Not paginated (a
+  bounded list, §3).
+- Creating a booking and reopening one write a claim on the vendor in the same transaction,
+  so a concurrent vendor deletion conflicts; linking a booking to an event claims the event
+  the same way. Vendor, booking and status changes are audited (0032 #18).
+- **Errors:** `400 VALIDATION_FAILED`; `404 WEDDING_NOT_FOUND`, `404 VENDOR_NOT_FOUND`,
+  `404 VENDOR_BOOKING_NOT_FOUND`, `404 EVENT_NOT_FOUND` (event outside the wedding or
+  deleted); `409 VENDOR_HAS_ACTIVE_BOOKINGS`.
+- **Deferred:** the attachment route (0032 #6) and vendor discovery (0032 #3). When discovery
+  is approved, the web app calls MakeMyMarriage, never Google directly, and results are not
+  vendors until added.
 
 ## 15. Wedding website API (Planned — decision 0016; answer Q4)
 
@@ -642,27 +707,30 @@ database errors are returned. A `204` response has no body.
 
 Error codes in use or approved:
 
-| Code                        | HTTP | Where                                |
-| --------------------------- | ---- | ------------------------------------ |
-| `VALIDATION_FAILED`         | 400  | Any DTO or rule violation            |
-| `UNAUTHENTICATED`           | 401  | No or ended session                  |
-| `INVALID_CREDENTIALS`       | 401  | Sign-in (0015)                       |
-| `EMAIL_ALREADY_REGISTERED`  | 409  | Registration (0015)                  |
-| `RESET_TOKEN_INVALID`       | 400  | Password reset (0015)                |
-| `RATE_LIMITED`              | 429  | Rate limits                          |
-| `WEDDING_ALREADY_OWNED`     | 409  | Create wedding (0016)                |
-| `WEDDING_NOT_FOUND`         | 404  | Any wedding route (0016)             |
-| `EVENT_NOT_FOUND`           | 404  | Phase 4                              |
-| `GUEST_NOT_FOUND`           | 404  | Phase 4                              |
-| `GUEST_EVENT_NOT_FOUND`     | 404  | Phase 4                              |
-| `INVITATION_NOT_FOUND`      | 404  | Phase 4 (organizer and guest routes) |
-| `INVITATION_ALREADY_EXISTS` | 409  | Phase 4                              |
-| `INVITATION_REVOKED`        | 409  | Phase 4                              |
-| `GUEST_EMAIL_REQUIRED`      | 422  | Phase 4                              |
-| `EXPENSE_NOT_FOUND`         | 404  | Phase 8                              |
-| `PAYMENT_NOT_FOUND`         | 404  | Phase 8                              |
-| `PAYMENT_EXCEEDS_BALANCE`   | 409  | Phase 8 (0028 #9)                    |
-| `AMOUNT_BELOW_PAID`         | 409  | Phase 8 (0028 #10)                   |
+| Code                         | HTTP | Where                                |
+| ---------------------------- | ---- | ------------------------------------ |
+| `VALIDATION_FAILED`          | 400  | Any DTO or rule violation            |
+| `UNAUTHENTICATED`            | 401  | No or ended session                  |
+| `INVALID_CREDENTIALS`        | 401  | Sign-in (0015)                       |
+| `EMAIL_ALREADY_REGISTERED`   | 409  | Registration (0015)                  |
+| `RESET_TOKEN_INVALID`        | 400  | Password reset (0015)                |
+| `RATE_LIMITED`               | 429  | Rate limits                          |
+| `WEDDING_ALREADY_OWNED`      | 409  | Create wedding (0016)                |
+| `WEDDING_NOT_FOUND`          | 404  | Any wedding route (0016)             |
+| `EVENT_NOT_FOUND`            | 404  | Phase 4                              |
+| `GUEST_NOT_FOUND`            | 404  | Phase 4                              |
+| `GUEST_EVENT_NOT_FOUND`      | 404  | Phase 4                              |
+| `INVITATION_NOT_FOUND`       | 404  | Phase 4 (organizer and guest routes) |
+| `INVITATION_ALREADY_EXISTS`  | 409  | Phase 4                              |
+| `INVITATION_REVOKED`         | 409  | Phase 4                              |
+| `GUEST_EMAIL_REQUIRED`       | 422  | Phase 4                              |
+| `EXPENSE_NOT_FOUND`          | 404  | Phase 8                              |
+| `PAYMENT_NOT_FOUND`          | 404  | Phase 8                              |
+| `PAYMENT_EXCEEDS_BALANCE`    | 409  | Phase 8 (0028 #9)                    |
+| `AMOUNT_BELOW_PAID`          | 409  | Phase 8 (0028 #10)                   |
+| `VENDOR_NOT_FOUND`           | 404  | Phase 9                              |
+| `VENDOR_BOOKING_NOT_FOUND`   | 404  | Phase 9                              |
+| `VENDOR_HAS_ACTIVE_BOOKINGS` | 409  | Phase 9 (0032 #15)                   |
 
 ## 22. Validation and DTO strategy
 
@@ -745,15 +813,15 @@ There is no worker or job queue (0025).
 
 ## 28. Rate limiting and abuse protection
 
-| Endpoint class           | Protection                                         |
-| ------------------------ | -------------------------------------------------- |
-| Sign-in / password reset | Per-identity limits (0015)                         |
-| Guest invitation token   | Token and IP limits                                |
-| Guest RSVP               | Token and IP limits + state validation             |
-| Guest photo upload       | Token and IP limits + file size and content limits |
-| QR endpoints             | Token and IP limits                                |
-| Public website           | General traffic limit                              |
-| Vendor discovery         | Provider-aware limits and permitted caching        |
+| Endpoint class           | Protection                                                       |
+| ------------------------ | ---------------------------------------------------------------- |
+| Sign-in / password reset | Per-identity limits (0015)                                       |
+| Guest invitation token   | Token and IP limits                                              |
+| Guest RSVP               | Token and IP limits + state validation                           |
+| Guest photo upload       | Token and IP limits + file size and content limits               |
+| QR endpoints             | Token and IP limits                                              |
+| Public website           | General traffic limit                                            |
+| Vendor discovery         | Provider-aware limits and permitted caching (deferred — 0032 #3) |
 
 Numeric limits beyond 0015 are set from observed traffic and abuse testing.
 
@@ -790,7 +858,7 @@ independently where practical.
 | Integration         | API responsibility                                                  |
 | ------------------- | ------------------------------------------------------------------- |
 | Resend              | Send transactional emails; capture provider status (webhooks later) |
-| Google Places (New) | Vendor discovery only; map responses to internal DTOs               |
+| Google Places (New) | Vendor discovery only (deferred — 0032 #3); map responses to DTOs   |
 | YouTube Live        | Store stream identifiers; expose embed information                  |
 | Amazon S3           | Binary storage; controlled upload and access URLs                   |
 | Redis               | Rate-limit counters; not a public API (0025)                        |
@@ -838,7 +906,7 @@ notes absent from guest responses.
 | Sharing | Resource types and actions for `resource_shares` (A4) |
 | Reminders | Schedules, recipients, templates |
 | Uploads | File size and type limits; image processing |
-| Vendor discovery | Google fields and caching rules |
+| Vendor discovery | Google fields and caching rules (discovery deferred — 0032 #3) |
 | Website | Public payload, caching and revalidation; sitemap and metadata |
 | Rate limits | Numeric thresholds beyond 0015 and the Phase 4 guest routes (0023: 120 per IP, 60 per link per minute) |
 | Reports | Filter contract; download retention |

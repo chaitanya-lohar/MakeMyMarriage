@@ -12,16 +12,17 @@
 | Object storage   | Amazon S3                                                   |
 | Background jobs  | None in V1 hosting; future jobs need a decision (0025)      |
 | Email            | Resend                                                      |
-| Vendor discovery | Google Places API (New)                                     |
+| Vendor discovery | Google Places API (New) — deferred (0032 #3)                |
 | Live streaming   | YouTube Live (external)                                     |
 | Supersedes       | System Design v1.0–v1.2 (archived in `docs/archive/specs/`) |
 
-| Version | Date       | Change                                                                                          |
-| ------- | ---------- | ----------------------------------------------------------------------------------------------- |
-| 1.0–1.2 | 2026-09    | Architecture baselines.                                                                         |
-| 1.3     | 2026-10-10 | Consolidated: v1.2 plus decisions 0001, 0002, 0005–0007, 0012, 0015–0018 and answers Q1 and Q4. |
-| 1.3     | 2026-10-14 | Decision 0025: Vercel-only hosting; no worker or job queue; email sent directly.                |
-| 1.3     | 2026-10-20 | Decision 0028: expenses (§12.1); receipts deferred (§20).                                       |
+| Version | Date       | Change                                                                                           |
+| ------- | ---------- | ------------------------------------------------------------------------------------------------ |
+| 1.0–1.2 | 2026-09    | Architecture baselines.                                                                          |
+| 1.3     | 2026-10-10 | Consolidated: v1.2 plus decisions 0001, 0002, 0005–0007, 0012, 0015–0018 and answers Q1 and Q4.  |
+| 1.3     | 2026-10-14 | Decision 0025: Vercel-only hosting; no worker or job queue; email sent directly.                 |
+| 1.3     | 2026-10-20 | Decision 0028: expenses (§12.1); receipts deferred (§20).                                        |
+| 1.3     | 2026-10-24 | Decision 0032: vendors and bookings (§13); discovery and vendor attachments deferred (§13, §20). |
 
 ## 1. Purpose and scope
 
@@ -51,7 +52,7 @@ reporting, sharing, security, observability and deployment.
 | Social login       | Google login is future-ready, not V1                                                           |
 | Sessions           | Multiple devices supported                                                                     |
 | Public wedding URL | Path-based: `makemymarriage.com/w/{public-identifier}`                                         |
-| Vendor discovery   | Google Maps Platform Places API (New)                                                          |
+| Vendor discovery   | Google Maps Platform Places API (New) — deferred (0032 #3)                                     |
 | Live streaming     | YouTube Live                                                                                   |
 | CI/CD              | GitHub Actions                                                                                 |
 | Docker             | Local development only (Docker Compose for MongoDB, Redis and Mailpit) (0025)                  |
@@ -136,8 +137,8 @@ Decisions 0001, 0002, 0005 and 0025; answer Q1.
 | Notifications    | In-app and email notifications and reminders                                          |
 | Expenses         | Expense tracking, payments and receipts                                               |
 | Tasks            | Wedding and event tasks                                                               |
-| Vendors          | Managed wedding vendors                                                               |
-| Vendor discovery | Provider abstraction and Google Places                                                |
+| Vendors          | Wedding vendors and their bookings (0032)                                             |
+| Vendor discovery | Provider abstraction and Google Places (deferred — 0032 #3)                           |
 | Website          | Website configuration and publication                                                 |
 | Gallery          | Albums and photos                                                                     |
 | QR               | Wedding and event QR lifecycle                                                        |
@@ -280,8 +281,9 @@ Domain action (API) → channel adapter
 ### 12.1 Expenses
 
 - Actual expenses only: title, amount, fixed category (0010 #7), date, optional event,
-  optional vendor (from Phase 9), notes; several payments, each with its payer, date and
-  method; payment status calculated from the payments (0028). Specified in the Phase 8 PRD.
+  optional vendor (set from Phase 9 — 0032 #8), notes; several payments, each with its payer,
+  date and method; payment status calculated from the payments (0028). Specified in the
+  Phase 8 PRD.
 - Receipts are deferred until a file-storage decision (0028 #3).
 - Expenses are shared with the connected partner; no per-expense visibility field (0009).
 
@@ -295,15 +297,24 @@ Domain action (API) → channel adapter
 
 ## 13. Vendor management and discovery
 
-### 13.1 Managed vendors
+### 13.1 Vendors and bookings (Phase 9 — decision 0032)
 
-- Contact details, category, associated events, notes, status, quotation and final cost,
-  payment information and attachments.
-- A discovered vendor joins the managed list only after the user chooses "Add to My
-  Vendors".
-- Vendor money is tracked through expenses and expense payments.
+- A vendor is a wedding-scoped profile: name, fixed category, contact details and notes. A
+  vendor has several bookings, each with its own status, event or whole wedding, booking and
+  service dates, optional agreed price and notes. Specified in the Phase 9 PRD.
+- Vendor money is tracked through expenses and expense payments: an expense may name a
+  vendor; there is no vendor payment ledger.
+- The Vendors module owns `wedding_vendors` and `vendor_bookings`. It implements the events
+  module's port for deleted events (bookings become whole-wedding, as for tasks and
+  expenses) and exposes a vendor lookup through its `index.ts` for the expenses module; the
+  expenses module lists a vendor's expenses for the vendor page. Neither reads the other's
+  collections.
+- Attachments (0032 #6) and copying vendors between weddings (0032 #7) are deferred.
 
-### 13.2 Discovery
+### 13.2 Discovery (deferred — 0032 #3)
+
+Not built in Phase 9; kept as the design for when a decision brings it back. A discovered
+vendor would join the wedding's vendors only after the user chooses "Add to My Vendors".
 
 ```text
 VendorDiscoveryService → VendorProvider interface → GooglePlacesProvider
@@ -398,7 +409,7 @@ QR → secure token → validate status and scope → upload session
 | Cover images         | S3                 |
 | Expense receipts     | Deferred (0028 #3) |
 | Task attachments     | Deferred (0026 #3) |
-| Vendor attachments   | S3                 |
+| Vendor attachments   | Deferred (0032 #6) |
 | Report exports       | S3 (temporary)     |
 | Application metadata | MongoDB Atlas      |
 
@@ -489,7 +500,7 @@ decision records in `docs/decisions/`, which are the authoritative history.
 | 008 | Resend                                           | Accepted                                               |
 | 009 | Email/password without mandatory verification    | Accepted                                               |
 | 010 | Secure tokenized guest/QR access                 | Accepted                                               |
-| 011 | Google Places API (New) via provider abstraction | Accepted                                               |
+| 011 | Google Places API (New) via provider abstraction | Accepted; deferred from Phase 9 (0032 #3)              |
 | 012 | YouTube Live                                     | Accepted                                               |
 | 013 | Path-based public wedding URL                    | Accepted                                               |
 | 014 | Predefined roles + customizable permissions      | Accepted                                               |
@@ -503,7 +514,7 @@ decision records in `docs/decisions/`, which are the authoritative history.
   guest; keys in `INVITATION_TOKEN_KEYS` as `<version>:<base64 32-byte key>` entries, the
   current key first and older keys after it so existing copies stay readable.
 - Public-identifier generation and collision strategy.
-- Google Places fields that may be stored or cached.
+- Google Places fields that may be stored or cached (discovery deferred — 0032 #3).
 - Notification templates and default reminder schedules (product-deferred).
 - S3 bucket and prefix layout and media-processing policy.
 - Delivery webhooks for `DELIVERED`/`FAILED`.
