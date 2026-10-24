@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { AuditAction, AuditService } from '../../../audit/index.js';
+import { EventVendors } from '../../../events/index.js';
 import type { Transaction } from '../../../../infrastructure/database/transaction.js';
 import { VendorsRepository } from '../../infrastructure/repositories/vendors.repository.js';
-import { EventVendors } from '../ports/event-vendors.port.js';
 @Injectable()
 export class EventVendorsAdapter extends EventVendors {
   constructor(

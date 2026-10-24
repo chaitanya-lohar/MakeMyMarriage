@@ -8,7 +8,7 @@ import { EventsRepository } from '../../infrastructure/repositories/events.repos
 import { EventsErrors } from '../events-errors.js';
 import { EventExpenses } from '../ports/event-expenses.port.js';
 import { EventTasks } from '../ports/event-tasks.port.js';
-import { EventVendors } from '../../../vendors/application/ports/event-vendors.port.js';
+import { EventVendors } from '../ports/event-vendors.port.js';
 
 /**
  * Event reads for the events controller and for other modules (guests, invitations,

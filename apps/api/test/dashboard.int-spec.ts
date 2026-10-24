@@ -78,6 +78,13 @@ describe('Dashboard', () => {
         byCategory: [],
         byEvent: [],
       },
+      // Phase 9 (0032); the vendor summary is tested in vendors.int-spec.ts.
+      vendorSummary: {
+        activeVendors: 0,
+        bookedVendors: 0,
+        bookingsNeedingFollowUp: 0,
+        upcomingServices: [],
+      },
     });
   });
 

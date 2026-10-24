@@ -1,7 +1,7 @@
 import { Global, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuditModule } from '../audit/index.js';
-import { EventsModule } from '../events/index.js';
+import { EventVendors, EventsModule } from '../events/index.js';
 import { WeddingsModule } from '../weddings/index.js';
 import { WorkspaceModule } from '../workspace/index.js';
 import { VendorsController } from './api/controllers/vendors.controller.js';
@@ -13,7 +13,6 @@ import {
   VendorBookingSchema,
 } from './infrastructure/schemas/vendor-booking.schema.js';
 import { VendorRecord, VendorSchema } from './infrastructure/schemas/vendor.schema.js';
-import { EventVendors } from './application/ports/event-vendors.port.js';
 @Global()
 @Module({
   imports: [

@@ -182,7 +182,12 @@ export class UpdateBookingDto {
   @IsOptional()
   @IsString()
   eventId?: string | null;
-  @ApiPropertyOptional({ type: Number, minimum: 1, maximum: VENDOR_LIMITS.priceMinor, nullable: true })
+  @ApiPropertyOptional({
+    type: Number,
+    minimum: 1,
+    maximum: VENDOR_LIMITS.priceMinor,
+    nullable: true,
+  })
   @Type(() => Number)
   @IsOptional()
   @IsInt()

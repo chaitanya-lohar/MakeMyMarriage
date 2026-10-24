@@ -9,7 +9,6 @@ import {
 import type {
   Booking,
   BookingDetails,
-  Vendor,
   VendorDetails,
   VendorSummary,
   VendorView,
@@ -54,7 +53,10 @@ export class VendorsService {
   ) {
     if (q.eventId && q.eventId !== 'none') await this.events.getActive(w, q.eventId);
     const result = await this.repo.list(w, q);
-    const counts = await this.repo.countsFor(w, result.vendors.map((vendor) => vendor.id));
+    const counts = await this.repo.countsFor(
+      w,
+      result.vendors.map((vendor) => vendor.id),
+    );
     const items = result.vendors.map((vendor) => ({
       vendor,
       bookingCounts: counts.get(vendor.id)!,
@@ -241,7 +243,10 @@ export class VendorsService {
   async dashboard(w: string, timezone: string, now = new Date()): Promise<VendorSummary> {
     const s = await this.repo.summary(w, todayIn(timezone, now));
     const [vendors, events] = await Promise.all([
-      this.repo.lookupMany(w, s.bookings.map((booking) => booking.vendorId.toString())),
+      this.repo.lookupMany(
+        w,
+        s.bookings.map((booking) => booking.vendorId.toString()),
+      ),
       this.events.listActive(w),
     ]);
     const eventNames = new Map(events.map((e) => [e.id, e.name]));

@@ -1521,11 +1521,8 @@ export interface components {
         };
         UpdateBookingDto: {
             title?: string;
-            /**
-             * @default NOT_CONTACTED
-             * @enum {string}
-             */
-            status: "NOT_CONTACTED" | "CONTACTED" | "QUOTATION_RECEIVED" | "NEGOTIATING" | "BOOKED" | "CANCELLED";
+            /** @enum {string} */
+            status?: "NOT_CONTACTED" | "CONTACTED" | "QUOTATION_RECEIVED" | "NEGOTIATING" | "BOOKED" | "CANCELLED";
             /** Format: date */
             bookingDate?: string | null;
             /** Format: date */

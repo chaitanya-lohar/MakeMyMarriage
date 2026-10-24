@@ -58,11 +58,9 @@ describe('Vendors (Phase 9, decisions 0032–0033)', () => {
       Vendor & { bookingCounts: Record<string, number> }
     >;
     expect(list[0]?.bookingCounts).toMatchObject({ booked: 1, cancelled: 1, inProgress: 0 });
-    expect(
-      (await agent.get(`${base}/vendors/${v.id}/bookings`).expect(200)).body.data.map(
-        (b: Booking) => b.id,
-      ),
-    ).toEqual([first.id, second.id]);
+    const bookings = (await agent.get(`${base}/vendors/${v.id}/bookings`).expect(200)).body
+      .data as Booking[];
+    expect(bookings.map((booking) => booking.id)).toEqual([first.id, second.id]);
     await agent
       .patch(`${base}/vendors/${v.id}/bookings/${first.id}`)
       .send({ status: 'NEGOTIATING' })
@@ -113,7 +111,8 @@ describe('Vendors (Phase 9, decisions 0032–0033)', () => {
     const filtered = await agent
       .get(`${base}/vendors?bookingStatus=BOOKED&eventId=${event.id}`)
       .expect(200);
-    expect(filtered.body.data.map((v: Vendor) => v.id)).toEqual([match.id]);
+    const filteredVendors = filtered.body.data as Vendor[];
+    expect(filteredVendors.map((vendor) => vendor.id)).toEqual([match.id]);
     const first = await agent.get(`${base}/vendors?limit=1`).expect(200);
     const nextCursor = first.body.meta.pagination.nextCursor as string;
     expect(first.body.data[0].name).toBe('Alpha');

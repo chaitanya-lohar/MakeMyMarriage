@@ -33,7 +33,6 @@ import {
   VendorViewDto,
 } from '../dto/vendor.dto.js';
 import type { VendorDetails, BookingDetails } from '../../domain/types/vendor.js';
-import { BOOKING_STATUSES } from '../../domain/rules/vendor-rules.js';
 
 @ApiTags('Vendors')
 @ApiCookieAuth('session')
@@ -46,7 +45,10 @@ export class VendorsController {
   @ApiPaginatedResponse(VendorViewDto, VendorListMetaDto)
   async list(@Param('weddingId') w: string, @Query() q: VendorListQueryDto) {
     const result = await this.vendors.list(w, q);
-    return new Paginated(result.items.map(VendorViewDto.fromView), result.nextCursor);
+    return new Paginated(
+      result.items.map((vendor) => VendorViewDto.fromView(vendor)),
+      result.nextCursor,
+    );
   }
   @Post()
   @ApiEnvelopeResponse(201, VendorDto)
@@ -86,7 +88,7 @@ export class VendorsController {
     @Param('weddingId') w: string,
     @Param('vendorId') id: string,
   ) {
-    return (await this.vendors.bookings(w, id)).map(BookingDto.from);
+    return (await this.vendors.bookings(w, id)).map((booking) => BookingDto.from(booking));
   }
   @Post(':vendorId/bookings') @ApiEnvelopeResponse(201, BookingDto) async createBooking(
     @Param('weddingId') w: string,
