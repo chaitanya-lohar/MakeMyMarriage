@@ -16,6 +16,7 @@
 | 1.1     | 2026-10-10 | Consolidated: v1.0 plus decisions 0008–0010, 0012, 0013, 0015–0019 and the schema built in Phases 2–3.                      |
 | 1.1     | 2026-10-14 | Decision 0025: no job queue; invitation emails are sent during the request. No schema change.                               |
 | 1.1     | 2026-10-20 | Decision 0028 (Phase 8): payer moved to payments, `paidMinor` and a server-set status, no `description`, receipts deferred. |
+| 1.1     | 2026-10-24 | Decision 0032 (Phase 9): vendors and `vendor_bookings`; expense `vendorId` set; discovery and vendor attachments deferred.  |
 
 **Status of each collection** — _Built_: exists in code. _Phase 4_: designed and approved for
 Phase 4. _Planned_: carried from v1.0 with approved changes; re-checked against the PRD
@@ -67,7 +68,7 @@ metadata, transaction boundaries and operational rules.
 | Binary storage               | Amazon S3                                                                                                                                 |
 | Background jobs              | None; Redis holds rate-limit counters only (0025)                                                                                         |
 | Email provider               | Resend                                                                                                                                    |
-| Vendor discovery             | Google Places API (New), through a provider abstraction                                                                                   |
+| Vendor discovery             | Google Places API (New), through a provider abstraction — deferred (0032 #3)                                                              |
 | Live streaming               | YouTube Live                                                                                                                              |
 | Reports                      | Excel, generated on demand                                                                                                                |
 | Index creation               | Automatic in local and test; a deployment operation in staging and production                                                             |
@@ -114,8 +115,9 @@ then runs a query constrained by `weddingId`.
 | `tasks`                 | Wedding tasks                             | Tasks         | Planned                                                               |
 | `task_assignments`      | Task ↔ member assignment                  | Tasks         | Planned                                                               |
 | `task_activities`       | Task history                              | Tasks         | Planned                                                               |
-| `wedding_vendors`       | Managed wedding vendors                   | Vendors       | Planned                                                               |
-| `vendor_attachments`    | S3 vendor attachment metadata             | Vendors       | Planned                                                               |
+| `wedding_vendors`       | Wedding-scoped vendor profiles            | Vendors       | Planned — Phase 9 (0032)                                              |
+| `vendor_bookings`       | Services booked from a vendor             | Vendors       | Planned — Phase 9 (0032)                                              |
+| `vendor_attachments`    | S3 vendor attachment metadata             | Vendors       | Deferred (0032 #6)                                                    |
 | `wedding_websites`      | Public website configuration              | Website       | Planned                                                               |
 | `photos`                | Wedding and event photos                  | Gallery       | Planned                                                               |
 | `memory_qrs`            | Wedding and event memory QR tokens        | QR            | Planned                                                               |
@@ -533,7 +535,7 @@ The limits here and in §9 are approved (0019 #6).
   category: string,          // VENUE, CATERING, DECORATION, PHOTOGRAPHY, CLOTHING, JEWELLERY,
                              // MAKEUP, ENTERTAINMENT, INVITATIONS, GIFTS, MISCELLANEOUS
   eventId?: ObjectId,
-  vendorId?: ObjectId,       // kept for Phase 9; not set in Phase 8 (0028 #4)
+  vendorId?: ObjectId,       // optional vendor of the same wedding; set from Phase 9 (0032 #8)
   expenseDate: Date,         // midnight UTC of the calendar date, wedding timezone, as for events
   paymentStatus: string,     // PENDING, PARTIALLY_PAID, PAID — server-set; no CANCELLED (0018)
   notes?: string,            // at most 1,000
@@ -555,6 +557,10 @@ The limits here and in §9 are approved (0019 #6).
 - `eventId` references an active event of the same wedding. Deleting an event clears it on
   every linked expense, which becomes a whole-wedding expense, and writes an `audit_logs`
   entry for each (0028 #17).
+- `vendorId` references a vendor of the same wedding that is not deleted when it is set. It
+  is kept when that vendor is later deleted, and an edit may keep it then but not newly set
+  a deleted vendor (0032 #17). Deleting a vendor never changes its expenses. There is no
+  `bookingId` (0032 #8).
 - Deleting an expense is a soft delete; its payments are kept (0028 #16).
 
 ### 12.2 `expense_payments`
@@ -655,7 +661,7 @@ Unique `(taskId, userId)`; a task can have several assignees.
   changed or removed (including by a deleted event), deleted (0026 #15). This history is
   the record of task changes; only deletion is also written to `audit_logs` (0026 #17).
 
-## 14. Vendor management and discovery (Planned)
+## 14. Vendors and bookings (Planned — Phase 9; decision 0032)
 
 ### 14.1 `wedding_vendors`
 
@@ -663,30 +669,63 @@ Unique `(taskId, userId)`; a task can have several assignees.
 {
   _id: ObjectId,
   weddingId: ObjectId,
-  name: string,
-  category: string,
-  phone?: string,
-  email?: string,
-  address?: string,
-  website?: string,
-  contactPerson?: string,
-  googlePlaceId?: string,
-  status: string,      // PROSPECT, CONTACTED, QUOTATION_RECEIVED, NEGOTIATING, CONFIRMED, COMPLETED, CANCELLED
-  notes?: string,
-  quotationAmountMinor?: number,
-  finalAmountMinor?: number,
-  eventIds: [ObjectId],
+  name: string,            // 1–150 characters (0032 #10)
+  category: string,        // VENUE, CATERING, PHOTOGRAPHY_VIDEOGRAPHY, DECORATION_FLOWERS,
+                           // MAKEUP_BEAUTY, CLOTHING_JEWELLERY, ENTERTAINMENT_DJ,
+                           // INVITATIONS_PRINTING, TRANSPORTATION, WEDDING_PLANNER, MEHENDI, OTHER
+  contactPerson?: string,  // at most 150
+  phone?: string,          // 7–15 digits, optional leading +, spaces and hyphens (guest mobile rule)
+  email?: string,          // lower-cased; at most 254
+  address?: string,        // at most 500
+  website?: string,        // absolute http or https URL; at most 500
+  notes?: string,          // at most 1,000
   createdBy: ObjectId,
   createdAt: Date,
   updatedAt: Date,
-  deletedAt?: Date
+  deletedAt?: Date,
+  deletedBy?: ObjectId
 }
 ```
 
-- Only an explicit "Add to My Vendors" creates a managed vendor. Google data is stored only
-  as the provider's terms allow. Vendor money uses expenses and expense payments.
+- A vendor belongs to one wedding. It has no status, events or amounts of its own: those are
+  on its bookings (0032 #4). Vendor money uses expenses and expense payments (0032 #8).
+- Deleting a vendor is a soft delete, refused while any of its bookings is not `CANCELLED`
+  (0032 #15). Its bookings and linked expenses are kept unchanged.
+- **Deferred (0032 #3):** `googlePlaceId` and vendors added from discovery. Google data, when
+  discovery is approved, is stored only as the provider's terms allow.
 
-### 14.2 `vendor_attachments`
+### 14.2 `vendor_bookings`
+
+```ts
+{
+  _id: ObjectId,
+  weddingId: ObjectId,
+  vendorId: ObjectId,        // set on create; never changed (0032 #11)
+  title: string,             // 1–150 characters
+  status: string,            // NOT_CONTACTED (default), CONTACTED, QUOTATION_RECEIVED,
+                             // NEGOTIATING, BOOKED, CANCELLED (0032 #12)
+  bookingDate?: Date,        // midnight UTC of the calendar date, wedding timezone, as for events
+  serviceDate?: Date,        // same
+  eventId?: ObjectId,        // absent for a whole-wedding booking
+  agreedPriceMinor?: number, // integer paise; 1 to 10,000,000,000 (₹10 crore) (0032 #5)
+  notes?: string,            // at most 1,000
+  createdBy: ObjectId,
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+- `vendorId` references a vendor of the same wedding that is not deleted when the booking is
+  created. Any status may change to any other (0032 #13).
+- **No deletion:** a booking is cancelled, never deleted (0032 #14).
+- `eventId` references an active event of the same wedding. Deleting an event clears it on
+  every linked booking, which becomes a whole-wedding booking, and writes an `audit_logs`
+  entry for each (0032 #16).
+
+### 14.3 `vendor_attachments` (Deferred — 0032 #6)
+
+Attachments need file storage, which is not set up (0025). Not built in Phase 9; kept here
+as the design for when a storage decision is made.
 
 ```ts
 { _id, vendorId: ObjectId, storageKey: string, originalFileName: string, contentType: string,
@@ -833,25 +872,29 @@ Excel only; generated files are temporary, not permanent business data.
 | Wedding         | has                  | Task                                      | 0..N                                |
 | Task            | has                  | TaskAssignment, TaskActivity              | 0..N                                |
 | Wedding         | has                  | WeddingVendor                             | 0..N                                |
-| WeddingVendor   | has                  | VendorAttachment                          | 0..N                                |
+| WeddingVendor   | has                  | VendorBooking                             | 0..N                                |
+| VendorBooking   | for                  | Event                                     | 0..1 (none: whole wedding)          |
+| Expense         | for                  | WeddingVendor                             | 0..1                                |
+| WeddingVendor   | has                  | VendorAttachment (deferred — 0032 #6)     | 0..N                                |
 | Wedding         | has                  | WeddingWebsite                            | 0..1 (created by the Website phase) |
 | Wedding         | has                  | Photo, MemoryQR, LiveStream, ReportExport | 0..N                                |
 
 ## 19. Embedding vs referencing
 
-| Data                                | Strategy        | Reason                            |
-| ----------------------------------- | --------------- | --------------------------------- |
-| Wedding → events                    | Reference       | Independent queries; growing      |
-| Wedding → guests                    | Reference       | Unbounded growth; search          |
-| Guest → GuestEvent                  | Reference       | Many-to-many                      |
-| Guest → invitation                  | Reference       | Own lifecycle and history         |
-| Invitation → deliveries, activities | Reference       | Growing history                   |
-| Expense → payments, receipts        | Reference       | Multiple records                  |
-| Task → assignments, activities      | Reference       | Multiple records                  |
-| Wedding → website                   | Single document | Bounded configuration             |
-| Event → venue                       | Embedded        | Value object of the event         |
-| Website → sections                  | Embedded        | Bounded configuration             |
-| Vendor → events                     | Reference IDs   | A vendor can serve several events |
+| Data                                | Strategy        | Reason                          |
+| ----------------------------------- | --------------- | ------------------------------- |
+| Wedding → events                    | Reference       | Independent queries; growing    |
+| Wedding → guests                    | Reference       | Unbounded growth; search        |
+| Guest → GuestEvent                  | Reference       | Many-to-many                    |
+| Guest → invitation                  | Reference       | Own lifecycle and history       |
+| Invitation → deliveries, activities | Reference       | Growing history                 |
+| Expense → payments, receipts        | Reference       | Multiple records                |
+| Task → assignments, activities      | Reference       | Multiple records                |
+| Wedding → website                   | Single document | Bounded configuration           |
+| Event → venue                       | Embedded        | Value object of the event       |
+| Website → sections                  | Embedded        | Bounded configuration           |
+| Vendor → bookings                   | Reference       | Multiple records, own lifecycle |
+| Booking → event                     | Reference ID    | One event or the whole wedding  |
 
 ## 20. Indexes and uniqueness
 
@@ -876,11 +919,13 @@ Excel only; generated files are temporary, not permanent business data.
 | `invitation_deliveries` | `(status, createdAt)`                                                                                                               | Recent failures                | Phase 4 |
 | `invitation_activities` | `(guestInvitationId, occurredAt)`                                                                                                   | Activity history               | Phase 4 |
 | `expenses`              | `(weddingId, expenseDate)`, `(weddingId, category)`, `(weddingId, paymentStatus)`, `(weddingId, eventId)`, `(weddingId, createdAt)` | Reporting and filters          | Planned |
+| `expenses`              | `(weddingId, vendorId)`                                                                                                             | A vendor's linked expenses     | Phase 9 |
 | `expense_payments`      | `(expenseId, paymentDate)`; `(weddingId, expenseId)`                                                                                | Payment history                | Planned |
 | `tasks`                 | `(weddingId, status)`, `(weddingId, priority)`, `(weddingId, dueDate)`, `(weddingId, eventId)`                                      | Board and filters              | Planned |
 | `task_assignments`      | `(taskId, userId)` UNIQUE; `(userId, weddingId)`                                                                                    | Assignees; my tasks            | Planned |
 | `task_activities`       | `(taskId, createdAt)`                                                                                                               | History                        | Planned |
-| `wedding_vendors`       | `(weddingId, category)`, `(weddingId, status)`, `(weddingId, deletedAt)`                                                            | Filters                        | Planned |
+| `wedding_vendors`       | `(weddingId, deletedAt, name)` (case-insensitive collation); `(weddingId, category)`                                                | List order and filters         | Phase 9 |
+| `vendor_bookings`       | `(weddingId, vendorId)`; `(weddingId, status, serviceDate)`; `(weddingId, eventId)`                                                 | Vendor page, filters, summary  | Phase 9 |
 | `wedding_websites`      | `publicIdentifier` UNIQUE; `weddingId` UNIQUE                                                                                       | Public lookup; one per wedding | Planned |
 | `memory_qrs`            | `tokenHash` UNIQUE; `(weddingId, status)`; `(eventId, status)`                                                                      | QR lookup and management       | Planned |
 | `notifications`         | `(recipientUserId, isRead, createdAt)`; `(recipientUserId, createdAt)`; `(weddingId, createdAt)`                                    | Feeds                          | Planned |
@@ -916,7 +961,7 @@ Indexes support a known access pattern, uniqueness rule or job; each adds write 
 
 Audit important security and business events (membership and permission changes, RSVP
 updates, expense and payment changes (0028 #18), task deletion (other task changes are in `task_activities` — 0026
-#17), vendor lifecycle, website publish and unpublish, QR and
+#17), vendor and booking changes (0032 #18), website publish and unpublish, QR and
 invitation token revocation and regeneration), not every read. Retention is open.
 
 Phase 4 writes audit entries at least for organizer resets of an RSVP to `PENDING` (0018),
@@ -937,16 +982,19 @@ link by an organizer (0019).
 
 ## 24. Transaction and consistency rules
 
-| Operation                         | Guidance                                                                    |
-| --------------------------------- | --------------------------------------------------------------------------- |
-| Simple CRUD                       | No transaction                                                              |
-| Create wedding + OWNER membership | Transaction (Built — 0016)                                                  |
-| Accept partner invitation         | Transaction: membership and connection change together                      |
-| Add, edit or remove a payment     | Transaction: the payment and the expense's `paidMinor` and status (0028 #8) |
-| Regenerate or revoke a token      | Single-document update                                                      |
-| Upload photo                      | S3 and metadata coordinated with compensating cleanup                       |
-| Publish website                   | Transaction only if several documents change together                       |
-| RSVP update                       | Single-document update; audit per consistency requirement                   |
+| Operation                                   | Guidance                                                                             |
+| ------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Simple CRUD                                 | No transaction                                                                       |
+| Create wedding + OWNER membership           | Transaction (Built — 0016)                                                           |
+| Accept partner invitation                   | Transaction: membership and connection change together                               |
+| Add, edit or remove a payment               | Transaction: the payment and the expense's `paidMinor` and status (0028 #8)          |
+| Link a task, expense or booking to an event | Transaction: the record and a claim on the event, so a concurrent deletion conflicts |
+| Create or reopen a booking                  | Transaction: the booking and a claim on its vendor (0032 #15)                        |
+| Delete a vendor                             | Transaction: check no booking is active, then set `deletedAt` (0032 #15)             |
+| Regenerate or revoke a token                | Single-document update                                                               |
+| Upload photo                                | S3 and metadata coordinated with compensating cleanup                                |
+| Publish website                             | Transaction only if several documents change together                                |
+| RSVP update                                 | Single-document update; audit per consistency requirement                            |
 
 Transactions are a consistency tool, not a wrapper around every repository call.
 
@@ -975,7 +1023,9 @@ Transactions are a consistency tool, not a wrapper around every repository call.
 | Unread notifications   | `notifications.recipientUserId + isRead + createdAt`          |
 | Expense report         | `expenses.weddingId + date/category/status`                   |
 | My tasks               | `task_assignments.userId + weddingId`                         |
-| Vendor workflow        | `wedding_vendors.weddingId + status/category`                 |
+| Vendor list            | `wedding_vendors.weddingId` (not deleted) ordered by `name`   |
+| Vendor bookings        | `vendor_bookings.weddingId + vendorId`                        |
+| Upcoming services      | `vendor_bookings.weddingId + status + serviceDate`            |
 | Public website         | `wedding_websites.publicIdentifier`                           |
 | QR upload entry        | `memory_qrs.tokenHash`                                        |
 | Event streams          | `live_streams.weddingId + eventId`                            |
@@ -995,6 +1045,8 @@ Transactions are a consistency tool, not a wrapper around every repository call.
 - An expense's `paidMinor` equals the sum of its payments and never exceeds `amountMinor`;
   `paymentStatus` follows from the two (0028 #7, #8). Each payment change updates the expense
   with a conditional update in the same transaction, so concurrent requests cannot overpay.
+- A deleted vendor has no booking that is not `CANCELLED`; a booking's `vendorId` never
+  changes (0032 #11, #15).
 - Every wedding-scoped query is tenant-scoped and authorization-checked.
 
 ## 28. Growth and scalability
@@ -1033,7 +1085,7 @@ Then the remaining planned collections as their phases are approved.
 | QR            | Expiry policy and regeneration details                             |
 | Permissions   | Default matrix per role                                            |
 | Website       | `publicIdentifier` generation and collisions; sitemap and metadata |
-| Google Places | Fields that may be stored or cached                                |
+| Google Places | Fields that may be stored or cached (discovery deferred — 0032 #3) |
 | Notifications | Templates and default schedules (product-deferred)                 |
 | Media         | S3 bucket and prefix layout; image processing; lifecycle           |
 | Retention     | Audit, delivery history, soft-deleted data, permanent purge        |

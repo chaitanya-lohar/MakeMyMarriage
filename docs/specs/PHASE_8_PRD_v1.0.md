@@ -9,10 +9,11 @@
 | Contracts    | [Database Design v1.1](DB_DESIGN_v1.1.md) §12, [API Design v1.1](API_DESIGN_v1.1.md) §6 and §12                                                                                            |
 | Out of scope | Budgets and forecasts, receipts, vendor linking, reports and export, payment reminders, fine-grained permissions, a Cancelled status, cost splitting, other currencies, recurring expenses |
 
-| Version | Date       | Change                                                     |
-| ------- | ---------- | ---------------------------------------------------------- |
-| 1.0     | 2026-10-20 | First version, from the Phase 8 discovery (decision 0028). |
-| 1.0     | 2026-10-21 | §10: screens approved in Stitch (decision 0029).           |
+| Version | Date       | Change                                                      |
+| ------- | ---------- | ----------------------------------------------------------- |
+| 1.0     | 2026-10-20 | First version, from the Phase 8 discovery (decision 0028).  |
+| 1.0     | 2026-10-21 | §10: screens approved in Stitch (decision 0029).            |
+| 1.0     | 2026-10-24 | §3.1, §12: the vendor link is specified for Phase 9 (0032). |
 
 ## 1. Purpose and outcomes
 
@@ -53,7 +54,8 @@ It is an expense tracker, not a budgeting tool.
 - Text fields are trimmed; an empty optional field is stored as absent.
 - System fields: currency (`INR`), paid total, created by and at, updated at, deleted by
   and at.
-- Not in Phase 8: description (0028 #11), vendor (0028 #4), receipts (0028 #3).
+- Not in Phase 8: description (0028 #11), vendor (0028 #4), receipts (0028 #3). The optional
+  vendor is added in Phase 9 (Phase 9 PRD §4.4, 0032 #8).
 
 ### 3.2 Payment
 
@@ -209,7 +211,7 @@ expenses that are not deleted:
 ## 12. Deferred or open
 
 - Receipts — with a file-storage decision (0028 #3).
-- Vendor linking — Phase 9.
+- Vendor linking — Phase 9 ([Phase 9 PRD v1.0](PHASE_9_PRD_v1.0.md) §4.4, 0032 #8).
 - Reports and Excel export — Phase 15. Payment reminders — Phase 14.
 - Fine-grained permissions — Phase 10.
 - The optional payment `Idempotency-Key` (API Design §25) — not built in Phase 8. **Known
