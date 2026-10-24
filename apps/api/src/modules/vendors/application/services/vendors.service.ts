@@ -9,7 +9,6 @@ import {
 import type {
   Booking,
   BookingDetails,
-  Vendor,
   VendorDetails,
   VendorSummary,
   VendorView,

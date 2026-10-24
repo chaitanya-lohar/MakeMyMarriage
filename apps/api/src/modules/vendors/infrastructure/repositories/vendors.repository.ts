@@ -359,7 +359,9 @@ export class VendorsRepository {
         ];
         if (isValidObjectId(id))
           match.$or = [{ name: trusted({ $gt: name }) }, { name, _id: trusted({ $gt: oid(id) }) }];
-      } catch {}
+      } catch {
+        // Ignore malformed cursors and return the first page.
+      }
     }
     const docs = await this.vendors
       .find(match)
@@ -409,9 +411,7 @@ export class VendorsRepository {
         .limit(5),
     ]);
     const activeSet = new Set(activeIds.map((id) => id.toString()));
-    const bookedVendors = (bookedIds as Types.ObjectId[]).filter((id) =>
-      activeSet.has(id.toString()),
-    ).length;
+    const bookedVendors = bookedIds.filter((id) => activeSet.has(id.toString())).length;
     return { activeVendors, bookedVendors, bookingsNeedingFollowUp, bookings };
   }
   async allActive(weddingId: string): Promise<Vendor[]> {
