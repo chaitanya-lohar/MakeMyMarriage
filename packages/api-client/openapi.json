@@ -7509,8 +7509,7 @@
               "NEGOTIATING",
               "BOOKED",
               "CANCELLED"
-            ],
-            "default": "NOT_CONTACTED"
+            ]
           },
           "bookingDate": {
             "type": "string",
