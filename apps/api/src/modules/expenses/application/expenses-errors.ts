@@ -30,6 +30,12 @@ export const ExpensesErrors = {
       message: 'That person is not a member of this wedding.',
       status: HttpStatus.NOT_FOUND,
     }),
+  vendorNotFound: () =>
+    new AppException({
+      code: 'VENDOR_NOT_FOUND',
+      message: 'The requested vendor was not found.',
+      status: HttpStatus.NOT_FOUND,
+    }),
 
   /** Payments may never add up to more than the amount (0028 #9). */
   exceedsBalance: (remainingMinor: number) =>

@@ -74,4 +74,5 @@ ExpenseSchema.index({ weddingId: 1, expenseDate: 1 });
 ExpenseSchema.index({ weddingId: 1, category: 1 });
 ExpenseSchema.index({ weddingId: 1, paymentStatus: 1 });
 ExpenseSchema.index({ weddingId: 1, eventId: 1 });
+ExpenseSchema.index({ weddingId: 1, vendorId: 1 });
 ExpenseSchema.index({ weddingId: 1, createdAt: 1 });

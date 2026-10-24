@@ -56,6 +56,7 @@ interface ExpenseShape {
   currency: string;
   category: ExpenseCategory;
   eventId?: Types.ObjectId;
+  vendorId?: Types.ObjectId;
   expenseDate: Date;
   paymentStatus: Expense['paymentStatus'];
   notes?: string;
@@ -75,6 +76,7 @@ function toExpense(document: ExpenseShape | ExpenseDocument): Expense {
     category: document.category,
     expenseDate: document.expenseDate.toISOString().slice(0, 10),
     eventId: document.eventId ? document.eventId.toString() : null,
+    vendorId: document.vendorId ? document.vendorId.toString() : null,
     paymentStatus: document.paymentStatus,
     notes: document.notes ?? null,
     createdBy: document.createdBy.toString(),
@@ -156,6 +158,7 @@ export class ExpensesRepository {
           createdBy: oid(expense.createdBy),
           ...(expense.notes ? { notes: expense.notes } : {}),
           ...(expense.eventId ? { eventId: oid(expense.eventId) } : {}),
+          ...(expense.vendorId ? { vendorId: oid(expense.vendorId) } : {}),
         },
       ],
       { session: sessionOf(transaction) },
@@ -203,6 +206,10 @@ export class ExpensesRepository {
     if (changes.eventId !== undefined) {
       if (changes.eventId === null) unset.push('eventId');
       else set.eventId = { $literal: oid(changes.eventId) };
+    }
+    if (changes.vendorId !== undefined) {
+      if (changes.vendorId === null) unset.push('vendorId');
+      else set.vendorId = { $literal: oid(changes.vendorId) };
     }
 
     const filter: Record<string, unknown> = {
@@ -298,6 +305,7 @@ export class ExpensesRepository {
     if (filter.paymentStatus) match.paymentStatus = filter.paymentStatus;
     if (filter.eventId === 'none') match.eventId = { $exists: false };
     else if (filter.eventId) match.eventId = oid(filter.eventId);
+    if (filter.vendorId) match.vendorId = oid(filter.vendorId);
     const search = filter.search?.trim();
     if (search) match.title = { $regex: escapeRegex(search), $options: 'i' };
     return match;

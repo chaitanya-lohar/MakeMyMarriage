@@ -24,6 +24,9 @@ import { SkeletonCard } from '@/features/workspace/components/workspace-page';
 import { SESSION_ENDED_PATH } from '@/features/workspace/workspace-context';
 import { api, call } from '@/lib/api';
 import { dashboardSummaries as copy } from '../content';
+import { dashboardVendors } from '@/features/vendors/content';
+import { formatVendorDate } from '@/features/vendors/vendor-model';
+import { VENDORS_PATH } from '@/features/workspace/components/shell-parts';
 
 type ApiDashboard = components['schemas']['DashboardDto'];
 type UpcomingEvent = ApiDashboard['upcomingEvents'][number];
@@ -100,6 +103,7 @@ export function DashboardSummaries({ wedding }: { wedding: ApiWedding }) {
     upcomingTasks,
     hasTasks,
     expenseSummary,
+    vendorSummary,
   } = state.data;
   return (
     <div className="mt-6 grid gap-6 md:grid-cols-2">
@@ -202,6 +206,60 @@ export function DashboardSummaries({ wedding }: { wedding: ApiWedding }) {
       </Card>
 
       <ExpensesCard summary={expenseSummary} />
+      <Card icon="group" title={dashboardVendors.title}>
+        {vendorSummary.activeVendors === 0 ? (
+          <div className="py-4 text-center">
+            <p className="font-medium text-navy">{dashboardVendors.noVendors}</p>
+            <Link
+              href={`${VENDORS_PATH}/new`}
+              className="mt-3 inline-flex min-h-11 items-center gap-2 text-label-md text-navy underline"
+            >
+              <Icon name="add" className="size-5" />
+              {dashboardVendors.add}
+            </Link>
+          </div>
+        ) : (
+          <>
+            <dl className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+              {[
+                [dashboardVendors.active, vendorSummary.activeVendors],
+                [dashboardVendors.booked, vendorSummary.bookedVendors],
+                [dashboardVendors.followUp, vendorSummary.bookingsNeedingFollowUp],
+              ].map(([label, value]) => (
+                <div key={label} className="min-w-0 rounded-lg bg-surface-container-low p-3">
+                  <dt className="text-body-sm text-on-surface-variant">{label}</dt>
+                  <dd className="mt-1 text-title-lg font-semibold text-navy">{value}</dd>
+                </div>
+              ))}
+            </dl>
+            <h3 className="mt-5 mb-2 text-label-md font-semibold text-navy">
+              {dashboardVendors.upcoming}
+            </h3>
+            {vendorSummary.upcomingServices.length === 0 ? (
+              <p className="text-body-sm text-on-surface-variant">{dashboardVendors.none}</p>
+            ) : (
+              <ul className="divide-y divide-hairline">
+                {vendorSummary.upcomingServices.map((service) => (
+                  <li key={service.bookingId} className="py-2">
+                    <p className="font-medium text-navy">{service.title}</p>
+                    <p className="text-body-sm text-on-surface-variant">
+                      {service.vendorName} · {formatVendorDate(service.serviceDate)}
+                      {` · ${service.eventName ?? dashboardVendors.wholeWedding}`}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <Link
+              href={VENDORS_PATH}
+              className="mt-3 inline-flex min-h-11 items-center gap-1 text-label-md text-navy hover:underline"
+            >
+              {dashboardVendors.viewAll}
+              <Icon name="arrow_forward" className="size-4" />
+            </Link>
+          </>
+        )}
+      </Card>
     </div>
   );
 }

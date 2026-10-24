@@ -3,6 +3,23 @@ import { EVENT_TYPES } from '../../../events/index.js';
 import { ExpenseSummaryDto } from '../../../expenses/index.js';
 import { isDueToday, isOverdue, TASK_PRIORITIES, TASK_STATUSES } from '../../../tasks/index.js';
 import type { Dashboard } from '../../application/use-cases/get-dashboard.use-case.js';
+import type { VendorSummary } from '../../../vendors/index.js';
+
+class VendorServiceDto {
+  @ApiProperty() bookingId!: string;
+  @ApiProperty() vendorId!: string;
+  @ApiProperty() vendorName!: string;
+  @ApiProperty() title!: string;
+  @ApiProperty({ format: 'date' }) serviceDate!: string;
+  @ApiProperty({ type: String, nullable: true }) eventId!: string | null;
+  @ApiProperty({ type: String, nullable: true }) eventName!: string | null;
+}
+class VendorSummaryDto {
+  @ApiProperty() activeVendors!: number;
+  @ApiProperty() bookedVendors!: number;
+  @ApiProperty() bookingsNeedingFollowUp!: number;
+  @ApiProperty({ type: [VendorServiceDto] }) upcomingServices!: VendorSummary['upcomingServices'];
+}
 
 class DashboardEventDto {
   @ApiProperty()
@@ -136,6 +153,7 @@ export class DashboardDto {
       'largest first (0028 #23).',
   })
   expenseSummary!: ExpenseSummaryDto;
+  @ApiProperty({ type: VendorSummaryDto }) vendorSummary!: VendorSummaryDto;
 
   static from(dashboard: Dashboard): DashboardDto {
     const { PENDING, ATTENDING, DECLINED, MAYBE } = dashboard.rsvpBreakdown;
@@ -164,6 +182,7 @@ export class DashboardDto {
         isDueToday: isDueToday(task.dueDate, task.status, dashboard.tasks.today),
       })),
       expenseSummary: ExpenseSummaryDto.from(dashboard.expenses),
+      vendorSummary: dashboard.vendorSummary,
     };
   }
 }

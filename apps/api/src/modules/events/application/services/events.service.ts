@@ -8,6 +8,7 @@ import { EventsRepository } from '../../infrastructure/repositories/events.repos
 import { EventsErrors } from '../events-errors.js';
 import { EventExpenses } from '../ports/event-expenses.port.js';
 import { EventTasks } from '../ports/event-tasks.port.js';
+import { EventVendors } from '../../../vendors/application/ports/event-vendors.port.js';
 
 /**
  * Event reads for the events controller and for other modules (guests, invitations,
@@ -19,6 +20,7 @@ export class EventsService {
     private readonly events: EventsRepository,
     private readonly tasks: EventTasks,
     private readonly expenses: EventExpenses,
+    private readonly vendors: EventVendors,
     private readonly transactions: TransactionRunner,
   ) {}
 
@@ -82,6 +84,7 @@ export class EventsService {
       if (!(await this.events.softDelete(weddingId, eventId, userId, transaction))) return false;
       await this.tasks.unlinkDeletedEvent(weddingId, eventId, userId, transaction);
       await this.expenses.unlinkDeletedEvent(weddingId, eventId, userId, transaction);
+      await this.vendors.unlinkDeletedEvent(weddingId, eventId, userId, transaction);
       return true;
     });
     if (!deleted) throw EventsErrors.notFound();

@@ -3,6 +3,7 @@
 import { RequireWedding } from '@/features/workspace/components/workspace-page';
 import { AddEventPage, EditEventPage } from './event-form';
 import { EventsList } from './events-list';
+import { EventVendorBookingShortcut } from '@/features/vendors/components/vendor-pages';
 
 /** `/events` */
 export function EventsPageContent() {
@@ -18,7 +19,12 @@ export function NewEventPageContent() {
 export function EditEventPageContent({ eventId }: { eventId: string }) {
   return (
     <RequireWedding>
-      {(wedding) => <EditEventPage key={eventId} wedding={wedding} eventId={eventId} />}
+      {(wedding) => (
+        <>
+          <EventVendorBookingShortcut wedding={wedding} eventId={eventId} />
+          <EditEventPage key={eventId} wedding={wedding} eventId={eventId} />
+        </>
+      )}
     </RequireWedding>
   );
 }

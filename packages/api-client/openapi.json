@@ -3510,6 +3510,15 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "vendorId",
+            "required": false,
+            "in": "query",
+            "description": "Filter linked expenses by vendor ID.",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -4300,6 +4309,634 @@
         "summary": "Remove a payment; the audit entry keeps its details",
         "tags": [
           "Expenses"
+        ]
+      }
+    },
+    "/api/v1/weddings/{weddingId}/vendors": {
+      "get": {
+        "operationId": "VendorsController_list",
+        "parameters": [
+          {
+            "name": "weddingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "category",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "VENUE",
+                "CATERING",
+                "PHOTOGRAPHY_VIDEOGRAPHY",
+                "DECORATION_FLOWERS",
+                "MAKEUP_BEAUTY",
+                "CLOTHING_JEWELLERY",
+                "ENTERTAINMENT_DJ",
+                "INVITATIONS_PRINTING",
+                "TRANSPORTATION",
+                "WEDDING_PLANNER",
+                "MEHENDI",
+                "OTHER"
+              ]
+            }
+          },
+          {
+            "name": "bookingStatus",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "NOT_CONTACTED",
+                "CONTACTED",
+                "QUOTATION_RECEIVED",
+                "NEGOTIATING",
+                "BOOKED",
+                "CANCELLED"
+              ]
+            }
+          },
+          {
+            "name": "eventId",
+            "required": false,
+            "in": "query",
+            "description": "Event ID, or none for whole-wedding bookings",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 25,
+              "default": 25,
+              "type": "number"
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/VendorViewDto"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/VendorListMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "List vendors in name order",
+        "tags": [
+          "Vendors"
+        ]
+      },
+      "post": {
+        "operationId": "VendorsController_create",
+        "parameters": [
+          {
+            "name": "weddingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VendorDetailsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/VendorDto"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ResponseMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_FAILED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "WEDDING_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "Vendors"
+        ]
+      }
+    },
+    "/api/v1/weddings/{weddingId}/vendors/{vendorId}": {
+      "get": {
+        "operationId": "VendorsController_get",
+        "parameters": [
+          {
+            "name": "weddingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "vendorId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/VendorViewDto"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ResponseMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "Vendors"
+        ]
+      },
+      "patch": {
+        "operationId": "VendorsController_update",
+        "parameters": [
+          {
+            "name": "weddingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "vendorId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateVendorDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/VendorDto"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ResponseMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "Vendors"
+        ]
+      },
+      "delete": {
+        "operationId": "VendorsController_delete",
+        "parameters": [
+          {
+            "name": "weddingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "vendorId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "nullable": true,
+                      "example": null,
+                      "description": "Always null."
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ResponseMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "Vendors"
+        ]
+      }
+    },
+    "/api/v1/weddings/{weddingId}/vendors/{vendorId}/bookings": {
+      "get": {
+        "operationId": "VendorsController_bookings",
+        "parameters": [
+          {
+            "name": "weddingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "vendorId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BookingDto"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ResponseMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "Vendors"
+        ]
+      },
+      "post": {
+        "operationId": "VendorsController_createBooking",
+        "parameters": [
+          {
+            "name": "weddingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "vendorId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingDetailsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/BookingDto"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ResponseMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "Vendors"
+        ]
+      }
+    },
+    "/api/v1/weddings/{weddingId}/vendors/{vendorId}/bookings/{bookingId}": {
+      "get": {
+        "operationId": "VendorsController_getBooking",
+        "parameters": [
+          {
+            "name": "weddingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "vendorId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/BookingDto"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ResponseMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "Vendors"
+        ]
+      },
+      "patch": {
+        "operationId": "VendorsController_updateBooking",
+        "parameters": [
+          {
+            "name": "weddingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "vendorId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateBookingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/BookingDto"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ResponseMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "Vendors"
         ]
       }
     },
@@ -6107,6 +6744,17 @@
             "nullable": true,
             "example": "Sangeet"
           },
+          "vendorId": {
+            "type": "string",
+            "nullable": true
+          },
+          "vendorName": {
+            "type": "string",
+            "nullable": true
+          },
+          "vendorDeleted": {
+            "type": "boolean"
+          },
           "paymentStatus": {
             "type": "string",
             "enum": [
@@ -6140,6 +6788,9 @@
           "expenseDate",
           "eventId",
           "eventName",
+          "vendorId",
+          "vendorName",
+          "vendorDeleted",
           "paymentStatus",
           "notes",
           "createdAt",
@@ -6192,6 +6843,10 @@
             "type": "string",
             "nullable": true,
             "maxLength": 1000
+          },
+          "vendorId": {
+            "type": "string",
+            "nullable": true
           }
         },
         "required": [
@@ -6246,6 +6901,10 @@
             "type": "string",
             "nullable": true,
             "maxLength": 1000
+          },
+          "vendorId": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -6393,6 +7052,492 @@
           "paymentDate",
           "paidByType"
         ]
+      },
+      "VendorListMetaDto": {
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "example": "req_3f2a…"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationMetaDto"
+          }
+        },
+        "required": [
+          "requestId",
+          "timestamp",
+          "pagination"
+        ]
+      },
+      "VendorCountsDto": {
+        "type": "object",
+        "properties": {
+          "booked": {
+            "type": "number"
+          },
+          "inProgress": {
+            "type": "number"
+          },
+          "cancelled": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "booked",
+          "inProgress",
+          "cancelled"
+        ]
+      },
+      "VendorViewDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "weddingId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "VENUE",
+              "CATERING",
+              "PHOTOGRAPHY_VIDEOGRAPHY",
+              "DECORATION_FLOWERS",
+              "MAKEUP_BEAUTY",
+              "CLOTHING_JEWELLERY",
+              "ENTERTAINMENT_DJ",
+              "INVITATIONS_PRINTING",
+              "TRANSPORTATION",
+              "WEDDING_PLANNER",
+              "MEHENDI",
+              "OTHER"
+            ]
+          },
+          "contactPerson": {
+            "type": "string",
+            "nullable": true
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "address": {
+            "type": "string",
+            "nullable": true
+          },
+          "website": {
+            "type": "string",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "bookingCounts": {
+            "$ref": "#/components/schemas/VendorCountsDto"
+          }
+        },
+        "required": [
+          "id",
+          "weddingId",
+          "name",
+          "category",
+          "contactPerson",
+          "phone",
+          "email",
+          "address",
+          "website",
+          "notes",
+          "createdAt",
+          "updatedAt",
+          "bookingCounts"
+        ]
+      },
+      "VendorDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "weddingId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "VENUE",
+              "CATERING",
+              "PHOTOGRAPHY_VIDEOGRAPHY",
+              "DECORATION_FLOWERS",
+              "MAKEUP_BEAUTY",
+              "CLOTHING_JEWELLERY",
+              "ENTERTAINMENT_DJ",
+              "INVITATIONS_PRINTING",
+              "TRANSPORTATION",
+              "WEDDING_PLANNER",
+              "MEHENDI",
+              "OTHER"
+            ]
+          },
+          "contactPerson": {
+            "type": "string",
+            "nullable": true
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "address": {
+            "type": "string",
+            "nullable": true
+          },
+          "website": {
+            "type": "string",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "weddingId",
+          "name",
+          "category",
+          "contactPerson",
+          "phone",
+          "email",
+          "address",
+          "website",
+          "notes",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "VendorDetailsDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 150
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "VENUE",
+              "CATERING",
+              "PHOTOGRAPHY_VIDEOGRAPHY",
+              "DECORATION_FLOWERS",
+              "MAKEUP_BEAUTY",
+              "CLOTHING_JEWELLERY",
+              "ENTERTAINMENT_DJ",
+              "INVITATIONS_PRINTING",
+              "TRANSPORTATION",
+              "WEDDING_PLANNER",
+              "MEHENDI",
+              "OTHER"
+            ]
+          },
+          "contactPerson": {
+            "type": "string",
+            "maxLength": 150,
+            "nullable": true
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "nullable": true
+          },
+          "address": {
+            "type": "string",
+            "maxLength": 500,
+            "nullable": true
+          },
+          "website": {
+            "type": "string",
+            "maxLength": 500,
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 1000,
+            "nullable": true
+          }
+        },
+        "required": [
+          "name",
+          "category"
+        ]
+      },
+      "UpdateVendorDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 150
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "VENUE",
+              "CATERING",
+              "PHOTOGRAPHY_VIDEOGRAPHY",
+              "DECORATION_FLOWERS",
+              "MAKEUP_BEAUTY",
+              "CLOTHING_JEWELLERY",
+              "ENTERTAINMENT_DJ",
+              "INVITATIONS_PRINTING",
+              "TRANSPORTATION",
+              "WEDDING_PLANNER",
+              "MEHENDI",
+              "OTHER"
+            ]
+          },
+          "contactPerson": {
+            "type": "string",
+            "maxLength": 150,
+            "nullable": true
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "nullable": true
+          },
+          "address": {
+            "type": "string",
+            "maxLength": 500,
+            "nullable": true
+          },
+          "website": {
+            "type": "string",
+            "maxLength": 500,
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 1000,
+            "nullable": true
+          }
+        }
+      },
+      "BookingDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "weddingId": {
+            "type": "string"
+          },
+          "vendorId": {
+            "type": "string"
+          },
+          "vendorName": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "NOT_CONTACTED",
+              "CONTACTED",
+              "QUOTATION_RECEIVED",
+              "NEGOTIATING",
+              "BOOKED",
+              "CANCELLED"
+            ]
+          },
+          "bookingDate": {
+            "type": "string",
+            "nullable": true
+          },
+          "serviceDate": {
+            "type": "string",
+            "nullable": true
+          },
+          "eventId": {
+            "type": "string",
+            "nullable": true
+          },
+          "eventName": {
+            "type": "string",
+            "nullable": true
+          },
+          "agreedPriceMinor": {
+            "type": "number",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "weddingId",
+          "vendorId",
+          "vendorName",
+          "title",
+          "status",
+          "bookingDate",
+          "serviceDate",
+          "eventId",
+          "eventName",
+          "agreedPriceMinor",
+          "notes",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "BookingDetailsDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 150
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "NOT_CONTACTED",
+              "CONTACTED",
+              "QUOTATION_RECEIVED",
+              "NEGOTIATING",
+              "BOOKED",
+              "CANCELLED"
+            ],
+            "default": "NOT_CONTACTED"
+          },
+          "bookingDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "serviceDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "eventId": {
+            "type": "string",
+            "nullable": true
+          },
+          "agreedPriceMinor": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 10000000000,
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 1000,
+            "nullable": true
+          }
+        },
+        "required": [
+          "title"
+        ]
+      },
+      "UpdateBookingDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 150
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "NOT_CONTACTED",
+              "CONTACTED",
+              "QUOTATION_RECEIVED",
+              "NEGOTIATING",
+              "BOOKED",
+              "CANCELLED"
+            ],
+            "default": "NOT_CONTACTED"
+          },
+          "bookingDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "serviceDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "eventId": {
+            "type": "string",
+            "nullable": true
+          },
+          "agreedPriceMinor": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 10000000000,
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 1000,
+            "nullable": true
+          }
+        }
       },
       "DashboardEventDto": {
         "type": "object",
@@ -6665,6 +7810,70 @@
           "byEvent"
         ]
       },
+      "VendorServiceDto": {
+        "type": "object",
+        "properties": {
+          "bookingId": {
+            "type": "string"
+          },
+          "vendorId": {
+            "type": "string"
+          },
+          "vendorName": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "serviceDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "eventId": {
+            "type": "string",
+            "nullable": true
+          },
+          "eventName": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "bookingId",
+          "vendorId",
+          "vendorName",
+          "title",
+          "serviceDate",
+          "eventId",
+          "eventName"
+        ]
+      },
+      "VendorSummaryDto": {
+        "type": "object",
+        "properties": {
+          "activeVendors": {
+            "type": "number"
+          },
+          "bookedVendors": {
+            "type": "number"
+          },
+          "bookingsNeedingFollowUp": {
+            "type": "number"
+          },
+          "upcomingServices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VendorServiceDto"
+            }
+          }
+        },
+        "required": [
+          "activeVendors",
+          "bookedVendors",
+          "bookingsNeedingFollowUp",
+          "upcomingServices"
+        ]
+      },
       "DashboardDto": {
         "type": "object",
         "properties": {
@@ -6712,6 +7921,9 @@
                 "$ref": "#/components/schemas/ExpenseSummaryDto"
               }
             ]
+          },
+          "vendorSummary": {
+            "$ref": "#/components/schemas/VendorSummaryDto"
           }
         },
         "required": [
@@ -6721,7 +7933,8 @@
           "taskCounts",
           "hasTasks",
           "upcomingTasks",
-          "expenseSummary"
+          "expenseSummary",
+          "vendorSummary"
         ]
       }
     }

@@ -44,9 +44,9 @@ describe('expenses copy', () => {
     ]);
   });
 
-  it('never offers what Phase 8 leaves out (0028 #2, #3, #4)', () => {
+  it('never offers what Phase 8 leaves out (0028 #2, #3; vendor links are Phase 9)', () => {
     expect(text).not.toMatch(
-      /budget|forecast|estimate|receipt|upload|vendor|export|report|remind|recurr|split|currency|refund|cancelled|%/i,
+      /budget|forecast|estimate|receipt|upload|export|report|remind|recurr|split|currency|refund|cancelled|%/i,
     );
   });
 });

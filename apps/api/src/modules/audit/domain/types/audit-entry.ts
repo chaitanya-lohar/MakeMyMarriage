@@ -19,6 +19,13 @@ export const AuditAction = {
   ExpensePaymentUpdated: 'EXPENSE_PAYMENT_UPDATED',
   /** Keeps the removed payment's details; the entry's time is the removal time. */
   ExpensePaymentRemoved: 'EXPENSE_PAYMENT_REMOVED',
+  VendorCreated: 'VENDOR_CREATED',
+  VendorUpdated: 'VENDOR_UPDATED',
+  VendorDeleted: 'VENDOR_DELETED',
+  VendorBookingCreated: 'VENDOR_BOOKING_CREATED',
+  VendorBookingUpdated: 'VENDOR_BOOKING_UPDATED',
+  VendorBookingStatusChanged: 'VENDOR_BOOKING_STATUS_CHANGED',
+  VendorBookingEventUnlinked: 'VENDOR_BOOKING_EVENT_UNLINKED',
 } as const;
 
 export type AuditAction = (typeof AuditAction)[keyof typeof AuditAction];

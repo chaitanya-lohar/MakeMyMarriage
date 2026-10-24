@@ -14,6 +14,7 @@ import type {
 } from '../../domain/types/expense.js';
 import { ExpensesRepository } from '../../infrastructure/repositories/expenses.repository.js';
 import { ExpensesErrors } from '../expenses-errors.js';
+import { VendorsService } from '../../../vendors/index.js';
 
 /**
  * Expense reads and deletion for the expenses controller, and the dashboard summary for the
@@ -29,6 +30,7 @@ export class ExpensesService {
     private readonly weddings: WeddingsService,
     private readonly audit: AuditService,
     private readonly transactions: TransactionRunner,
+    private readonly vendors: VendorsService,
   ) {}
 
   /** Today in the wedding's timezone; payments are never dated after it (0028 #13). */
@@ -49,10 +51,17 @@ export class ExpensesService {
   async views(weddingId: string, expenses: Expense[]): Promise<ExpenseView[]> {
     const events = await this.events.listActive(weddingId);
     const names = new Map(events.map((event) => [event.id, event.name]));
-    return expenses.map((expense) => ({
-      expense,
-      eventName: expense.eventId ? (names.get(expense.eventId) ?? null) : null,
-    }));
+    const vendorIds = expenses.flatMap((expense) => expense.vendorId ?? []);
+    const vendors = await this.vendors.lookupMany(weddingId, vendorIds);
+    return expenses.map((expense) => {
+      const vendor = expense.vendorId ? vendors.get(expense.vendorId) : null;
+      return {
+        expense,
+        eventName: expense.eventId ? (names.get(expense.eventId) ?? null) : null,
+        vendorName: vendor?.name ?? null,
+        vendorDeleted: vendor?.deleted ?? false,
+      };
+    });
   }
 
   async view(weddingId: string, expense: Expense): Promise<ExpenseView> {

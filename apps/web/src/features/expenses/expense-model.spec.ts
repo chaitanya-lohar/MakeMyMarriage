@@ -30,6 +30,9 @@ const expense: ApiExpense = {
   expenseDate: '2027-01-20',
   eventId: 'e1',
   eventName: 'Sangeet',
+  vendorId: null,
+  vendorName: null,
+  vendorDeleted: false,
   paymentStatus: 'PARTIALLY_PAID',
   notes: null,
   createdAt: '2027-01-20T05:00:00.000Z',
@@ -94,6 +97,7 @@ describe('expense form (Phase 8 PRD §3.1)', () => {
         category: 'VENUE',
         expenseDate: '2027-01-05',
         eventId: '',
+        vendorId: '',
         notes: '  ',
       }),
     ).toEqual({
@@ -102,6 +106,7 @@ describe('expense form (Phase 8 PRD §3.1)', () => {
       category: 'VENUE',
       expenseDate: '2027-01-05',
       eventId: null,
+      vendorId: null,
       notes: null,
     });
   });
