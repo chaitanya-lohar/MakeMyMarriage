@@ -8,9 +8,17 @@ import { EventsService } from '../../../events/index.js';
 import type { Expense, ExpenseChanges, ExpenseDetails } from '../../domain/types/expense.js';
 import { ExpensesRepository } from '../../infrastructure/repositories/expenses.repository.js';
 import { ExpensesErrors } from '../expenses-errors.js';
+import { VendorsService } from '../../../vendors/index.js';
 
 /** Fields whose old and new values are kept in the audit entry; notes only by name. */
-const VALUE_FIELDS = ['title', 'amountMinor', 'category', 'expenseDate', 'eventId'] as const;
+const VALUE_FIELDS = [
+  'title',
+  'amountMinor',
+  'category',
+  'expenseDate',
+  'eventId',
+  'vendorId',
+] as const;
 
 /**
  * Creates and edits expenses (Phase 8 PRD §5.1, decision 0028). The expense and its audit
@@ -25,12 +33,14 @@ export class SaveExpenseUseCase {
     private readonly events: EventsService,
     private readonly audit: AuditService,
     private readonly transactions: TransactionRunner,
+    private readonly vendors: VendorsService,
   ) {}
 
   async create(weddingId: string, userId: string, details: ExpenseDetails): Promise<Expense> {
     return this.transactions.run(async (transaction) => {
       // Checked in the transaction, so an event deleted meanwhile is refused.
       await this.checkEvent(weddingId, details.eventId, transaction);
+      await this.checkVendor(weddingId, details.vendorId ?? null, transaction);
       const expense = await this.expenses.create(
         { ...details, weddingId, createdBy: userId },
         transaction,
@@ -48,6 +58,7 @@ export class SaveExpenseUseCase {
             category: expense.category,
             expenseDate: expense.expenseDate,
             eventId: expense.eventId,
+            vendorId: expense.vendorId,
           },
         },
         transaction,
@@ -69,6 +80,8 @@ export class SaveExpenseUseCase {
       if (changes.eventId !== undefined && changes.eventId !== current.eventId) {
         await this.checkEvent(weddingId, changes.eventId, transaction);
       }
+      if (changes.vendorId !== undefined && changes.vendorId !== current.vendorId)
+        await this.checkVendor(weddingId, changes.vendorId, transaction);
 
       const result = await this.expenses.update(weddingId, expenseId, changes, transaction);
       if ('refused' in result) {
@@ -113,5 +126,15 @@ export class SaveExpenseUseCase {
     transaction: Transaction,
   ): Promise<void> {
     if (eventId !== null) await this.events.claimActive(weddingId, eventId, transaction);
+  }
+
+  private async checkVendor(
+    weddingId: string,
+    vendorId: string | null,
+    transaction: Transaction,
+  ): Promise<void> {
+    if (vendorId === null) return;
+    const vendor = await this.vendors.lookup(weddingId, vendorId, transaction);
+    if (!vendor || vendor.deleted) throw ExpensesErrors.vendorNotFound();
   }
 }

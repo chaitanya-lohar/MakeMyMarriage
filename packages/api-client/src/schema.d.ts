@@ -586,6 +586,71 @@ export interface paths {
         patch: operations["ExpensesController_updatePayment"];
         trace?: never;
     };
+    "/api/v1/weddings/{weddingId}/vendors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List vendors in name order */
+        get: operations["VendorsController_list"];
+        put?: never;
+        post: operations["VendorsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/vendors/{vendorId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["VendorsController_get"];
+        put?: never;
+        post?: never;
+        delete: operations["VendorsController_delete"];
+        options?: never;
+        head?: never;
+        patch: operations["VendorsController_update"];
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/vendors/{vendorId}/bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["VendorsController_bookings"];
+        put?: never;
+        post: operations["VendorsController_createBooking"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/vendors/{vendorId}/bookings/{bookingId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["VendorsController_getBooking"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["VendorsController_updateBooking"];
+        trace?: never;
+    };
     "/api/v1/weddings/{weddingId}/dashboard": {
         parameters: {
             query?: never;
@@ -1238,6 +1303,9 @@ export interface components {
             eventId: string | null;
             /** @example Sangeet */
             eventName: string | null;
+            vendorId: string | null;
+            vendorName: string | null;
+            vendorDeleted: boolean;
             /**
              * @description Calculated from the payments.
              * @enum {string}
@@ -1268,6 +1336,7 @@ export interface components {
             /** @description An active event of the wedding; null for a whole-wedding expense. */
             eventId?: string | null;
             notes?: string | null;
+            vendorId?: string | null;
         };
         UpdateExpenseDto: {
             /** @example Decorator */
@@ -1287,6 +1356,7 @@ export interface components {
             /** @description An active event of the wedding; null for a whole-wedding expense. */
             eventId?: string | null;
             notes?: string | null;
+            vendorId?: string | null;
         };
         PaymentDto: {
             id: string;
@@ -1344,6 +1414,124 @@ export interface components {
             paymentMethod?: "CASH" | "UPI" | "BANK_TRANSFER" | "CARD" | "CHEQUE" | "OTHER" | null;
             /** @description For example a UPI or cheque number. */
             referenceNumber?: string | null;
+            notes?: string | null;
+        };
+        VendorListMetaDto: {
+            /** @example req_3f2a… */
+            requestId: string;
+            /** Format: date-time */
+            timestamp: string;
+            pagination: components["schemas"]["PaginationMetaDto"];
+        };
+        VendorCountsDto: {
+            booked: number;
+            inProgress: number;
+            cancelled: number;
+        };
+        VendorViewDto: {
+            id: string;
+            weddingId: string;
+            name: string;
+            /** @enum {string} */
+            category: "VENUE" | "CATERING" | "PHOTOGRAPHY_VIDEOGRAPHY" | "DECORATION_FLOWERS" | "MAKEUP_BEAUTY" | "CLOTHING_JEWELLERY" | "ENTERTAINMENT_DJ" | "INVITATIONS_PRINTING" | "TRANSPORTATION" | "WEDDING_PLANNER" | "MEHENDI" | "OTHER";
+            contactPerson: string | null;
+            phone: string | null;
+            email: string | null;
+            address: string | null;
+            website: string | null;
+            notes: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            bookingCounts: components["schemas"]["VendorCountsDto"];
+        };
+        VendorDto: {
+            id: string;
+            weddingId: string;
+            name: string;
+            /** @enum {string} */
+            category: "VENUE" | "CATERING" | "PHOTOGRAPHY_VIDEOGRAPHY" | "DECORATION_FLOWERS" | "MAKEUP_BEAUTY" | "CLOTHING_JEWELLERY" | "ENTERTAINMENT_DJ" | "INVITATIONS_PRINTING" | "TRANSPORTATION" | "WEDDING_PLANNER" | "MEHENDI" | "OTHER";
+            contactPerson: string | null;
+            phone: string | null;
+            email: string | null;
+            address: string | null;
+            website: string | null;
+            notes: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        VendorDetailsDto: {
+            name: string;
+            /** @enum {string} */
+            category: "VENUE" | "CATERING" | "PHOTOGRAPHY_VIDEOGRAPHY" | "DECORATION_FLOWERS" | "MAKEUP_BEAUTY" | "CLOTHING_JEWELLERY" | "ENTERTAINMENT_DJ" | "INVITATIONS_PRINTING" | "TRANSPORTATION" | "WEDDING_PLANNER" | "MEHENDI" | "OTHER";
+            contactPerson?: string | null;
+            phone?: string | null;
+            email?: string | null;
+            address?: string | null;
+            website?: string | null;
+            notes?: string | null;
+        };
+        UpdateVendorDto: {
+            name?: string;
+            /** @enum {string} */
+            category?: "VENUE" | "CATERING" | "PHOTOGRAPHY_VIDEOGRAPHY" | "DECORATION_FLOWERS" | "MAKEUP_BEAUTY" | "CLOTHING_JEWELLERY" | "ENTERTAINMENT_DJ" | "INVITATIONS_PRINTING" | "TRANSPORTATION" | "WEDDING_PLANNER" | "MEHENDI" | "OTHER";
+            contactPerson?: string | null;
+            phone?: string | null;
+            email?: string | null;
+            address?: string | null;
+            website?: string | null;
+            notes?: string | null;
+        };
+        BookingDto: {
+            id: string;
+            weddingId: string;
+            vendorId: string;
+            vendorName: string;
+            title: string;
+            /** @enum {string} */
+            status: "NOT_CONTACTED" | "CONTACTED" | "QUOTATION_RECEIVED" | "NEGOTIATING" | "BOOKED" | "CANCELLED";
+            bookingDate: string | null;
+            serviceDate: string | null;
+            eventId: string | null;
+            eventName: string | null;
+            agreedPriceMinor: number | null;
+            notes: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        BookingDetailsDto: {
+            title: string;
+            /**
+             * @default NOT_CONTACTED
+             * @enum {string}
+             */
+            status: "NOT_CONTACTED" | "CONTACTED" | "QUOTATION_RECEIVED" | "NEGOTIATING" | "BOOKED" | "CANCELLED";
+            /** Format: date */
+            bookingDate?: string | null;
+            /** Format: date */
+            serviceDate?: string | null;
+            eventId?: string | null;
+            agreedPriceMinor?: number | null;
+            notes?: string | null;
+        };
+        UpdateBookingDto: {
+            title?: string;
+            /**
+             * @default NOT_CONTACTED
+             * @enum {string}
+             */
+            status: "NOT_CONTACTED" | "CONTACTED" | "QUOTATION_RECEIVED" | "NEGOTIATING" | "BOOKED" | "CANCELLED";
+            /** Format: date */
+            bookingDate?: string | null;
+            /** Format: date */
+            serviceDate?: string | null;
+            eventId?: string | null;
+            agreedPriceMinor?: number | null;
             notes?: string | null;
         };
         DashboardEventDto: {
@@ -1447,6 +1635,22 @@ export interface components {
             /** @description Events with expenses and the whole wedding (eventId null), largest first. */
             byEvent: components["schemas"]["ExpenseEventTotalDto"][];
         };
+        VendorServiceDto: {
+            bookingId: string;
+            vendorId: string;
+            vendorName: string;
+            title: string;
+            /** Format: date */
+            serviceDate: string;
+            eventId: string | null;
+            eventName: string | null;
+        };
+        VendorSummaryDto: {
+            activeVendors: number;
+            bookedVendors: number;
+            bookingsNeedingFollowUp: number;
+            upcomingServices: components["schemas"]["VendorServiceDto"][];
+        };
         DashboardDto: {
             /** @description At most five events dated today or later (wedding timezone), by date then start time, untimed first. A dashboard limit only. */
             upcomingEvents: components["schemas"]["DashboardEventDto"][];
@@ -1461,6 +1665,7 @@ export interface components {
             upcomingTasks: components["schemas"]["DashboardTaskDto"][];
             /** @description Over expenses that are not deleted: Total, Paid, Pending; by category and by event, largest first (0028 #23). */
             expenseSummary: components["schemas"]["ExpenseSummaryDto"];
+            vendorSummary: components["schemas"]["VendorSummaryDto"];
         };
     };
     responses: never;
@@ -3524,6 +3729,8 @@ export interface operations {
                 limit?: number;
                 /** @description `meta.pagination.nextCursor` of the previous page. */
                 cursor?: string;
+                /** @description Filter linked expenses by vendor ID. */
+                vendorId?: string;
             };
             header?: never;
             path: {
@@ -4001,6 +4208,277 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    VendorsController_list: {
+        parameters: {
+            query?: {
+                search?: string;
+                category?: "VENUE" | "CATERING" | "PHOTOGRAPHY_VIDEOGRAPHY" | "DECORATION_FLOWERS" | "MAKEUP_BEAUTY" | "CLOTHING_JEWELLERY" | "ENTERTAINMENT_DJ" | "INVITATIONS_PRINTING" | "TRANSPORTATION" | "WEDDING_PLANNER" | "MEHENDI" | "OTHER";
+                bookingStatus?: "NOT_CONTACTED" | "CONTACTED" | "QUOTATION_RECEIVED" | "NEGOTIATING" | "BOOKED" | "CANCELLED";
+                /** @description Event ID, or none for whole-wedding bookings */
+                eventId?: string;
+                limit?: number;
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                weddingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["VendorViewDto"][];
+                        meta: components["schemas"]["VendorListMetaDto"];
+                    };
+                };
+            };
+        };
+    };
+    VendorsController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VendorDetailsDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["VendorDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description VALIDATION_FAILED */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    VendorsController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                vendorId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["VendorViewDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+        };
+    };
+    VendorsController_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                vendorId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @description Always null.
+                         * @example null
+                         */
+                        data: unknown;
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+        };
+    };
+    VendorsController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                vendorId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateVendorDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["VendorDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+        };
+    };
+    VendorsController_bookings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                vendorId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BookingDto"][];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+        };
+    };
+    VendorsController_createBooking: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                vendorId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BookingDetailsDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BookingDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+        };
+    };
+    VendorsController_getBooking: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                vendorId: string;
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BookingDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+        };
+    };
+    VendorsController_updateBooking: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                vendorId: string;
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateBookingDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["BookingDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
                 };
             };
         };

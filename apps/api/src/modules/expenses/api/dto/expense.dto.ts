@@ -90,6 +90,12 @@ export class CreateExpenseDto {
     message: ExpenseMessages.tooLong(ExpenseLimits.notesMaxLength),
   })
   notes?: string | null;
+
+  @ApiPropertyOptional({ type: String, nullable: true })
+  @Transform(trimToNull)
+  @IsOptional()
+  @IsString()
+  vendorId?: string | null;
 }
 
 /** PATCH /weddings/{weddingId}/expenses/{expenseId}: send only the fields that change. */
@@ -137,6 +143,11 @@ export class UpdateExpenseDto {
     message: ExpenseMessages.tooLong(ExpenseLimits.notesMaxLength),
   })
   notes?: string | null;
+  @ApiPropertyOptional({ type: String, nullable: true })
+  @Transform(trimToNull)
+  @IsOptional()
+  @IsString()
+  vendorId?: string | null;
 }
 
 /** POST and PATCH …/expenses/{expenseId}/payments: the payment's complete details. */
@@ -252,6 +263,10 @@ export class ListExpensesQueryDto {
   @IsOptional()
   @IsString()
   cursor?: string;
+  @ApiPropertyOptional({ description: 'Filter linked expenses by vendor ID.' })
+  @IsOptional()
+  @IsString()
+  vendorId?: string;
 }
 
 /** Sums in paise. */
@@ -304,6 +319,10 @@ export class ExpenseDto {
   @ApiProperty({ type: String, nullable: true, example: 'Sangeet' })
   eventName!: string | null;
 
+  @ApiProperty({ type: String, nullable: true }) vendorId!: string | null;
+  @ApiProperty({ type: String, nullable: true }) vendorName!: string | null;
+  @ApiProperty() vendorDeleted!: boolean;
+
   @ApiProperty({ enum: PAYMENT_STATUSES, description: 'Calculated from the payments.' })
   paymentStatus!: PaymentStatus;
 
@@ -316,7 +335,7 @@ export class ExpenseDto {
   @ApiProperty({ format: 'date-time' })
   updatedAt!: string;
 
-  static from({ expense, eventName }: ExpenseView): ExpenseDto {
+  static from({ expense, eventName, vendorName, vendorDeleted }: ExpenseView): ExpenseDto {
     return {
       id: expense.id,
       title: expense.title,
@@ -328,6 +347,9 @@ export class ExpenseDto {
       expenseDate: expense.expenseDate,
       eventId: expense.eventId,
       eventName,
+      vendorId: expense.vendorId,
+      vendorName,
+      vendorDeleted,
       paymentStatus: expense.paymentStatus,
       notes: expense.notes,
       createdAt: expense.createdAt.toISOString(),

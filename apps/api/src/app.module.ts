@@ -14,6 +14,7 @@ import { TasksModule } from './modules/tasks/index.js';
 import { UsersModule } from './modules/users/index.js';
 import { WeddingsModule } from './modules/weddings/index.js';
 import { WorkspaceModule } from './modules/workspace/index.js';
+import { VendorsModule } from './modules/vendors/index.js';
 import { HealthController } from './platform/health/health.controller.js';
 import { HealthModule } from './platform/health/health.module.js';
 
@@ -34,6 +35,7 @@ import { HealthModule } from './platform/health/health.module.js';
     InvitationsModule,
     TasksModule,
     ExpensesModule,
+    VendorsModule,
     DashboardModule,
   ],
   controllers: [HealthController],

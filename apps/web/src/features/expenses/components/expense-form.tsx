@@ -6,6 +6,7 @@ import { type FormEvent, useEffect, useId, useRef, useState } from 'react';
 import { Banner, controlClasses, describedBy, Field, PrimaryButton } from '@/components/ui/form';
 import { Icon } from '@/components/ui/icon';
 import type { ApiEvent } from '@/features/events/event-model';
+import type { ApiVendor } from '@/features/vendors/vendor-model';
 import { networkError } from '@/features/weddings/content';
 import { todayIn } from '@/features/weddings/dates';
 import type { ApiWedding } from '@/features/weddings/wedding-form-model';
@@ -108,6 +109,7 @@ function ExpenseForm({
   const { setNotice } = useReadyWorkspace();
   // null while the events load; the select is disabled until then.
   const [events, setEvents] = useState<ApiEvent[] | null>(null);
+  const [vendors, setVendors] = useState<ApiVendor[] | null>(null);
   const [values, setValues] = useState<ExpenseFormValues>(() =>
     expense
       ? formFromExpense(expense)
@@ -122,6 +124,33 @@ function ExpenseForm({
   // Set synchronously, so a quick second submit is ignored before the button re-renders.
   const submitting = useRef(false);
   const linkedEventId = expense?.eventId ?? null;
+
+  useEffect(() => {
+    let active = true;
+    void (async () => {
+      const all: ApiVendor[] = [];
+      let cursor: string | null = null;
+      do {
+        const result = await api.GET('/api/v1/weddings/{weddingId}/vendors', {
+          params: {
+            path: { weddingId: wedding.id },
+            query: { limit: 25, ...(cursor ? { cursor } : {}) },
+          },
+        });
+        if (result.error || !result.data) break;
+        const page = result.data as unknown as {
+          data: ApiVendor[];
+          meta: { pagination: { nextCursor: string | null } };
+        };
+        all.push(...page.data);
+        cursor = page.meta.pagination.nextCursor;
+      } while (cursor);
+      if (active) setVendors(all);
+    })();
+    return () => {
+      active = false;
+    };
+  }, [wedding.id]);
 
   useEffect(() => {
     void call(() =>
@@ -250,6 +279,12 @@ function ExpenseForm({
             values={values}
             errors={errors}
             events={events}
+            vendors={vendors}
+            linkedVendor={
+              expense?.vendorId
+                ? { id: expense.vendorId, name: expense.vendorName, deleted: expense.vendorDeleted }
+                : null
+            }
             linkedEvent={
               expense?.eventId && expense.eventId !== deletedEventId
                 ? { id: expense.eventId, name: expense.eventName }
@@ -297,6 +332,8 @@ function ExpenseFields({
   values,
   errors,
   events,
+  vendors,
+  linkedVendor,
   linkedEvent,
   fromEvent,
   onChange,
@@ -306,6 +343,8 @@ function ExpenseFields({
   errors: ExpenseFormErrors;
   /** Null while loading. */
   events: ApiEvent[] | null;
+  vendors: ApiVendor[] | null;
+  linkedVendor: { id: string; name: string | null; deleted: boolean } | null;
   /** The expense's event as loaded, shown even if the events list fails or lacks it. */
   linkedEvent: { id: string; name: string | null } | null;
   /** True while the event preset from an event's shortcut is still chosen. */
@@ -319,6 +358,7 @@ function ExpenseFields({
     category: useId(),
     expenseDate: useId(),
     event: useId(),
+    vendor: useId(),
     notes: useId(),
   };
   const select = `${controlClasses} min-h-11 appearance-none py-2.5 pr-10 pl-3`;
@@ -458,6 +498,33 @@ function ExpenseFields({
             {(events ?? []).map((event) => (
               <option key={event.id} value={event.id}>
                 {event.name}
+              </option>
+            ))}
+          </select>
+          {chevron}
+        </div>
+      </Field>
+
+      <Field id={ids.vendor} label={expenseFields.vendor.label}>
+        <div className="relative">
+          <select
+            id={ids.vendor}
+            name="vendorId"
+            value={values.vendorId}
+            onChange={(changeEvent) => onChange('vendorId', changeEvent.target.value)}
+            disabled={disabled || vendors === null}
+            className={select}
+          >
+            <option value="">{expenseFields.vendor.none}</option>
+            {linkedVendor && !(vendors ?? []).some((vendor) => vendor.id === linkedVendor.id) && (
+              <option value={linkedVendor.id}>
+                {linkedVendor.name ?? linkedVendor.id}
+                {linkedVendor.deleted ? ' (deleted)' : ''}
+              </option>
+            )}
+            {(vendors ?? []).map((vendor) => (
+              <option key={vendor.id} value={vendor.id}>
+                {vendor.name}
               </option>
             ))}
           </select>

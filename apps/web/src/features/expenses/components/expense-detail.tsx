@@ -10,7 +10,7 @@ import { Toast } from '@/features/tasks/components/task-parts';
 import { networkError } from '@/features/weddings/content';
 import { formatDate, todayIn } from '@/features/weddings/dates';
 import type { ApiWedding } from '@/features/weddings/wedding-form-model';
-import { EXPENSES_PATH } from '@/features/workspace/components/shell-parts';
+import { EXPENSES_PATH, VENDORS_PATH } from '@/features/workspace/components/shell-parts';
 import {
   PageHeader,
   SkeletonCard,
@@ -212,6 +212,17 @@ export function ExpenseDetail({ wedding, expenseId }: { wedding: ApiWedding; exp
             <Detail label={expenseDetail.category}>{categoryLabels[expense.category]}</Detail>
             <Detail label={expenseDetail.event}>
               <EventLabel eventName={expense.eventName} />
+            </Detail>
+            <Detail label={expenseDetail.vendor}>
+              {expense.vendorId && expense.vendorDeleted ? (
+                `${expense.vendorName ?? 'Vendor'} (deleted)`
+              ) : expense.vendorId ? (
+                <Link href={`${VENDORS_PATH}/${expense.vendorId}`} className="text-navy underline">
+                  {expense.vendorName}
+                </Link>
+              ) : (
+                <span className="text-on-surface-variant italic">{expenseDetail.none}</span>
+              )}
             </Detail>
             <Detail label={expenseDetail.expenseDate}>{formatDate(expense.expenseDate)}</Detail>
             <Detail label={expenseDetail.notes} wide>

@@ -101,6 +101,7 @@ export class ExpensesController {
     const page = await this.listExpenses.execute(weddingId, {
       category: query.category,
       eventId: query.eventId,
+      vendorId: query.vendorId,
       paymentStatus: query.paymentStatus,
       search: query.search ?? undefined,
       limit: query.limit,
@@ -133,6 +134,7 @@ export class ExpensesController {
       category: body.category,
       expenseDate: body.expenseDate,
       eventId: body.eventId ?? null,
+      vendorId: body.vendorId ?? null,
       notes: body.notes ?? null,
     });
     return this.dto(weddingId, expense);

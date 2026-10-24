@@ -15,6 +15,7 @@ export const EVENTS_PATH = '/events';
 export const GUESTS_PATH = '/guests';
 export const TASKS_PATH = '/tasks';
 export const EXPENSES_PATH = '/expenses';
+export const VENDORS_PATH = '/vendors';
 
 /**
  * The workspace navigation (0016); Phase 4 adds Events and Guests & RSVP (0019 #3), Phase 7
@@ -28,10 +29,11 @@ const navItems: { href: string; label: string; icon: IconName }[] = [
   { href: GUESTS_PATH, label: workspaceNav.guests, icon: 'group' },
   { href: TASKS_PATH, label: workspaceNav.tasks, icon: 'checklist' },
   { href: EXPENSES_PATH, label: workspaceNav.expenses, icon: 'payments' },
+  { href: VENDORS_PATH, label: workspaceNav.vendors, icon: 'group' },
 ];
 
 /** Items with sub-pages stay highlighted on them, e.g. a guest's detail page. */
-const SECTIONS = [EVENTS_PATH, GUESTS_PATH, TASKS_PATH, EXPENSES_PATH];
+const SECTIONS = [EVENTS_PATH, GUESTS_PATH, TASKS_PATH, EXPENSES_PATH, VENDORS_PATH];
 
 function isActive(pathname: string, href: string): boolean {
   if (SECTIONS.includes(href)) {

@@ -6,6 +6,8 @@ import { TasksService, type TaskDashboard } from '../../../tasks/index.js';
 import { WeddingsService } from '../../../weddings/index.js';
 import { weddingNotFound } from '../../../workspace/index.js';
 import { todayIn, UPCOMING_EVENTS_LIMIT } from '../../domain/rules/dashboard-rules.js';
+import { VendorsService } from '../../../vendors/index.js';
+import type { VendorSummary } from '../../../vendors/index.js';
 
 export interface UpcomingEventSummary {
   event: WeddingEvent;
@@ -20,6 +22,7 @@ export interface Dashboard {
   tasks: TaskDashboard;
   /** Total, Paid, Pending and the two breakdowns (Phase 8 PRD §8, decision 0028 #23). */
   expenses: ExpenseSummary;
+  vendorSummary: VendorSummary;
 }
 
 /**
@@ -35,19 +38,21 @@ export class GetDashboardUseCase {
     private readonly guests: GuestsService,
     private readonly tasks: TasksService,
     private readonly expenses: ExpensesService,
+    private readonly vendors: VendorsService,
   ) {}
 
   async execute(weddingId: string, now: Date = new Date()): Promise<Dashboard> {
     const wedding = await this.weddings.findById(weddingId);
     if (!wedding) throw weddingNotFound();
 
-    const [upcoming, activeEvents, guests, tasks, expenses] = await Promise.all([
+    const [upcoming, activeEvents, guests, tasks, expenses, vendorSummary] = await Promise.all([
       // At most five, in date and start-time order, untimed first (0022 #1, #3).
       this.events.listActiveFrom(weddingId, todayIn(wedding.timezone, now), UPCOMING_EVENTS_LIMIT),
       this.events.listActive(weddingId),
       this.guests.countActive(weddingId),
       this.tasks.dashboard(weddingId, now),
       this.expenses.dashboard(weddingId),
+      this.vendors.dashboard(weddingId, wedding.timezone, now),
     ]);
     const [rsvpBreakdown, attending] = await Promise.all([
       // Across all counted events, past and future; a guest counts once per event.
@@ -71,6 +76,7 @@ export class GetDashboardUseCase {
       rsvpBreakdown,
       tasks,
       expenses,
+      vendorSummary,
     };
   }
 }

@@ -12,6 +12,7 @@ export const workspaceNav = {
   guests: 'Guests & RSVP',
   tasks: 'Tasks',
   expenses: 'Expenses',
+  vendors: 'Vendors',
   yourWedding: 'Your wedding',
   menu: 'Menu',
   openMenu: 'Open menu',

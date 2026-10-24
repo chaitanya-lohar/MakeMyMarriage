@@ -20,6 +20,7 @@ export interface Expense {
   expenseDate: string;
   /** Null for a whole-wedding expense. */
   eventId: string | null;
+  vendorId: string | null;
   paymentStatus: PaymentStatus;
   notes: string | null;
   createdBy: string;
@@ -34,6 +35,7 @@ export interface ExpenseDetails {
   category: ExpenseCategory;
   expenseDate: string;
   eventId: string | null;
+  vendorId?: string | null;
   notes: string | null;
 }
 
@@ -49,6 +51,8 @@ export type ExpenseChanges = Partial<ExpenseDetails>;
 export interface ExpenseView {
   expense: Expense;
   eventName: string | null;
+  vendorName: string | null;
+  vendorDeleted: boolean;
 }
 
 /** Who made a payment (0028 #12). */
@@ -103,6 +107,7 @@ export interface PaymentView {
 export interface ExpenseListQuery {
   category?: ExpenseCategory;
   eventId?: string;
+  vendorId?: string;
   paymentStatus?: PaymentStatus;
   search?: string;
   limit: number;

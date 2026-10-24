@@ -80,6 +80,7 @@ export interface ExpenseFormValues {
   expenseDate: string;
   /** An event ID, or empty for a whole-wedding expense. */
   eventId: string;
+  vendorId: string;
   notes: string;
 }
 
@@ -88,7 +89,15 @@ export type ExpenseFormErrors = Partial<Record<ExpenseFormField, string>>;
 
 /** A new expense: dated today, for the whole wedding unless an event is preset (0028 #11). */
 export function emptyExpenseForm(today: string, eventId = ''): ExpenseFormValues {
-  return { title: '', amount: '', category: '', expenseDate: today, eventId, notes: '' };
+  return {
+    title: '',
+    amount: '',
+    category: '',
+    expenseDate: today,
+    eventId,
+    vendorId: '',
+    notes: '',
+  };
 }
 
 export function formFromExpense(expense: ApiExpense): ExpenseFormValues {
@@ -98,6 +107,7 @@ export function formFromExpense(expense: ApiExpense): ExpenseFormValues {
     category: expense.category,
     expenseDate: expense.expenseDate,
     eventId: expense.eventId ?? '',
+    vendorId: expense.vendorId ?? '',
     notes: expense.notes ?? '',
   };
 }
@@ -128,6 +138,7 @@ export function toNewExpensePayload(values: ExpenseFormValues) {
     category: values.category as ExpenseCategory,
     expenseDate: values.expenseDate,
     eventId: values.eventId || null,
+    vendorId: values.vendorId || null,
     notes: values.notes.trim() || null,
   };
 }

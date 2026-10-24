@@ -82,6 +82,7 @@ export const expenseFields = {
     label: 'Event (optional)',
     fromEventHint: 'You can change this if the cost is for another event or the whole wedding.',
   },
+  vendor: { label: 'Vendor (optional)', none: 'No vendor' },
   notes: { label: 'Notes (optional)', placeholder: 'Anything to remember' },
 };
 
@@ -126,6 +127,7 @@ export const expenseDetail = {
   details: 'Expense details',
   category: 'Category',
   event: 'Event',
+  vendor: 'Vendor',
   expenseDate: 'Expense date',
   notes: 'Notes',
   none: 'Not added',
