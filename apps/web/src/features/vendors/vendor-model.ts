@@ -29,7 +29,8 @@ export const bookingStatuses: BookingStatus[] = [
 export function formatVendorDate(date: string | null) {
   if (!date) return '—';
   const [y, m, d] = date.split('-').map(Number);
-  return new Date(Date.UTC(y!, m! - 1, d!)).toLocaleDateString('en-IN', {
+  if (y === undefined || m === undefined || d === undefined) return '—';
+  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-IN', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',

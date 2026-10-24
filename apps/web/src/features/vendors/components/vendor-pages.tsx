@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Banner, PrimaryButton, SecondaryButton, controlClasses } from '@/components/ui/form';
 import {
   RequireWedding,
@@ -52,33 +52,40 @@ function VendorsList({ wedding }: { wedding: ApiWedding }) {
     [eventId, setEvent] = useState(''),
     [events, setEvents] = useState<Array<{ id: string; name: string }>>([]);
   const requestSequence = useRef(0);
-  const load = async (next = false) => {
-    const request = ++requestSequence.current;
-    setState('loading');
-    const result = await api.GET('/api/v1/weddings/{weddingId}/vendors', {
-      params: {
-        path: { weddingId: wedding.id },
-        query: {
-          limit: 25,
-          ...(search ? { search } : {}),
-          ...(category ? { category: category as ApiVendor['category'] } : {}),
-          ...(bookingStatus ? { bookingStatus: bookingStatus as ApiBooking['status'] } : {}),
-          ...(eventId ? { eventId } : {}),
-          ...(next && cursor ? { cursor } : {}),
+  const load = useCallback(
+    async (next = false, pageCursor: string | null = null) => {
+      const request = ++requestSequence.current;
+      const result = await api.GET('/api/v1/weddings/{weddingId}/vendors', {
+        params: {
+          path: { weddingId: wedding.id },
+          query: {
+            limit: 25,
+            ...(search ? { search } : {}),
+            ...(category ? { category: category as ApiVendor['category'] } : {}),
+            ...(bookingStatus ? { bookingStatus: bookingStatus as ApiBooking['status'] } : {}),
+            ...(eventId ? { eventId } : {}),
+            ...(next && pageCursor ? { cursor: pageCursor } : {}),
+          },
         },
-      },
-    });
-    if (request !== requestSequence.current) return;
-    if (result.data) {
-      const page = result.data.data as ApiVendorView[];
-      setRows((old) => (next ? [...old, ...page] : page));
-      setCursor(result.data.meta.pagination.nextCursor);
-      setState('ready');
-    } else setState('error');
-  };
+      });
+      if (request !== requestSequence.current) return;
+      if (result.data) {
+        const page = result.data.data as ApiVendorView[];
+        setRows((old) => (next ? [...old, ...page] : page));
+        setCursor(result.data.meta.pagination.nextCursor);
+        setState('ready');
+      } else setState('error');
+    },
+    [wedding.id, search, category, bookingStatus, eventId],
+  );
   useEffect(() => {
-    void load();
-  }, [wedding.id, search, category, bookingStatus, eventId]);
+    requestSequence.current++;
+    const timeout = window.setTimeout(() => {
+      setState('loading');
+      void load();
+    });
+    return () => window.clearTimeout(timeout);
+  }, [load]);
   useEffect(() => {
     void call(() =>
       api.GET('/api/v1/weddings/{weddingId}/events', {
@@ -199,7 +206,9 @@ function VendorsList({ wedding }: { wedding: ApiWedding }) {
           </div>
           {cursor && (
             <div className="mt-6 text-center">
-              <SecondaryButton onClick={() => void load(true)}>{copy.loadMore}</SecondaryButton>
+              <SecondaryButton onClick={() => void load(true, cursor)}>
+                {copy.loadMore}
+              </SecondaryButton>
             </div>
           )}
         </>
@@ -210,7 +219,6 @@ function VendorsList({ wedding }: { wedding: ApiWedding }) {
 
 function VendorForm({ wedding, vendorId }: { wedding: ApiWedding; vendorId?: string }) {
   const router = useRouter(),
-    [vendor, setVendor] = useState<ApiVendor | null>(null),
     [message, setMessage] = useState('');
   const [values, setValues] = useState({
     name: '',
@@ -231,7 +239,6 @@ function VendorForm({ wedding, vendorId }: { wedding: ApiWedding; vendorId?: str
     ).then((r) => {
       if (r.data) {
         const v = r.data as ApiVendor;
-        setVendor(v);
         setValues({
           name: v.name,
           category: v.category,
@@ -280,7 +287,9 @@ function VendorForm({ wedding, vendorId }: { wedding: ApiWedding; vendorId?: str
         back={{ href: vendorId ? `${VENDORS_PATH}/${vendorId}` : VENDORS_PATH, label: 'Vendors' }}
       />
       <form
-        onSubmit={save}
+        onSubmit={(event) => {
+          void save(event);
+        }}
         className="max-w-3xl space-y-5 rounded-2xl border border-hairline bg-white p-5 sm:p-8"
       >
         {message && (
@@ -392,8 +401,7 @@ function VendorDetail({ wedding, vendorId }: { wedding: ApiWedding; vendorId: st
     [deleteDialog, setDeleteDialog] = useState(false),
     [refused, setRefused] = useState<ApiBooking[]>([]),
     [toast, setToast] = useState('');
-  const refresh = () => {
-    setState('loading');
+  const refresh = useCallback(() => {
     const linkedExpenses = async () => {
       const all: ApiExpense[] = [];
       let cursor: string | null = null;
@@ -428,14 +436,16 @@ function VendorDetail({ wedding, vendorId }: { wedding: ApiWedding; vendorId: st
       linkedExpenses(),
     ]).then(([v, b, e]) => {
       if (v.data && b.data && e) {
-        setVendor(v.data as ApiVendor);
-        setBookings(b.data as ApiBooking[]);
+        setVendor(v.data);
+        setBookings(b.data);
         setExpenses(e);
         setState('ready');
       } else setState('error');
     });
-  };
-  useEffect(refresh, [wedding.id, vendorId]);
+  }, [wedding.id, vendorId]);
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
   useEffect(() => {
     void call(() =>
       api.GET('/api/v1/weddings/{weddingId}/events', {
@@ -804,7 +814,7 @@ function BookingDialog({
     [selectedVendorId, setSelectedVendorId] = useState(vendorId ?? '');
   const [form, setForm] = useState({
     title: booking?.title ?? '',
-    status: booking?.status ?? ('NOT_CONTACTED' as ApiBooking['status']),
+    status: booking?.status ?? 'NOT_CONTACTED',
     bookingDate: booking?.bookingDate ?? '',
     serviceDate: booking?.serviceDate ?? '',
     eventId: booking?.eventId ?? eventId ?? '',
@@ -866,7 +876,12 @@ function BookingDialog({
   };
   return (
     <Dialog title={booking ? copy.reopen : copy.addBooking} onClose={onClose}>
-      <form className="space-y-4" onSubmit={save}>
+      <form
+        className="space-y-4"
+        onSubmit={(event) => {
+          void save(event);
+        }}
+      >
         {booking?.status === 'CANCELLED' && (
           <Banner tone="info" icon="info">
             {copy.cancelledBanner}
