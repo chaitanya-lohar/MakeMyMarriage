@@ -2,7 +2,9 @@
 
 **Status:** Accepted (approved by the product owner on 2026-10-24). Answers P9-VEN-Q01–Q12
 and confirmations A–J from the Phase 9 discovery; the full specification is the
-[Phase 9 PRD v1.0](../specs/PHASE_9_PRD_v1.0.md).
+[Phase 9 PRD v1.0](../specs/PHASE_9_PRD_v1.0.md). Supplemented by
+[0033](0033-phase-9-design-approval.md): cancelling a booking needs no confirmation, the
+event shortcut's no-vendors state, and the refused-delete list.
 
 Phase 9 builds the vendor management of PRD v1.2 §17 and its dashboard summary (§18), and
 activates the optional expense vendor link kept in the data model since Phase 8 (0010 #6,

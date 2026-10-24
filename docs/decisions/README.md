@@ -37,7 +37,8 @@ in a specification, the record names that statement.
 | [0029](0029-phase-8-design-approval.md)                   | Phase 8 design approval: screens and corrections; wording draft     | Accepted                        |
 | [0030](0030-payments-by-former-members.md)                | Payments by a former member: the payer may be kept on edit          | Accepted                        |
 | [0031](0031-wording-approval.md)                          | Wording of Phases 4, 7 and 8 approved                               | Accepted                        |
-| [0032](0032-phase-9-vendors.md)                           | Phase 9: vendors (bookings, deletion rule, expense link, dashboard) | Accepted                        |
+| [0032](0032-phase-9-vendors.md)                           | Phase 9: vendors (bookings, deletion rule, expense link, dashboard) | Accepted; supplemented by 0033  |
+| [0033](0033-phase-9-design-approval.md)                   | Phase 9 design approval: screens, additions and corrections         | Accepted                        |
 
 Conflicts between specifications or decision records are handled with the protocol in
 [0004](0004-specification-authority.md) — never resolved silently in code.

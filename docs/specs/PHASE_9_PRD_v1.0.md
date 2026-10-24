@@ -2,7 +2,7 @@
 
 | Item         | Value                                                                                                                                                                                                         |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Status       | **Canonical** for Phase 9. Approved scope; screens **not yet designed**; **not implemented**.                                                                                                                 |
+| Status       | **Canonical** for Phase 9. Approved scope; screens approved (0033); **not implemented**.                                                                                                                      |
 | Date         | 2026-10-24                                                                                                                                                                                                    |
 | Parent       | [PRD v1.2](PRD_v1.2.md) (sections 15, 17 and 18)                                                                                                                                                              |
 | Decision     | [0032](../decisions/0032-phase-9-vendors.md), with 0010 #6, [0028](../decisions/0028-phase-8-expenses.md) and [0030](../decisions/0030-payments-by-former-members.md)                                         |
@@ -12,6 +12,7 @@
 | Version | Date       | Change                                                     |
 | ------- | ---------- | ---------------------------------------------------------- |
 | 1.0     | 2026-10-24 | First version, from the Phase 9 discovery (decision 0032). |
+| 1.0     | 2026-10-24 | §4.2, §10: screens approved in Stitch (decision 0033).     |
 
 ## 1. Purpose and outcomes
 
@@ -111,11 +112,17 @@ Flowers), `MAKEUP_BEAUTY` (Makeup & Beauty), `CLOTHING_JEWELLERY` (Clothing & Je
 
 - Create from the vendor's page (the vendor is fixed), or from "Add vendor booking" on an
   event page, where the form asks for the vendor (active vendors only) and preselects the
-  event, which can still be changed (0032 #22).
+  event, which can still be changed (0032 #22). "Add vendor booking" is always shown; when
+  the wedding has no vendors, the form's Vendor select reads "No vendors yet" and offers an
+  "Add a vendor" link (0033 #3).
 - Every field in §3.2 except the vendor can be edited. Changing or clearing the event moves
   the booking between events and the whole wedding.
-- **Cancelling** sets the status to Cancelled. A cancelled booking stays on the vendor's page,
-  marked, and can be reopened by changing its status. Bookings are never deleted (0032 #14).
+- **Cancelling** sets the status to Cancelled immediately, with no confirmation dialog, and
+  shows "Booking cancelled." (0033 #2). A cancelled booking stays on the vendor's page,
+  marked, and can be reopened by changing its status; editing it shows a short note that it
+  is cancelled (0033 #5). Bookings are never deleted (0032 #14).
+- When a vendor cannot be deleted (§4.1), the message lists the bookings that are not
+  cancelled, with title, agreed price when present and status (0033 #6).
 
 ### 4.3 Deleted events
 
@@ -213,13 +220,13 @@ VENDOR_HAS_ACTIVE_BOOKINGS` for §4.1.
 ## 10. UI
 
 - A **Vendors** item in the workspace navigation, after Expenses (PRD §29).
-- Screens to design in Stitch and approve before implementation: vendor list (filters,
+- Screens: approved in Stitch (decision 0033, with its corrections) — vendor list (filters,
   booking summary, states), add and edit vendor, vendor page (bookings and linked
-  expenses), add and edit booking (from the vendor page and from the event shortcut, with
-  the vendor picker), cancel and reopen, the delete confirmation and its refused state, the
-  vendor field on the expense form and page (including "Name (deleted)"), the dashboard
-  vendor card, and the "Add vendor booking" shortcut on the event page — on desktop and
-  mobile.
+  expenses), the booking dialog (from the vendor page and from the event shortcut, with the
+  vendor picker and the no-vendors state), cancel and reopen, the delete confirmation and
+  its refused state, the vendor field on the expense form and page (including "Name
+  (deleted)"), the dashboard vendor card, and the "Add vendor booking" shortcut on the event
+  page — on desktop and mobile. The vendor list shows no total count (0033 #7).
 - The UI never implies a vendor has one status: it shows each booking's status and the
   booking summary.
 - Reuse the workspace design system and the patterns of Phases 3, 4, 7 and 8 (forms, confirm
