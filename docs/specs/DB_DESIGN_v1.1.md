@@ -115,8 +115,8 @@ then runs a query constrained by `weddingId`.
 | `tasks`                 | Wedding tasks                             | Tasks         | Planned                                                               |
 | `task_assignments`      | Task ↔ member assignment                  | Tasks         | Planned                                                               |
 | `task_activities`       | Task history                              | Tasks         | Planned                                                               |
-| `wedding_vendors`       | Wedding-scoped vendor profiles            | Vendors       | Planned — Phase 9 (0032)                                              |
-| `vendor_bookings`       | Services booked from a vendor             | Vendors       | Planned — Phase 9 (0032)                                              |
+| `wedding_vendors`       | Wedding-scoped vendor profiles            | Vendors       | Implemented — Phase 9 (PR #31; 0032)                                  |
+| `vendor_bookings`       | Services booked from a vendor             | Vendors       | Implemented — Phase 9 (PR #31; 0032)                                  |
 | `vendor_attachments`    | S3 vendor attachment metadata             | Vendors       | Deferred (0032 #6)                                                    |
 | `wedding_websites`      | Public website configuration              | Website       | Planned                                                               |
 | `photos`                | Wedding and event photos                  | Gallery       | Planned                                                               |
@@ -661,7 +661,7 @@ Unique `(taskId, userId)`; a task can have several assignees.
   changed or removed (including by a deleted event), deleted (0026 #15). This history is
   the record of task changes; only deletion is also written to `audit_logs` (0026 #17).
 
-## 14. Vendors and bookings (Planned — Phase 9; decision 0032)
+## 14. Vendors and bookings (Implemented — Phase 9; PR #31; decision 0032)
 
 ### 14.1 `wedding_vendors`
 

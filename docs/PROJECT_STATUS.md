@@ -2,7 +2,7 @@
 
 The single place to see where MakeMyMarriage stands. Read this first.
 
-- **Updated:** 2026-10-24, after merging the Phase 9 (Vendors) documentation (decisions 0032, 0033 and the Phase 9 PRD) to `main`.
+- **Updated:** 2026-10-24, after Phase 9 (Vendors) merged to `main` (PR #31).
 - **Source of truth:** the canonical documents listed in the [documentation index](README.md)
   and the decision records in [`decisions/`](decisions/README.md). This page only summarises
   and links; where they differ, the decision record wins.
@@ -11,13 +11,13 @@ The single place to see where MakeMyMarriage stands. Read this first.
 
 ## Snapshot
 
-| Item            | State                                                                                                             |
-| --------------- | ----------------------------------------------------------------------------------------------------------------- |
-| Current phase   | Phase 9 (Vendors) — discovery and screens approved and merged (0032, 0033, Phase 9 PRD v1.0). Implementation next |
-| Next phase      | Phase 9 implementation on `feat/phase-9`, assigned to Codex by the product owner (prompt prepared 2026-10-24)     |
-| `main`          | Scaffold, Phases 1–4, 7 and 8 with their review fixes (PRs #1–29); decisions 0001–0033; Phase 9 PRD               |
-| Open PRs        | None                                                                                                              |
-| Live deployment | None yet                                                                                                          |
+| Item            | State                                                                           |
+| --------------- | ------------------------------------------------------------------------------- |
+| Current phase   | Phase 9 (Vendors) — done and merged (PR #31)                                    |
+| Next phase      | Phase 10 (Organizers and permissions) — not started; requires explicit approval |
+| `main`          | Scaffold and Phases 1–4, 7–9 (PRs #1–31); decisions 0001–0033; Phase 9 PRD      |
+| Open PRs        | None                                                                            |
+| Live deployment | None yet                                                                        |
 
 ### Branches
 
@@ -52,6 +52,7 @@ Every branch below except `fix/phase-4-review` is merged into `main`; new work s
 | `fix/expenses-payer-and-category` | Decision 0030 (former-member payers) and the category column fix from Manual QA         | Merged (PR #29)   |
 | `docs/wording-approval`           | Decision 0031: wording of Phases 4, 7 and 8 approved                                    | Merged (PR #30)   |
 | `docs/phase-9-vendors`            | Decisions 0032 and 0033, the Phase 9 PRD and the spec updates                           | Merged (direct)   |
+| `feat/phase-9`                    | Phase 9: vendors, bookings, expense linking and dashboard summary                       | Merged (PR #31)   |
 | `chore/ignore-codex-config`       | `.gitignore` ignores the local Codex MCP configuration (`.codex/config.toml`)           | Merged (direct)   |
 
 The merged branches can be deleted, on GitHub and locally.
@@ -63,25 +64,25 @@ approved combining events, guests and RSVP, and invitations into one Phase 4 (an
 later phases keep their numbers. Each phase is approved before it starts, and any open
 questions for it are raised then (0004).
 
-| #   | Phase                                | State                        | Records                                                          |
-| --- | ------------------------------------ | ---------------------------- | ---------------------------------------------------------------- |
-| 0   | Scaffold (monorepo, API, CI)         | Done, merged                 | 0001–0013                                                        |
-| 1   | Design system and home page          | Done, merged                 | 0014                                                             |
-| 2   | Authentication                       | Done, merged                 | 0015                                                             |
-| 3   | Wedding setup and dashboard shell    | Done, merged                 | 0010, 0012, 0016                                                 |
-| 4   | Events, guests, RSVP and invitations | Done, merged                 | 0008, 0010, 0017–0023; [Phase 4 PRD](specs/PHASE_4_PRD_v1.2.md)  |
-| 5   | (merged into Phase 4)                | —                            | —                                                                |
-| 6   | (merged into Phase 4)                | —                            | —                                                                |
-| 7   | Tasks                                | Done, merged (PRs #19, #20)  | 0010, 0013, 0026, 0027; [Phase 7 PRD](specs/PHASE_7_PRD_v1.0.md) |
-| 8   | Expenses                             | Done, merged (PR #27)        | 0009, 0010, 0028, 0029; [Phase 8 PRD](specs/PHASE_8_PRD_v1.0.md) |
-| 9   | Vendors                              | Screens approved; build next | 0010, 0032, 0033; [Phase 9 PRD](specs/PHASE_9_PRD_v1.0.md)       |
-| 10  | Organizers and permissions           | Not started                  | 0012                                                             |
-| 11  | Wedding website                      | Not started                  | 0007                                                             |
-| 12  | Gallery and QR memories              | Not started                  | 0007                                                             |
-| 13  | Live stream                          | Not started                  | —                                                                |
-| 14  | Notifications                        | Not started                  | —                                                                |
-| 15  | Reports                              | Not started                  | 0013                                                             |
-| 16  | Partner connection and sharing       | Not started                  | 0011, 0012 — **blocked on A4/A5**                                |
+| #   | Phase                                | State                       | Records                                                          |
+| --- | ------------------------------------ | --------------------------- | ---------------------------------------------------------------- |
+| 0   | Scaffold (monorepo, API, CI)         | Done, merged                | 0001–0013                                                        |
+| 1   | Design system and home page          | Done, merged                | 0014                                                             |
+| 2   | Authentication                       | Done, merged                | 0015                                                             |
+| 3   | Wedding setup and dashboard shell    | Done, merged                | 0010, 0012, 0016                                                 |
+| 4   | Events, guests, RSVP and invitations | Done, merged                | 0008, 0010, 0017–0023; [Phase 4 PRD](specs/PHASE_4_PRD_v1.2.md)  |
+| 5   | (merged into Phase 4)                | —                           | —                                                                |
+| 6   | (merged into Phase 4)                | —                           | —                                                                |
+| 7   | Tasks                                | Done, merged (PRs #19, #20) | 0010, 0013, 0026, 0027; [Phase 7 PRD](specs/PHASE_7_PRD_v1.0.md) |
+| 8   | Expenses                             | Done, merged (PR #27)       | 0009, 0010, 0028, 0029; [Phase 8 PRD](specs/PHASE_8_PRD_v1.0.md) |
+| 9   | Vendors                              | Done, merged (PR #31)       | 0010, 0032, 0033; [Phase 9 PRD](specs/PHASE_9_PRD_v1.0.md)       |
+| 10  | Organizers and permissions           | Not started                 | 0012                                                             |
+| 11  | Wedding website                      | Not started                 | 0007                                                             |
+| 12  | Gallery and QR memories              | Not started                 | 0007                                                             |
+| 13  | Live stream                          | Not started                 | —                                                                |
+| 14  | Notifications                        | Not started                 | —                                                                |
+| 15  | Reports                              | Not started                 | 0013                                                             |
+| 16  | Partner connection and sharing       | Not started                 | 0011, 0012 — **blocked on A4/A5**                                |
 
 Deployment follows decision 0025: the web app and the API on Vercel, MongoDB Atlas, Upstash
 Redis and Resend, all on free plans. Steps are in [DEPLOYMENT.md](DEPLOYMENT.md); the
@@ -105,6 +106,7 @@ accounts are not created yet.
 | `/guests`, `/guests/new`, `/guests/[guestId]`, `/guests/[guestId]/edit`             | Guests list, add and edit, detail with RSVP and the invitation panel (O5–O9)                        |
 | `/tasks`, `/tasks/new`, `/tasks/[taskId]`, `/tasks/[taskId]/edit`                   | Tasks list, add and edit, task page with history (Phase 7, Stitch "P7 · T1–T7")                     |
 | `/expenses`, `/expenses/new`, `/expenses/[expenseId]`, `/expenses/[expenseId]/edit` | Expenses list with totals, add and edit, expense page with payments (Phase 8, Stitch "P8 · E1–E8")  |
+| `/vendors`, `/vendors/new`, `/vendors/[vendorId]`, `/vendors/[vendorId]/edit`       | Vendor list, create/edit, detail and booking management (Phase 9, Stitch "P9")                      |
 | `/invite/[token]`                                                                   | A guest's private invitation and RSVP, no account (G1–G5)                                           |
 | (workspace)                                                                         | Sidebar and user menu, mobile drawer, loading (S1), not available (S6)                              |
 | `/privacy`, `/terms`                                                                | Placeholders — legal text not yet provided                                                          |
@@ -116,26 +118,27 @@ accounts are not created yet.
 
 ### API endpoints (`/api/v1`)
 
-| Endpoint                                                                                                 | Purpose                                          |
-| -------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
-| `POST /auth/register`                                                                                    | Create account and sign in                       |
-| `POST /auth/login`                                                                                       | Sign in                                          |
-| `POST /auth/refresh`                                                                                     | Rotate the session                               |
-| `POST /auth/logout`                                                                                      | Sign out                                         |
-| `POST /auth/forgot-password`                                                                             | Request a reset email                            |
-| `POST /auth/reset-password`                                                                              | Set a new password                               |
-| `GET /me`                                                                                                | Current user                                     |
-| `POST /weddings`                                                                                         | Create the user's wedding; the user is its owner |
-| `GET /weddings`                                                                                          | Weddings the user is an active member of         |
-| `GET /weddings/{weddingId}`                                                                              | One wedding (members only; otherwise 404)        |
-| `PATCH /weddings/{weddingId}`                                                                            | Update the wedding's details                     |
-| `GET /weddings/{weddingId}/dashboard`                                                                    | Phase 4 summaries (0022)                         |
-| `…/events`, `…/events/{eventId}`                                                                         | Events (API Design §8)                           |
-| `…/guests`, `…/guests/{guestId}`, `…/guests/{guestId}/events`, `…/guest-events/{id}`                     | Guests, assignments, RSVP (§9)                   |
-| `…/guests/{guestId}/invitation` (+ `/regenerate`, `/send`, `/resend`, `/revoke`, `/link`, `/deliveries`) | Invitations (§10)                                |
-| `GET`/`PATCH /guest/invitations/{token}` (+ `/rsvp`)                                                     | Guest invitation and RSVP, no account (§10)      |
-| `…/tasks`, `…/tasks/{taskId}` (+ `/assignees`, `/assignees/{userId}`, `/activities`)                     | Tasks, assignees, history (§13)                  |
-| `…/expenses`, `…/expenses/{expenseId}` (+ `/payments`, `/payments/{paymentId}`)                          | Expenses and payments (§12)                      |
+| Endpoint                                                                                                             | Purpose                                          |
+| -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| `POST /auth/register`                                                                                                | Create account and sign in                       |
+| `POST /auth/login`                                                                                                   | Sign in                                          |
+| `POST /auth/refresh`                                                                                                 | Rotate the session                               |
+| `POST /auth/logout`                                                                                                  | Sign out                                         |
+| `POST /auth/forgot-password`                                                                                         | Request a reset email                            |
+| `POST /auth/reset-password`                                                                                          | Set a new password                               |
+| `GET /me`                                                                                                            | Current user                                     |
+| `POST /weddings`                                                                                                     | Create the user's wedding; the user is its owner |
+| `GET /weddings`                                                                                                      | Weddings the user is an active member of         |
+| `GET /weddings/{weddingId}`                                                                                          | One wedding (members only; otherwise 404)        |
+| `PATCH /weddings/{weddingId}`                                                                                        | Update the wedding's details                     |
+| `GET /weddings/{weddingId}/dashboard`                                                                                | Phase 4 and Phase 9 summaries (0022; PR #31)     |
+| `…/events`, `…/events/{eventId}`                                                                                     | Events (API Design §8)                           |
+| `…/guests`, `…/guests/{guestId}`, `…/guests/{guestId}/events`, `…/guest-events/{id}`                                 | Guests, assignments, RSVP (§9)                   |
+| `…/guests/{guestId}/invitation` (+ `/regenerate`, `/send`, `/resend`, `/revoke`, `/link`, `/deliveries`)             | Invitations (§10)                                |
+| `GET`/`PATCH /guest/invitations/{token}` (+ `/rsvp`)                                                                 | Guest invitation and RSVP, no account (§10)      |
+| `…/tasks`, `…/tasks/{taskId}` (+ `/assignees`, `/assignees/{userId}`, `/activities`)                                 | Tasks, assignees, history (§13)                  |
+| `…/expenses`, `…/expenses/{expenseId}` (+ `/payments`, `/payments/{paymentId}`)                                      | Expenses and payments (§12)                      |
+| `…/vendors`, `…/vendors/{vendorId}` (+ `…/vendors/{vendorId}/bookings`, `…/vendors/{vendorId}/bookings/{bookingId}`) | Vendor profiles and bookings (Phase 9, §14)      |
 
 Health checks: `GET /health/live` and `/health/ready` on the API (3001).
 
@@ -148,7 +151,9 @@ the membership check for wedding routes), in `apps/api/src/modules/`. Phase 4 ad
 (`audit_logs`) and `dashboard`; Phase 7 adds `tasks` (`tasks`, `task_assignments`,
 `task_activities`; deleting an event makes its tasks whole-wedding tasks — 0026); Phase 8 adds `expenses` (`expenses`, `expense_payments`; a stored paid total updated with each
 payment in one transaction; deleting an event makes its expenses whole-wedding ones — 0028). Creating a wedding
-writes the wedding and its owner membership in one transaction. Shared infrastructure:
+writes the wedding and its owner membership in one transaction. Phase 9 adds `vendors`
+(`wedding_vendors`, `vendor_bookings`), vendor-linked expenses and vendor dashboard summaries.
+Shared infrastructure:
 config, logging, MongoDB, Redis (rate limiting), email (Mailpit locally, Resend when
 deployed; reset emails are sent after the response — 0025).
 
@@ -164,7 +169,7 @@ deployed; reset emails are sent after the response — 0025).
 | "P4 ·" screens listed in 0021 (with its corrections) | Events, guests, invitation panel, dashboard summaries, `/invite/[token]` |
 | "P7 ·" screens listed in 0027                        | `/tasks`, the dashboard Tasks card, the event shortcut                   |
 | "P8 ·" screens listed in 0029                        | `/expenses`, the dashboard Expenses card, the event shortcut             |
-| "P9 ·" screens listed in 0033 (second round only)    | Not built yet: vendors, booking dialog, dashboard card, expense field    |
+| "P9 ·" screens listed in 0033 (second round only)    | Vendors, booking dialog, dashboard card and expense vendor field         |
 | Wedding Command Center Dashboard                     | Not built                                                                |
 
 Design system "Regal Modernity" (0014) applies to every screen.
@@ -232,6 +237,9 @@ On 2026-10-11 `feat/phase-4` passed format, lint, typecheck, 237 web unit, 65 AP
 93 integration tests, both builds and the contract check. A browser run with sample data
 checked every Phase 4 screen at 1440px and 390px (no horizontal scrolling), a guest RSVP, the
 duplicate-mobile notice and the invitation email in Mailpit.
+Phase 9 (`feat/phase-9`, before PR #31) passed API and web typechecks, 68 API unit tests,
+9 vendor API integration tests and 316 web tests. The Chrome end-to-end run passed the vendor,
+booking, event shortcut, expense linking, delete-conflict, cancel/reopen and deletion flows.
 Last full run (fresh worktree of `chore/pre-phase-3`, 2026-10-05): all green — 76 web unit,
 21 API unit, 33 integration tests; build passes. On 2026-10-07 `fix/workspace-logo-home`
 (`main` with Phase 3) passed format, lint, typecheck and 113 web unit tests; the API unit,
@@ -249,6 +257,7 @@ checked only for loading the saved values.
 
 | Date       | Change                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-24 | Phase 9 (Vendors) implementation merged to `main` by PR #31 (`668088f`). Includes vendor and booking management, expense vendor linking and dashboard summaries. API/web typechecks, 68 API unit tests, 9 vendor API integration tests, 316 web tests and the Chrome Phase 9 end-to-end flow passed before merge. Phase 10 (Organizers and permissions) is next and has not started.                                                                                                                                                                                                                                                                                                                                                            |
 | 2026-10-24 | `docs/phase-9-vendors` and `chore/ignore-codex-config` merged into `main` and pushed directly (c1a2831), without pull requests, at the product owner's instruction (no GitHub CLI on this machine); CI runs after the push. Phase 9 implementation assigned to Codex with a prepared prompt.                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | 2026-10-24 | Decision 0033: Phase 9 Stitch screens V1–V9 approved after two review rounds (the first round, with a booking delete button, the unapproved "Expenses & Budget" shell and invented features, is not approved). Cancelling a booking needs no confirmation; the event shortcut stays visible with a "No vendors yet" state; no Undo toast; a reopening note; the refused-delete dialog lists active bookings; no total count. Shell and small fixes applied in code; wording draft. Phase 9 PRD §4.2 and §10 updated. Implementation awaits approval.                                                                                                                                                                                            |
 | 2026-10-24 | Phase 9 (Vendors) discovery done: decision 0032 and the Phase 9 PRD v1.0 approved. Vendors with several bookings each (statuses Not contacted to Booked, and Cancelled; any change allowed; cancelled, never deleted); an optional agreed price per booking; a vendor cannot be deleted while a booking is active; the expense `vendorId` is set through a picker; four dashboard summaries. Discovery, attachments and copying between weddings deferred. PRD §15, §17, §18, §30, Database Design §12.1, §14, §18–§20, §22, §24, §26, §27, API Design §6, §12, §14, §21, System Design §6, §12.1, §13, §20, Phase 4 PRD §3.2, Phase 8 PRD §3.1, §12 and 0010 updated. The separate .docx draft was discovery input only. Next: Stitch screens. |
