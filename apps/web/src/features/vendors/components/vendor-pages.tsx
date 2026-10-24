@@ -773,7 +773,7 @@ export function EventVendorBookingShortcut({
         />
       )}
       {saved && (
-        <p role="status" className="mt-3 text-body-sm text-tertiary">
+        <p role="status" className="text-tertiary mt-3 text-body-sm">
           {copy.bookingSaved}
         </p>
       )}
