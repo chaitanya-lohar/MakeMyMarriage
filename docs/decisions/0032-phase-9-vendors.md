@@ -1,6 +1,7 @@
 # 0032 — Phase 9: vendors
 
-**Status:** Accepted (approved by the product owner on 2026-10-24). Answers P9-VEN-Q01–Q12
+**Status:** Accepted (approved by the product owner on 2026-10-24; #19 amended by
+[0034](0034-phase-10-authorization.md) on 2026-10-27). Answers P9-VEN-Q01–Q12
 and confirmations A–J from the Phase 9 discovery; the full specification is the
 [Phase 9 PRD v1.0](../specs/PHASE_9_PRD_v1.0.md). Supplemented by
 [0033](0033-phase-9-design-approval.md): cancelling a booking needs no confirmation, the
@@ -95,6 +96,9 @@ record and the Phase 9 PRD win; the draft is not used for implementation.
     its vendors and bookings. Everything else returns `404`, as for other wedding routes.
     Vendor details are private management data and never appear on the public website.
     Fine-grained permissions arrive in Phase 10.
+    **Amended by [0034](0034-phase-10-authorization.md):** from Phase 10 these actions need
+    the `VENDORS` permissions, and cancelling or reopening a booking needs `EDIT` (API Design
+    §23). A member without the permission gets `403`.
 
 ### Screens
 

@@ -1,6 +1,9 @@
 # 0012 — Wedding ownership and membership
 
-**Status:** Accepted (resolutions C1, C2 and N1).
+**Status:** Accepted (resolutions C1, C2 and N1). Supplemented by
+[0034](0034-phase-10-authorization.md) on 2026-10-27: a wedding has at most two owners, each
+holding an owner seat, and an owner may transfer their own seat (P10-5). The rule that a user
+owns at most one wedding is unchanged.
 
 ## Ownership (C1)
 
