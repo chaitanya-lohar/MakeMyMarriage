@@ -16,13 +16,15 @@
 | Live streaming   | YouTube Live (external)                                     |
 | Supersedes       | System Design v1.0–v1.2 (archived in `docs/archive/specs/`) |
 
-| Version | Date       | Change                                                                                           |
-| ------- | ---------- | ------------------------------------------------------------------------------------------------ |
-| 1.0–1.2 | 2026-09    | Architecture baselines.                                                                          |
-| 1.3     | 2026-10-10 | Consolidated: v1.2 plus decisions 0001, 0002, 0005–0007, 0012, 0015–0018 and answers Q1 and Q4.  |
-| 1.3     | 2026-10-14 | Decision 0025: Vercel-only hosting; no worker or job queue; email sent directly.                 |
-| 1.3     | 2026-10-20 | Decision 0028: expenses (§12.1); receipts deferred (§20).                                        |
-| 1.3     | 2026-10-24 | Decision 0032: vendors and bookings (§13); discovery and vendor attachments deferred (§13, §20). |
+| Version | Date       | Change                                                                                                                                   |
+| ------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.0–1.2 | 2026-09    | Architecture baselines.                                                                                                                  |
+| 1.3     | 2026-10-10 | Consolidated: v1.2 plus decisions 0001, 0002, 0005–0007, 0012, 0015–0018 and answers Q1 and Q4.                                          |
+| 1.3     | 2026-10-14 | Decision 0025: Vercel-only hosting; no worker or job queue; email sent directly.                                                         |
+| 1.3     | 2026-10-20 | Decision 0028: expenses (§12.1); receipts deferred (§20).                                                                                |
+| 1.3     | 2026-10-24 | Decision 0032: vendors and bookings (§13); discovery and vendor attachments deferred (§13, §20).                                         |
+| 1.3     | 2026-10-27 | Phase 10 requirements (product owner): organizers and permissions architecture (§7.2–§7.9), Workspace module (§6), open questions (§28). |
+| 1.3     | 2026-10-27 | Phase 10 decisions P10-1–P10-8 applied (§7.2–§7.9); dashboard and member selection (§7.10); rollout over Phases 4–9 (§7.11); §28.        |
 
 ## 1. Purpose and scope
 
@@ -121,31 +123,31 @@ Decisions 0001, 0002, 0005 and 0025; answer Q1.
 
 ## 6. Backend modular monolith
 
-| Module           | Responsibility                                                                        |
-| ---------------- | ------------------------------------------------------------------------------------- |
-| Auth             | Registration, login, password reset, sessions and tokens                              |
-| Users            | User accounts and the current-user endpoint                                           |
-| Weddings         | Wedding identity, couple details, settings                                            |
-| Workspace        | Memberships and the access check for wedding routes                                   |
-| Partner          | Partner connection                                                                    |
-| Sharing          | Resource-specific sharing                                                             |
-| Events           | Predefined and custom events                                                          |
-| Guests           | Guest records and event assignment                                                    |
-| Invitations      | Invitation tokens, delivery lifecycle and activity                                    |
-| RSVP             | Event-level RSVP and attendee count (in the Guests module, which owns `guest_events`) |
-| Dashboard        | Wedding dashboard summaries; owns no data (0022)                                      |
-| Notifications    | In-app and email notifications and reminders                                          |
-| Expenses         | Expense tracking, payments and receipts                                               |
-| Tasks            | Wedding and event tasks                                                               |
-| Vendors          | Wedding vendors and their bookings (0032)                                             |
-| Vendor discovery | Provider abstraction and Google Places (deferred — 0032 #3)                           |
-| Website          | Website configuration and publication                                                 |
-| Gallery          | Albums and photos                                                                     |
-| QR               | Wedding and event QR lifecycle                                                        |
-| Live stream      | Event–stream association                                                              |
-| Reports          | Reports and Excel export                                                              |
-| Settings         | Account and wedding settings                                                          |
-| Audit            | Meaningful and security-sensitive history                                             |
+| Module           | Responsibility                                                                             |
+| ---------------- | ------------------------------------------------------------------------------------------ |
+| Auth             | Registration, login, password reset, sessions and tokens                                   |
+| Users            | User accounts and the current-user endpoint                                                |
+| Weddings         | Wedding identity, couple details, settings                                                 |
+| Workspace        | Memberships, organizer invitations, permission evaluation and the access checks (Phase 10) |
+| Partner          | Partner connection                                                                         |
+| Sharing          | Resource-specific sharing                                                                  |
+| Events           | Predefined and custom events                                                               |
+| Guests           | Guest records and event assignment                                                         |
+| Invitations      | Invitation tokens, delivery lifecycle and activity                                         |
+| RSVP             | Event-level RSVP and attendee count (in the Guests module, which owns `guest_events`)      |
+| Dashboard        | Wedding dashboard summaries; owns no data (0022)                                           |
+| Notifications    | In-app and email notifications and reminders                                               |
+| Expenses         | Expense tracking, payments and receipts                                                    |
+| Tasks            | Wedding and event tasks                                                                    |
+| Vendors          | Wedding vendors and their bookings (0032)                                                  |
+| Vendor discovery | Provider abstraction and Google Places (deferred — 0032 #3)                                |
+| Website          | Website configuration and publication                                                      |
+| Gallery          | Albums and photos                                                                          |
+| QR               | Wedding and event QR lifecycle                                                             |
+| Live stream      | Event–stream association                                                                   |
+| Reports          | Reports and Excel export                                                                   |
+| Settings         | Account and wedding settings                                                               |
+| Audit            | Meaningful and security-sensitive history                                                  |
 
 Module layout (0006):
 
@@ -191,17 +193,214 @@ Forgot   → time-limited single-use token → email → new password → revoke
 - Authentication and password-reset endpoints are rate-limited.
 - Every route requires a signed-in user unless explicitly marked public.
 
-### 7.2 Authorization
+### 7.2 Authorization — organizers and permissions (Phase 10)
 
-- Both connected partners are `OWNER` members.
-- Organizers use predefined roles (Owner, Admin, Organizer, Editor, Viewer) with
-  per-member permission overrides. Permissions: View, Create, Edit, Delete, Manage,
-  Configure.
-- Authorization checks wedding membership, role and permission, and resource sharing.
+Approved Phase 10 requirements and decisions P10-1–P10-8 (product owner, 2026-10-27; decision
+0034, table in Database Design §32). Data: Database Design §7.2, §7.5, §7.6 and §8. Routes: API Design §6,
+§7.1 and §23.
+
+| Role      | Responsibility                                                                          |
+| --------- | --------------------------------------------------------------------------------------- |
+| OWNER     | Bride or groom (at most two per wedding); everything, including the owner-only actions  |
+| ADMIN     | Delegated management of planning modules; members only if granted, never Admins (P10-4) |
+| ORGANIZER | Runs events, guests, invitations, tasks and vendors; views expenses                     |
+| EDITOR    | Adds and edits planning data; deletes nothing                                           |
+| VIEWER    | Reads events, guests, invitations, tasks, expenses, vendors, gallery and live stream    |
+
+- **Memberships are per wedding.** A user may hold memberships in several weddings, each with
+  its own role and overrides; authorizing a request reads only the membership of the wedding
+  in the route.
+- **Owners.** Both connected partners are `OWNER` members (0012). Owners hold every
+  permission. Only wedding creation, partner connection (Phase 16) and ownership transfer
+  (§7.6) create owners — never an organizer invitation.
+- **Roles** `OWNER`, `ADMIN`, `ORGANIZER`, `EDITOR`, `VIEWER` give default permissions per
+  module; **overrides** on a membership add (`ALLOW`) or remove (`DENY`) single
+  `(module, action)` pairs. Actions: `VIEW`, `CREATE`, `EDIT`, `DELETE`, plus named management
+  actions that ordinary CRUD never implies — website configure and publish, report export,
+  member invite, role change, permission editing and removal, guest-link sending
+  (`INVITATIONS:SEND`) and management (`INVITATIONS:MANAGE`), QR regeneration
+  (`MEMORY_QR:REGENERATE`). Guest-link sending and QR regeneration are **owner-only by default**
+  and granted to others only by an explicit `ALLOW` override (P10-6).
 - Wedding routes admit only `ACTIVE` members; anything else is `404`, so wedding IDs reveal
-  nothing (0016).
+  nothing (0016). An active member without a permission gets `403`.
 - Public website and guest-token access use separate paths from the authenticated
-  workspace APIs.
+  workspace APIs and never consult memberships.
+
+### 7.3 Permission evaluation
+
+```text
+request ─► sign-in guard (JWT) ─► wedding access guard
+                                     │ membership = findActive(userId, weddingId)   (per request, no cache)
+                                     │ none / not ACTIVE ──────────────► 404 WEDDING_NOT_FOUND
+                                     ▼
+                         effective = evaluate(membership)            (Database Design §8.4)
+                           OWNER ─► all actions
+                           else  ─► role defaults
+                                    + ALLOW overrides
+                                    − DENY overrides   (DENY wins for the same module/action)
+                                    − actions without VIEW on their module
+                                    − protected actions
+                                     ▼
+                         permission guard: route needs (module, action)
+                           missing ─► 403 PERMISSION_DENIED (+ audit for management actions)
+                                     ▼
+                         controller ─► service (business rules: owner targets, self-changes,
+                                       grant ceiling) ─► repository (always filtered by weddingId)
+```
+
+- Evaluation is a pure function in the Workspace module (`PermissionService`), with unit tests
+  for every role × module × action and for override conflicts. The matrix lives in one
+  constants file shared by the API and, through the generated client, by the web app.
+- The membership is read on every request, so a role change, override change or removal
+  takes effect on the member's **next request**; access tokens carry no permissions. Any
+  future cache must be invalidated by these changes.
+- The web app hides controls using `GET …/members/me/permissions`; this is a convenience,
+  never the check.
+
+### 7.4 Overrides
+
+- Stored only where they differ from the role default; replaced as a complete list.
+- `DENY` beats `ALLOW` for the same `(module, action)`; `DENY VIEW` closes the module.
+- Overrides can never grant protected actions (§7.8) and are ignored for owners.
+- **Grant ceiling:** a non-owner who may edit permissions can only grant actions they
+  effectively hold themselves.
+- Resource sharing (A4, Phase 16) will apply after overrides and only to partner-private
+  resources; Phase 10 has no sharing.
+
+### 7.5 Members and admins
+
+- Owners manage every non-owner membership. Admins act on members only through the
+  `MEMBERS` actions an owner grants them (their default there is Custom: nothing).
+- Without exception for non-owners: no action on an `OWNER` membership; no change to one's own
+  role, overrides or membership; no grant beyond one's own permissions; no ownership transfer;
+  no partner actions.
+- **Admins and the Admin role (P10-4):** a non-owner can never invite someone as `ADMIN`,
+  change anyone's role to `ADMIN`, or change the role, overrides, invitation or membership of
+  an existing `ADMIN`. Their member actions reach only `ORGANIZER`, `EDITOR` and `VIEWER`
+  memberships (Database Design §8.3). Broad CRUD or a `MEMBERS` grant does not lift these
+  limits; they are checked in the members service after the permission guard, and refusals
+  are audited.
+- **Removal** sets the membership to `REVOKED` and deletes nothing; the member's records keep
+  their authorship and are shown with the former-member label (as in 0030). Open sessions
+  stay valid for the account but every request to that wedding is `404` from then on.
+
+### 7.6 Invitations, memberships and ownership transfer
+
+```text
+Organizer invitation (member_invitations)              Membership (wedding_memberships)
+  PENDING ──accept: signed in, email matches,            (none)  or  REVOKED (re-invited member)
+     │       expiresAt > now (P10-1, P10-2)  ──► ACCEPTED ──► ACTIVE (created, or same row reused:
+     │                                                        overrides cleared, new role — P10-3)
+     │──decline (token)──► DECLINED                           │
+     │──revoke (MEMBERS:INVITE)──► REVOKED                    └──remove (MEMBERS:REMOVE)──► REVOKED
+     └──7 days after issue (seen on any read or action)──► EXPIRED
+
+Membership status INVITED: reserved, never written, never admitted (P10-7).
+```
+
+- **Two separate lifecycles.** The invitation (`PENDING` → `ACCEPTED`/`DECLINED`/`EXPIRED`/
+  `REVOKED`) is the pending state; the membership (`ACTIVE`/`REVOKED`) is access. A pending
+  invitation grants nothing; only the `ACTIVE` membership written at acceptance does.
+- **Expiry (P10-2):** seven days after the token is issued (creation or latest resend), as a
+  UTC timestamp. No scheduler is needed (0025): every read and action compares `expiresAt`
+  with the server clock, acceptance includes it in its conditional update, and the first
+  request that sees an expired invitation records `EXPIRED`.
+- **Acceptance (P10-1):** signed in, with the account email equal to the invitation email; no
+  email verification step (0015). The single-use token from the email is the proof.
+- **Re-invitation (P10-3):** a revoked member stays `REVOKED` — without access — until they
+  accept the new invitation; then their existing row is reused with the old overrides cleared
+  and the new role. Their earlier records and audit history stay.
+- Emails are sent during the request through the existing email service (0025); until a
+  domain is verified in Resend, invitations only reach the Resend account owner
+  (PROJECT_STATUS blocker).
+
+**Ownership-seat transfer (P10-5).** A wedding has at most two owner seats (bride and groom,
+0012). An owner transfers **their own seat**, never the whole wedding:
+
+```text
+Owners A (seat 1), B (seat 2); C is an ACTIVE member
+A offers seat 1 to C ──► transfer PENDING ──► C accepts ──► one transaction:
+    A: OWNER → ADMIN (seat removed)   C: MEMBER → OWNER (seat 1)   B: unchanged (seat 2)
+Result: owners B and C. Decline (C) or cancel (A) ends the offer; nothing changes.
+```
+
+- Owner-only and recipient-accepted; one open offer per wedding; refused if C owns another
+  wedding (0012); every step audited. The seat index and the conditional updates make a
+  third owner or a half-done transfer impossible (Database Design §7.2, §7.6).
+
+### 7.7 Responsibilities
+
+| Component                                               | Responsibility                                                                                     |
+| ------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Sign-in guard (built)                                   | Authenticated user                                                                                 |
+| Wedding access guard (Workspace)                        | Active membership of the route's wedding; puts membership and effective permissions on the request |
+| `@RequirePermission(module, action)` + permission guard | Route-level check before the controller                                                            |
+| `PermissionService` (Workspace)                         | Defaults, override resolution, protected actions; exported through `index.ts`                      |
+| Members/invitations services (Workspace)                | Invitation lifecycle, membership changes, owner and self protections, transfers                    |
+| Feature services                                        | Their own business rules; every query filtered by `weddingId`                                      |
+| Audit module (built)                                    | Writes the Phase 10 audit actions (Database Design §22), never token values                        |
+
+### 7.8 Protected actions and security
+
+- Owner-only, never grantable: ownership-seat transfer, archiving or deleting the wedding,
+  partner connection and sharing, changes to `OWNER` memberships, assigning the `ADMIN` role
+  and managing `ADMIN` memberships (P10-4).
+- Owner-only by default, grantable by override: guest-link sending and retrieval
+  (`INVITATIONS:SEND`), guest-link regeneration and revocation (`INVITATIONS:MANAGE`), QR
+  regeneration (`MEMORY_QR:REGENERATE`) — P10-6. Each is checked by the permission guard on its
+  own route and audited (guest-link actions as in Phase 4; QR regeneration when built).
+- Overrides never bypass authentication, the `ACTIVE`-membership check, the `weddingId`
+  scope or the owner-only list.
+- Server-side checks on every protected operation; no frontend-only checks.
+- Tenant isolation as today: the membership of the route's wedding, then queries scoped by
+  `weddingId`; IDs of other weddings are `404`.
+- Invitation token routes are rate-limited by token and IP like guest routes (0023); tokens
+  and hashes never appear in logs, responses (other than the emailed link) or audit metadata.
+- Audit: every invitation transition, role and override change, removal, reactivation,
+  ownership transfer and refused management action (Database Design §22).
+
+### 7.9 Failure handling and edge cases
+
+| Case                                             | Behaviour                                                               |
+| ------------------------------------------------ | ----------------------------------------------------------------------- |
+| Invite an email that is already an active member | `409 MEMBER_ALREADY_ACTIVE`                                             |
+| Invite while a pending invitation exists         | `409`; the owner resends instead                                        |
+| Email provider fails on invite                   | Invitation stays `PENDING`, `emailSent: false`; resend available        |
+| Accept with a different account                  | `403 MEMBER_INVITATION_EMAIL_MISMATCH`; the page asks to switch account |
+| Accept twice, or after revoke/expiry             | `409`; no second membership                                             |
+| Invitee is a revoked former member               | Reactivation of the same row (P10-3)                                    |
+| Member removed while using the app               | Next request `404`; the web app returns to the wedding list             |
+| Role lowered while editing                       | Save refused with `403`; the form reloads permissions                   |
+| Transfer target already owns a wedding           | `409 WEDDING_ALREADY_OWNED` (0012)                                      |
+| Recipient removed while an offer is pending      | Offer cancelled (`MEMBERSHIP_CHANGED`); acceptance `409`                |
+| Both owners offer their seats at once            | Second offer `409`: one open offer per wedding                          |
+| Admin tries to invite or promote an Admin        | `403 PERMISSION_DENIED` (`ADMIN_ROLE_OWNER_ONLY`), audited              |
+| Accept after seven days, status still `PENDING`  | `409 MEMBER_INVITATION_EXPIRED`; status written `EXPIRED`               |
+| Removal or demotion would leave no active owner  | Impossible: owner rows cannot be changed by others; transfer keeps one  |
+
+### 7.10 Dashboard and member selection (P10-8)
+
+- The dashboard route needs only an active membership, but each section is computed and
+  returned only with `VIEW` on its module (events, guests, invitations and RSVP, tasks,
+  expenses, vendors, and later sections). A missing section is absent, not zeroed, and its
+  queries do not run, so one section never reveals another's data (API Design §6). The web
+  app hides the cards accordingly.
+- **Eligibility is not permission.** Any `ACTIVE` member can be chosen as a task assignee or
+  an expense payer; the member directory (`GET …/members`) is open to every active member for
+  these pickers. Setting an assignee or payer needs the write permission on that task or
+  expense. Being chosen grants the chosen member nothing.
+
+### 7.11 Rollout over Phases 4–9
+
+Decisions 0026 #14 (tasks), 0028 #19 (expenses) and 0032 #19 (vendors) — and the Phase 4
+routes and dashboard in practice — let every active member do everything. Phase 10 replaces
+that rule everywhere, with no alternative path: every wedding route declares one
+`(module, action)` (API Design §23); a contract test fails for any route without one, apart
+from the few explicitly "membership only" routes; the dashboard moves to per-section checks;
+guest-link sending and management move to their own actions; the existing `ACTIVE` lookup
+and `weddingId` scoping stay; and each route gets tests for an allowed role, a refused role,
+a revoked member and another wedding's member. Those three decision records get an "Amended
+by" note when Phase 10's decision record is written.
 
 ## 8. Partner connection and sharing
 
@@ -521,6 +720,9 @@ decision records in `docs/decisions/`, which are the authoritative history.
 - Audit-log and delivery-history retention; permanent deletion schedule.
 - Website sitemap, metadata and crawler directives.
 - How scheduled and background work runs on Vercel-only hosting (0025).
+- Phase 10: decisions P10-1–P10-8 are settled (§7.2–§7.11; decision 0034). Still to confirm:
+  the interpretations R1–R6 in 0034, including the member-invitation rate limits. A4/A5 (0011) stay open
+  and are not needed by Phase 10, which builds no partner connection or sharing.
 
 ## 29. Implementation sequence
 

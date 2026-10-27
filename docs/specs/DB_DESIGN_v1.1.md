@@ -10,13 +10,15 @@
 | Tenant boundary | Wedding                                                  |
 | Supersedes      | Database Design v1.0 (archived in `docs/archive/specs/`) |
 
-| Version | Date       | Change                                                                                                                      |
-| ------- | ---------- | --------------------------------------------------------------------------------------------------------------------------- |
-| 1.0     | 2026-09-24 | Baseline design.                                                                                                            |
-| 1.1     | 2026-10-10 | Consolidated: v1.0 plus decisions 0008–0010, 0012, 0013, 0015–0019 and the schema built in Phases 2–3.                      |
-| 1.1     | 2026-10-14 | Decision 0025: no job queue; invitation emails are sent during the request. No schema change.                               |
-| 1.1     | 2026-10-20 | Decision 0028 (Phase 8): payer moved to payments, `paidMinor` and a server-set status, no `description`, receipts deferred. |
-| 1.1     | 2026-10-24 | Decision 0032 (Phase 9): vendors and `vendor_bookings`; expense `vendorId` set; discovery and vendor attachments deferred.  |
+| Version | Date       | Change                                                                                                                                                                                                                                                                  |
+| ------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.0     | 2026-09-24 | Baseline design.                                                                                                                                                                                                                                                        |
+| 1.1     | 2026-10-10 | Consolidated: v1.0 plus decisions 0008–0010, 0012, 0013, 0015–0019 and the schema built in Phases 2–3.                                                                                                                                                                  |
+| 1.1     | 2026-10-14 | Decision 0025: no job queue; invitation emails are sent during the request. No schema change.                                                                                                                                                                           |
+| 1.1     | 2026-10-20 | Decision 0028 (Phase 8): payer moved to payments, `paidMinor` and a server-set status, no `description`, receipts deferred.                                                                                                                                             |
+| 1.1     | 2026-10-24 | Decision 0032 (Phase 9): vendors and `vendor_bookings`; expense `vendorId` set; discovery and vendor attachments deferred.                                                                                                                                              |
+| 1.1     | 2026-10-27 | Phase 10 requirements (product owner): membership fields, `member_invitations`, the default role matrix, protected actions, override evaluation, audit actions, indexes.                                                                                                |
+| 1.1     | 2026-10-27 | Phase 10 decisions P10-1–P10-8 applied: seven-day expiry, re-invitation reuses the row, Admin limits, owner seats (`ownerSeat`, at most two owners) and `ownership_transfers`, `INVITATIONS:SEND` and `MEMORY_QR:REGENERATE` owner-only by default, `INVITED` reserved. |
 
 **Status of each collection** — _Built_: exists in code. _Phase 4_: designed and approved for
 Phase 4. _Planned_: carried from v1.0 with approved changes; re-checked against the PRD
@@ -105,6 +107,8 @@ then runs a query constrained by `weddingId`.
 | `guest_invitations`     | The guest's invitation and current token  | Invitations   | Phase 4                                                               |
 | `invitation_deliveries` | Email send and resend attempts            | Invitations   | Phase 4                                                               |
 | `invitation_activities` | Opens and other timestamped activity      | Invitations   | Phase 4                                                               |
+| `member_invitations`    | Organizer invitations by email            | Workspace     | Planned — Phase 10 (0010 #13)                                         |
+| `ownership_transfers`   | Ownership-seat transfer offers            | Workspace     | Planned — Phase 10 (P10-5, §7.6)                                      |
 | `partner_connections`   | Partner relationship lifecycle            | Partner       | Planned                                                               |
 | `resource_shares`       | Explicit resource sharing                 | Sharing       | Planned                                                               |
 | `notifications`         | Recipient-specific notifications          | Notifications | Planned                                                               |
@@ -209,7 +213,7 @@ then runs a query constrained by `weddingId`.
 - No lifecycle state machine in V1.
 - Creating a wedding never creates a `wedding_websites` document or public identifier.
 
-### 7.2 `wedding_memberships` (Built — decisions 0012, 0016)
+### 7.2 `wedding_memberships` (Built — decisions 0012, 0016; extended for Phase 10)
 
 ```ts
 {
@@ -222,21 +226,64 @@ then runs a query constrained by `weddingId`.
   acceptedAt?: Date,
   createdAt: Date,
   updatedAt: Date,
-  // Planned, added with organizers and partner connection:
-  ownerType?: string,       // BRIDE, GROOM
-  permissionOverrides?: [{ resource: string, action: string, effect: string }],  // ALLOW / DENY
-  invitedBy?: ObjectId,
-  invitedAt?: Date,
-  revokedAt?: Date
+  // Phase 10 (organizers and permissions):
+  permissionOverrides?: [{ module: string, action: string, effect: string }],  // effect ALLOW | DENY (§8.4)
+  invitationId?: ObjectId,  // the member_invitations record this membership came from (§7.5)
+  invitedBy?: ObjectId,     // copied from the invitation on acceptance
+  invitedAt?: Date,         // copied from the invitation on acceptance
+  revokedAt?: Date,         // set when status becomes REVOKED; cleared on reactivation
+  revokedBy?: ObjectId,
+  ownerSeat?: number,       // 1 | 2 — set exactly when memberType = OWNER (P10-5, below)
+  // Planned, added with partner connection (Phase 16):
+  ownerType?: string        // BRIDE, GROOM
 }
 ```
 
-- Unique `(userId, weddingId)`.
+- Unique `(userId, weddingId)`: one membership row per user per wedding, whatever its status.
+  A user can hold memberships in **several weddings**, each with its own role and overrides;
+  nothing in one membership is read when authorizing another wedding.
 - **At most one `OWNER` membership per user** across all weddings: partial unique index on
-  `userId` where `memberType = OWNER` (`one_owner_membership_per_user`). Which statuses count
-  after a partner disconnects is part of A5 (0011) and may change this filter.
-- Owners have unrestricted permissions. Predefined roles are application-managed; overrides
-  customize access. An organizer account can belong to several weddings.
+  `userId` where `memberType = OWNER` (`one_owner_membership_per_user`, built). It does not
+  limit the number of owners of a wedding: bride and groom are two users, each with one
+  `OWNER` row in the same wedding (0012 C1). The filter counts every status, so an owner row
+  that stops being an owner must change `memberType` to `MEMBER` (ownership transfer, §7.6),
+  not stay `OWNER` with `REVOKED`. Which statuses count after a partner disconnects remains
+  part of A5 (0011). This index is kept unchanged by Phase 10.
+- **At most two owners per wedding (P10-5):** each `OWNER` row holds an owner seat, `1` or `2`,
+  with a partial unique index on `(weddingId, ownerSeat)` where `memberType = OWNER`
+  (`owner_seat_per_wedding`). Two seats exist, so a third owner cannot be written. Wedding
+  creation gives the creator seat `1`; partner connection (Phase 16) will take the free seat;
+  an ownership transfer moves a seat from the giver to the recipient. Rows that are not
+  owners have no `ownerSeat`. Implementation note: existing owner rows (one per wedding today)
+  are backfilled with seat `1` and validated before the index is created (migration steps in
+  decision 0034). `ownerSeat` is not `ownerType`:
+  a seat is a slot, `BRIDE`/`GROOM` (Phase 16) describes the person.
+- **`memberType` and `role` move together:** `memberType = OWNER` ⇔ `role = OWNER`. Organizer
+  invitations only ever create `MEMBER` rows with `ADMIN`, `ORGANIZER`, `EDITOR` or `VIEWER`;
+  `OWNER` rows are created only by wedding creation, partner connection (Phase 16) and
+  ownership transfer (§7.6).
+- **Membership statuses** (distinct from invitation statuses, §7.5):
+  - `ACTIVE` — the only status admitted to wedding routes.
+  - `REVOKED` — removed; admitted nowhere; the row and everything the member created are kept.
+  - `INVITED` — **reserved (P10-7).** In the schema since Phase 3; never written in Phase 10
+    and never admitted. A pending organizer invitation is represented only by a `PENDING`
+    `member_invitations` record (an invitee may have no account yet, and `userId` is
+    required here). Code must not treat `INVITED` as a synonym of invitation `PENDING`; any
+    future use needs a decision.
+- **Revocation** sets `status = REVOKED`, `revokedAt`, `revokedBy`; it deletes nothing. Records
+  the member created keep their `createdBy`, assignments and payer references; screens show
+  such people as former members (the 0030 pattern).
+- **Re-invitation of a revoked member (P10-3):** a new invitation is created as for anyone
+  (§7.5); the membership row **stays `REVOKED`** — no access — while it is pending. On
+  acceptance, in the acceptance transaction, the **same row** is reused (the unique
+  `(userId, weddingId)` forbids a second one): `permissionOverrides` cleared and replaced by
+  the invitation's overrides if any, `role` from the invitation, `status = ACTIVE`,
+  `invitationId`, `invitedBy`, `invitedAt`, `acceptedAt` updated, `revokedAt`/`revokedBy`
+  cleared. Earlier history stays in `audit_logs` (`MEMBER_REMOVED`, then `MEMBER_REACTIVATED`).
+  The existing status model is sufficient; no new status is needed.
+- `permissionOverrides` is bounded (at most one entry per module and action; at most 64
+  entries) and ignored on `OWNER` rows. It never contains protected actions (§8.3).
+- The planned `ownerType` belongs to partner connection and is not set in Phase 10.
 
 ### 7.3 `partner_connections` (Planned)
 
@@ -277,29 +324,222 @@ then runs a query constrained by `weddingId`.
 
 - Exact resource types and actions depend on A4 (0011). Expenses never use it: they are
   shared automatically (0009).
+- Not used in Phase 10: organizer permissions come from roles and overrides (§8). When A4 is
+  decided, a share can only narrow or widen access to a specific partner-private resource;
+  it never grants a protected action (§8.3).
 
-## 8. Roles and permission model
+### 7.5 `member_invitations` (Phase 10 — approved addition 0010 #13)
 
-| Role      | Purpose                                      |
-| --------- | -------------------------------------------- |
-| OWNER     | Bride or groom; unrestricted wedding control |
-| ADMIN     | Broad delegated management                   |
-| ORGANIZER | Planning and operational coordination        |
-| EDITOR    | Modify permitted wedding data                |
-| VIEWER    | Read-only access                             |
+```ts
+{
+  _id: ObjectId,
+  weddingId: ObjectId,
+  email: string,            // trimmed, lower-cased; the invitee's address (≤ 254)
+  role: string,             // ADMIN, ORGANIZER, EDITOR, VIEWER — never OWNER
+  permissionOverrides?: [{ module: string, action: string, effect: string }],  // optional, applied on acceptance
+  message?: string,         // optional note shown in the email and on the acceptance page (≤ 500)
+  status: string,           // PENDING, ACCEPTED, DECLINED, EXPIRED, REVOKED
+  tokenHash: string,        // SHA-256 of the raw token; the raw token is never stored
+  expiresAt: Date,          // issue time + 7 days (P10-2); reset when a resend issues a new token
+  invitedBy: ObjectId,
+  acceptedByUserId?: ObjectId,
+  membershipId?: ObjectId,  // the membership created or reactivated on acceptance
+  respondedAt?: Date,       // accepted or declined
+  revokedAt?: Date,
+  revokedBy?: ObjectId,
+  expiredAt?: Date,         // written when the expiry is first observed (no background job — 0025)
+  lastSentAt?: Date,
+  createdAt: Date,
+  updatedAt: Date
+}
+```
 
-| Action    | Use                                  |
-| --------- | ------------------------------------ |
-| VIEW      | Read                                 |
-| CREATE    | Create                               |
-| EDIT      | Modify                               |
-| DELETE    | Delete or soft-delete                |
-| MANAGE    | Broader lifecycle and administration |
-| CONFIGURE | Change configuration and settings    |
+- **Lifecycle:** `PENDING` → `ACCEPTED` | `DECLINED` | `REVOKED` | `EXPIRED`. Every terminal
+  state is final; a new invitation is a new record with a new token.
+- **Expiry (P10-2):** `expiresAt` is a UTC timestamp, seven days (168 hours) after the current
+  token was issued (creation, or the latest resend). There is no scheduler (0025), and
+  correctness never depends on one: every read and every accept, decline, resend or revoke
+  compares `expiresAt` with the server clock. A `PENDING` invitation past `expiresAt` is
+  reported as `EXPIRED`; the first request that observes it writes `status = EXPIRED` and
+  `expiredAt` (conditional on `PENDING`) and the audit entry. Acceptance includes
+  `expiresAt > now` in its conditional update, so an expired token can never be accepted even
+  if the stored status still reads `PENDING`. A future background job may write the same
+  transition; it is optional.
+- **Token:** at least 32 random bytes, base64url, sent only in the email link; stored as a
+  SHA-256 hash with a unique index, like `password_reset_tokens` (§6.3). Unlike guest
+  invitation tokens (0018) there is no encrypted copy: the link is never shown again, and a
+  "resend" issues a new token and replaces `tokenHash` (the old link stops working).
+- **Single use:** accepting, declining or revoking is a conditional update on
+  `status = PENDING` and `expiresAt > now`, so a token works once.
+- **Email binding (P10-1):** only a signed-in user whose account email equals `email` can
+  accept. Email verification is **not** required (V1 has none — 0015): possession of the
+  single-use emailed token plus the matching account email is the proof. Declining needs only
+  the token, so an invitee without an account can decline (API Design §7.1).
+- **No access while pending:** a `PENDING` invitation grants nothing; only the `ACTIVE`
+  membership written at acceptance does.
+- At most one `PENDING` invitation per `(weddingId, email)`.
 
-Authorization flow: authenticate → resolve wedding membership → check `ACTIVE` status →
-resolve role and overrides → authorize resource and action → run a `weddingId`-scoped query.
-The default permission matrix per role is open.
+### 7.6 `ownership_transfers` — ownership-seat transfer (Phase 10, P10-5)
+
+A transfer moves **one owner seat**, never the whole wedding: an owner offers **their own** seat
+to an `ACTIVE` non-owner member, who must accept. The other owner, if any, is untouched.
+
+```ts
+{
+  _id: ObjectId,
+  weddingId: ObjectId,
+  fromMembershipId: ObjectId,  // the giving owner's membership
+  toMembershipId: ObjectId,    // the recipient's membership (ACTIVE, not OWNER)
+  ownerSeat: number,           // 1 | 2 — the seat being moved
+  status: string,              // PENDING, ACCEPTED, DECLINED, CANCELLED
+  requestedBy: ObjectId,       // = the giver's userId
+  respondedAt?: Date,          // accepted, declined or cancelled
+  cancelledReason?: string,    // BY_OWNER, MEMBERSHIP_CHANGED
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+- Partial unique index on `weddingId` where `status = PENDING`: **one open offer per wedding**,
+  so two owners cannot move seats at the same time.
+- No expiry is defined by the approved rules; an offer stays `PENDING` until accepted,
+  declined or cancelled. It is cancelled (`MEMBERSHIP_CHANGED`) when either membership stops
+  being eligible (giver no longer owner, recipient removed or made owner).
+- **Acceptance** — one transaction, all conditional, in this order so the seat index never
+  sees two holders:
+  1. the offer `PENDING` → `ACCEPTED` (conditional);
+  2. the giver's row: still `OWNER` with that seat → `memberType = MEMBER`, `role = ADMIN`,
+     `ownerSeat` unset, `permissionOverrides` cleared;
+  3. the recipient's row: still `ACTIVE` and `MEMBER` → `memberType = OWNER`, `role = OWNER`,
+     `ownerSeat` = the moved seat, `permissionOverrides` cleared;
+  4. audit `OWNERSHIP_TRANSFERRED`.
+     Any failed condition aborts the transaction; nothing is half-applied.
+- Refused when the recipient already owns another wedding (`one_owner_membership_per_user`,
+  0012 C1 — unchanged).
+- Example: owners A (seat 1) and B (seat 2); A offers seat 1 to member C; C accepts → C owner
+  (seat 1), A `ADMIN`, B owner (seat 2). The wedding still has two owners.
+
+## 8. Roles and permission model (Phase 10)
+
+The approved Phase 10 requirements (product owner, 2026-10-27) settle the default matrix that
+PRD v1.2 §24 left deferred. Roles and defaults are **application constants**, not a
+collection; only overrides are stored (§7.2). System Design §7.2–§7.4 describes evaluation.
+
+### 8.1 Roles, modules and actions
+
+| Role      | Purpose                                                  |
+| --------- | -------------------------------------------------------- |
+| OWNER     | Bride or groom; unrestricted wedding control             |
+| ADMIN     | Broad delegated management, never owner-only actions     |
+| ORGANIZER | Planning and operational coordination                    |
+| EDITOR    | Adds and changes permitted wedding data; does not delete |
+| VIEWER    | Read-only access                                         |
+
+Modules (permission keys): `WEDDING_SETTINGS`, `EVENTS`, `GUESTS`, `INVITATIONS` (invitations
+and organizer RSVP changes), `TASKS`, `EXPENSES`, `VENDORS`, `WEBSITE`, `GALLERY`, `MEMORY_QR`,
+`LIVE_STREAM`, `REPORTS`, `MEMBERS` (organizer management), `AUDIT`, `PARTNER_SHARING`.
+
+Ordinary actions: `VIEW`, `CREATE`, `EDIT`, `DELETE`. Management actions, each named
+explicitly and never implied by the ordinary ones:
+
+| Module        | Management actions                                                                         |
+| ------------- | ------------------------------------------------------------------------------------------ |
+| `WEBSITE`     | `CONFIGURE` (website settings), `PUBLISH` (publish and unpublish)                          |
+| `MEMORY_QR`   | `REGENERATE` (replace a QR token; P10-6)                                                   |
+| `REPORTS`     | `EXPORT`                                                                                   |
+| `MEMBERS`     | `INVITE`, `CHANGE_ROLE`, `EDIT_PERMISSIONS`, `REMOVE` (and `VIEW`)                         |
+| `AUDIT`       | `VIEW` only                                                                                |
+| `INVITATIONS` | `SEND` (send, resend, retrieve or copy a guest link; P10-6), `MANAGE` (regenerate, revoke) |
+
+`MANAGE` and `CONFIGURE` (in this table since v1.0) are kept only as these module-specific
+management actions. Generating a QR is `MEMORY_QR:CREATE`, revoking it `MEMORY_QR:DELETE`.
+
+### 8.2 Default role permissions
+
+Legend: **Full** — every ordinary action and every management action of the module (owners
+only). **Manage** — `VIEW`, `CREATE`, `EDIT`, `DELETE`. **Edit** — `VIEW`, `CREATE`, `EDIT`.
+**View** — `VIEW`. **Custom** — nothing by default; an owner (or an authorized admin, System
+Design §7.5) grants specific actions with overrides. **No** — nothing by default.
+
+| Module             | Owner | Admin  | Organizer | Editor | Viewer |
+| ------------------ | ----- | ------ | --------- | ------ | ------ |
+| `WEDDING_SETTINGS` | Full  | Custom | No        | No     | No     |
+| `EVENTS`           | Full  | Manage | Manage    | Edit   | View   |
+| `GUESTS`           | Full  | Manage | Manage    | Edit   | View   |
+| `INVITATIONS`      | Full  | Manage | Manage    | Edit   | View   |
+| `TASKS`            | Full  | Manage | Manage    | Edit   | View   |
+| `EXPENSES`         | Full  | Manage | View      | Edit   | View   |
+| `VENDORS`          | Full  | Manage | Manage    | Edit   | View   |
+| `WEBSITE`          | Full  | Custom | No        | No     | No     |
+| `GALLERY`          | Full  | Manage | Custom    | Custom | View   |
+| `MEMORY_QR`        | Full  | Manage | No        | No     | No     |
+| `LIVE_STREAM`      | Full  | Manage | Custom    | Custom | View   |
+| `REPORTS`          | Full  | Custom | Custom    | No     | No     |
+| `MEMBERS`          | Full  | Custom | No        | No     | No     |
+| `AUDIT`            | Full  | Custom | No        | No     | No     |
+| `PARTNER_SHARING`  | Full  | No     | No        | No     | No     |
+
+- "Manage", "Edit" and "View" never include management actions. In particular (P10-6):
+  - **`INVITATIONS:SEND`** (sending and resending guest invitation emails, retrieving or
+    copying a guest link) and **`INVITATIONS:MANAGE`** (regenerating or revoking a guest
+    link) are **owner-only by default**: `ADMIN` and `ORGANIZER` have `INVITATIONS` Manage,
+    `EDITOR` Edit, yet none of them may send, retrieve, regenerate or revoke a guest link
+    without an explicit `ALLOW` override.
+  - **`MEMORY_QR:REGENERATE`** is owner-only by default; `ADMIN`'s Manage on `MEMORY_QR` covers
+    generating, editing and revoking, not regeneration, unless an override allows it.
+  - Overrides may grant these three actions to any non-owner role (§8.4, grant ceiling).
+- Modules without a built feature (website, gallery, QR, live stream, reports) carry their
+  defaults now so the matrix is complete; their routes adopt them when built.
+
+### 8.3 Protected actions
+
+Owner-only; never granted by a role default or an override, and never removed from an owner:
+
+| Protected action                              | Why                                           |
+| --------------------------------------------- | --------------------------------------------- |
+| Transfer ownership (§7.6)                     | Changes who controls the wedding              |
+| Archive or delete the wedding                 | Irreversible for every member                 |
+| Partner connection, disconnection and sharing | Partner phase; A4/A5 (0011)                   |
+| Any change to an `OWNER` membership           | Owners cannot be demoted or removed by others |
+| Assigning the `ADMIN` role (P10-4)            | Admins cannot create Admins                   |
+| Managing an `ADMIN` membership (P10-4)        | Admins cannot manage other Admins             |
+
+**Admin authority (P10-4)** — enforced in the members service for every non-owner caller,
+whatever their overrides (an `ADMIN` needs `MEMBERS` grants first; their default is Custom):
+
+| Operation by a non-owner                    | Allowed only when                                                                    |
+| ------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Invite (`MEMBERS:INVITE`)                   | Invited role is `ORGANIZER`, `EDITOR` or `VIEWER`                                    |
+| Change role (`MEMBERS:CHANGE_ROLE`)         | Target is `ORGANIZER`/`EDITOR`/`VIEWER` and the new role is one of those three       |
+| Edit overrides (`MEMBERS:EDIT_PERMISSIONS`) | Target is `ORGANIZER`/`EDITOR`/`VIEWER`; every `ALLOW` is an action the caller holds |
+| Remove (`MEMBERS:REMOVE`)                   | Target is `ORGANIZER`/`EDITOR`/`VIEWER`                                              |
+| Any of these on themselves                  | Never                                                                                |
+
+Owners may do all of these for any non-owner membership, including assigning `ADMIN`.
+
+**Restricted by default, grantable** — owner-only unless an override allows them (§8.2,
+P10-6): `INVITATIONS:SEND`, `INVITATIONS:MANAGE`, `MEMORY_QR:REGENERATE`, and every action a role
+has as Custom or No. Overrides never grant the protected actions above, and never bypass
+authentication, the `ACTIVE`-membership check or the `weddingId` scope.
+
+### 8.4 Overrides and evaluation
+
+Effective permissions for one membership, evaluated on the server on every request:
+
+1. `status` must be `ACTIVE` (otherwise `404`, §21 API Design).
+2. `OWNER`: every action of every module, including protected actions. Overrides are ignored.
+3. Start from the role defaults (§8.2).
+4. Apply `permissionOverrides`: `ALLOW` adds the `(module, action)`; `DENY` removes it. For
+   the same `(module, action)`, **`DENY` wins over `ALLOW`**. A `DENY` of `VIEW` removes the
+   whole module.
+5. Every modifying or management action requires `VIEW` on the same module; without it the
+   action is not effective.
+6. Remove protected actions (§8.3) — they cannot survive step 4.
+7. Resource sharing (§7.4, A4) may later restrict access to individual partner-private
+   resources; it is not used in Phase 10.
+
+Overrides are stored only where they differ from the defaults; saving an override equal to
+the default stores nothing.
 
 ## 9. Events (Phase 4 — decision 0017)
 
@@ -855,29 +1095,32 @@ Excel only; generated files are temporary, not permanent business data.
 
 ## 18. Relationship model
 
-| From            | Relationship         | To                                        | Cardinality                         |
-| --------------- | -------------------- | ----------------------------------------- | ----------------------------------- |
-| User            | owns                 | Wedding                                   | 0..1                                |
-| User            | participates via     | WeddingMembership                         | 0..N                                |
-| Wedding         | has                  | WeddingMembership                         | 1..N                                |
-| Wedding         | has                  | Event                                     | 0..N                                |
-| Wedding         | has                  | Guest                                     | 0..N                                |
-| Guest           | participates through | GuestEvent                                | 0..N                                |
-| Event           | has                  | GuestEvent                                | 0..N                                |
-| Guest           | has                  | GuestInvitation                           | 0..1                                |
-| GuestInvitation | has                  | InvitationDelivery                        | 0..N                                |
-| GuestInvitation | has                  | InvitationActivity                        | 0..N                                |
-| Wedding         | has                  | Expense                                   | 0..N                                |
-| Expense         | has                  | ExpensePayment, ExpenseReceipt            | 0..N                                |
-| Wedding         | has                  | Task                                      | 0..N                                |
-| Task            | has                  | TaskAssignment, TaskActivity              | 0..N                                |
-| Wedding         | has                  | WeddingVendor                             | 0..N                                |
-| WeddingVendor   | has                  | VendorBooking                             | 0..N                                |
-| VendorBooking   | for                  | Event                                     | 0..1 (none: whole wedding)          |
-| Expense         | for                  | WeddingVendor                             | 0..1                                |
-| WeddingVendor   | has                  | VendorAttachment (deferred — 0032 #6)     | 0..N                                |
-| Wedding         | has                  | WeddingWebsite                            | 0..1 (created by the Website phase) |
-| Wedding         | has                  | Photo, MemoryQR, LiveStream, ReportExport | 0..N                                |
+| From             | Relationship            | To                                         | Cardinality                         |
+| ---------------- | ----------------------- | ------------------------------------------ | ----------------------------------- |
+| User             | owns                    | Wedding                                    | 0..1                                |
+| User             | participates via        | WeddingMembership                          | 0..N                                |
+| Wedding          | has                     | WeddingMembership                          | 1..N                                |
+| Wedding          | has                     | MemberInvitation                           | 0..N                                |
+| MemberInvitation | becomes (on acceptance) | WeddingMembership (created or reactivated) | 0..1                                |
+| User             | invited as (by email)   | MemberInvitation                           | 0..N                                |
+| Wedding          | has                     | Event                                      | 0..N                                |
+| Wedding          | has                     | Guest                                      | 0..N                                |
+| Guest            | participates through    | GuestEvent                                 | 0..N                                |
+| Event            | has                     | GuestEvent                                 | 0..N                                |
+| Guest            | has                     | GuestInvitation                            | 0..1                                |
+| GuestInvitation  | has                     | InvitationDelivery                         | 0..N                                |
+| GuestInvitation  | has                     | InvitationActivity                         | 0..N                                |
+| Wedding          | has                     | Expense                                    | 0..N                                |
+| Expense          | has                     | ExpensePayment, ExpenseReceipt             | 0..N                                |
+| Wedding          | has                     | Task                                       | 0..N                                |
+| Task             | has                     | TaskAssignment, TaskActivity               | 0..N                                |
+| Wedding          | has                     | WeddingVendor                              | 0..N                                |
+| WeddingVendor    | has                     | VendorBooking                              | 0..N                                |
+| VendorBooking    | for                     | Event                                      | 0..1 (none: whole wedding)          |
+| Expense          | for                     | WeddingVendor                              | 0..1                                |
+| WeddingVendor    | has                     | VendorAttachment (deferred — 0032 #6)      | 0..N                                |
+| Wedding          | has                     | WeddingWebsite                             | 0..1 (created by the Website phase) |
+| Wedding          | has                     | Photo, MemoryQR, LiveStream, ReportExport  | 0..N                                |
 
 ## 19. Embedding vs referencing
 
@@ -898,39 +1141,45 @@ Excel only; generated files are temporary, not permanent business data.
 
 ## 20. Indexes and uniqueness
 
-| Collection              | Index / constraint                                                                                                                  | Purpose                        | Status  |
-| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ | ------- |
-| `users`                 | `email` UNIQUE                                                                                                                      | Login identity                 | Built   |
-| `auth_sessions`         | `userId`                                                                                                                            | Revoke all sessions            | Built   |
-| `password_reset_tokens` | `tokenHash` UNIQUE                                                                                                                  | Token lookup                   | Built   |
-| `wedding_memberships`   | `(userId, weddingId)` UNIQUE                                                                                                        | No duplicate membership        | Built   |
-| `wedding_memberships`   | `userId` UNIQUE where `memberType = OWNER`                                                                                          | One owned wedding per user     | Built   |
-| `events`                | `(weddingId, date, startTime)`                                                                                                      | Event listing and order        | Phase 4 |
-| `events`                | `(weddingId, deletedAt)`                                                                                                            | Active/deleted filtering       | Phase 4 |
-| `guests`                | `(weddingId, name)`                                                                                                                 | Guest search                   | Phase 4 |
-| `guests`                | `(weddingId, mobile)`                                                                                                               | Lookup and duplicate warning   | Phase 4 |
-| `guests`                | `(weddingId, deletedAt)`                                                                                                            | Active/deleted filtering       | Phase 4 |
-| `guest_events`          | `(weddingId, guestId, eventId)` UNIQUE where `isActive = true`                                                                      | One active assignment          | Phase 4 |
-| `guest_events`          | `(weddingId, eventId, rsvpStatus)`                                                                                                  | Event RSVP counts and filters  | Phase 4 |
-| `guest_invitations`     | `guestId` UNIQUE                                                                                                                    | One invitation per guest       | Phase 4 |
-| `guest_invitations`     | `tokenHash` UNIQUE (partial: when present)                                                                                          | Token lookup                   | Phase 4 |
-| `invitation_deliveries` | `(guestInvitationId, createdAt)`                                                                                                    | Delivery history               | Phase 4 |
-| `invitation_deliveries` | `idempotencyKey` UNIQUE                                                                                                             | No repeated sends              | Phase 4 |
-| `invitation_deliveries` | `(status, createdAt)`                                                                                                               | Recent failures                | Phase 4 |
-| `invitation_activities` | `(guestInvitationId, occurredAt)`                                                                                                   | Activity history               | Phase 4 |
-| `expenses`              | `(weddingId, expenseDate)`, `(weddingId, category)`, `(weddingId, paymentStatus)`, `(weddingId, eventId)`, `(weddingId, createdAt)` | Reporting and filters          | Planned |
-| `expenses`              | `(weddingId, vendorId)`                                                                                                             | A vendor's linked expenses     | Phase 9 |
-| `expense_payments`      | `(expenseId, paymentDate)`; `(weddingId, expenseId)`                                                                                | Payment history                | Planned |
-| `tasks`                 | `(weddingId, status)`, `(weddingId, priority)`, `(weddingId, dueDate)`, `(weddingId, eventId)`                                      | Board and filters              | Planned |
-| `task_assignments`      | `(taskId, userId)` UNIQUE; `(userId, weddingId)`                                                                                    | Assignees; my tasks            | Planned |
-| `task_activities`       | `(taskId, createdAt)`                                                                                                               | History                        | Planned |
-| `wedding_vendors`       | `(weddingId, deletedAt, name)` (case-insensitive collation); `(weddingId, category)`                                                | List order and filters         | Phase 9 |
-| `vendor_bookings`       | `(weddingId, vendorId)`; `(weddingId, status, serviceDate)`; `(weddingId, eventId)`                                                 | Vendor page, filters, summary  | Phase 9 |
-| `wedding_websites`      | `publicIdentifier` UNIQUE; `weddingId` UNIQUE                                                                                       | Public lookup; one per wedding | Planned |
-| `memory_qrs`            | `tokenHash` UNIQUE; `(weddingId, status)`; `(eventId, status)`                                                                      | QR lookup and management       | Planned |
-| `notifications`         | `(recipientUserId, isRead, createdAt)`; `(recipientUserId, createdAt)`; `(weddingId, createdAt)`                                    | Feeds                          | Planned |
-| `live_streams`          | `(weddingId, eventId)`; `(weddingId, status)`                                                                                       | Stream lookup                  | Planned |
-| `report_exports`        | `(weddingId, createdAt)`; `(requestedBy, createdAt)`; `(status, createdAt)`                                                         | History and processing         | Planned |
+| Collection              | Index / constraint                                                                                                                  | Purpose                        | Status   |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ | -------- |
+| `users`                 | `email` UNIQUE                                                                                                                      | Login identity                 | Built    |
+| `auth_sessions`         | `userId`                                                                                                                            | Revoke all sessions            | Built    |
+| `password_reset_tokens` | `tokenHash` UNIQUE                                                                                                                  | Token lookup                   | Built    |
+| `wedding_memberships`   | `(userId, weddingId)` UNIQUE                                                                                                        | No duplicate membership        | Built    |
+| `wedding_memberships`   | `userId` UNIQUE where `memberType = OWNER`                                                                                          | One owned wedding per user     | Built    |
+| `wedding_memberships`   | `(weddingId, status, role)`                                                                                                         | Member list, owner count       | Phase 10 |
+| `member_invitations`    | `tokenHash` UNIQUE                                                                                                                  | Token lookup                   | Phase 10 |
+| `member_invitations`    | `(weddingId, email)` UNIQUE where `status = PENDING`                                                                                | One pending invite per email   | Phase 10 |
+| `member_invitations`    | `(weddingId, status, createdAt)`                                                                                                    | Invitation list                | Phase 10 |
+| `wedding_memberships`   | `(weddingId, ownerSeat)` UNIQUE where `memberType = OWNER` (`owner_seat_per_wedding`)                                               | At most two owners (P10-5)     | Phase 10 |
+| `ownership_transfers`   | `weddingId` UNIQUE where `status = PENDING`                                                                                         | One open offer per wedding     | Phase 10 |
+| `events`                | `(weddingId, date, startTime)`                                                                                                      | Event listing and order        | Phase 4  |
+| `events`                | `(weddingId, deletedAt)`                                                                                                            | Active/deleted filtering       | Phase 4  |
+| `guests`                | `(weddingId, name)`                                                                                                                 | Guest search                   | Phase 4  |
+| `guests`                | `(weddingId, mobile)`                                                                                                               | Lookup and duplicate warning   | Phase 4  |
+| `guests`                | `(weddingId, deletedAt)`                                                                                                            | Active/deleted filtering       | Phase 4  |
+| `guest_events`          | `(weddingId, guestId, eventId)` UNIQUE where `isActive = true`                                                                      | One active assignment          | Phase 4  |
+| `guest_events`          | `(weddingId, eventId, rsvpStatus)`                                                                                                  | Event RSVP counts and filters  | Phase 4  |
+| `guest_invitations`     | `guestId` UNIQUE                                                                                                                    | One invitation per guest       | Phase 4  |
+| `guest_invitations`     | `tokenHash` UNIQUE (partial: when present)                                                                                          | Token lookup                   | Phase 4  |
+| `invitation_deliveries` | `(guestInvitationId, createdAt)`                                                                                                    | Delivery history               | Phase 4  |
+| `invitation_deliveries` | `idempotencyKey` UNIQUE                                                                                                             | No repeated sends              | Phase 4  |
+| `invitation_deliveries` | `(status, createdAt)`                                                                                                               | Recent failures                | Phase 4  |
+| `invitation_activities` | `(guestInvitationId, occurredAt)`                                                                                                   | Activity history               | Phase 4  |
+| `expenses`              | `(weddingId, expenseDate)`, `(weddingId, category)`, `(weddingId, paymentStatus)`, `(weddingId, eventId)`, `(weddingId, createdAt)` | Reporting and filters          | Planned  |
+| `expenses`              | `(weddingId, vendorId)`                                                                                                             | A vendor's linked expenses     | Phase 9  |
+| `expense_payments`      | `(expenseId, paymentDate)`; `(weddingId, expenseId)`                                                                                | Payment history                | Planned  |
+| `tasks`                 | `(weddingId, status)`, `(weddingId, priority)`, `(weddingId, dueDate)`, `(weddingId, eventId)`                                      | Board and filters              | Planned  |
+| `task_assignments`      | `(taskId, userId)` UNIQUE; `(userId, weddingId)`                                                                                    | Assignees; my tasks            | Planned  |
+| `task_activities`       | `(taskId, createdAt)`                                                                                                               | History                        | Planned  |
+| `wedding_vendors`       | `(weddingId, deletedAt, name)` (case-insensitive collation); `(weddingId, category)`                                                | List order and filters         | Phase 9  |
+| `vendor_bookings`       | `(weddingId, vendorId)`; `(weddingId, status, serviceDate)`; `(weddingId, eventId)`                                                 | Vendor page, filters, summary  | Phase 9  |
+| `wedding_websites`      | `publicIdentifier` UNIQUE; `weddingId` UNIQUE                                                                                       | Public lookup; one per wedding | Planned  |
+| `memory_qrs`            | `tokenHash` UNIQUE; `(weddingId, status)`; `(eventId, status)`                                                                      | QR lookup and management       | Planned  |
+| `notifications`         | `(recipientUserId, isRead, createdAt)`; `(recipientUserId, createdAt)`; `(weddingId, createdAt)`                                    | Feeds                          | Planned  |
+| `live_streams`          | `(weddingId, eventId)`; `(weddingId, status)`                                                                                       | Stream lookup                  | Planned  |
+| `report_exports`        | `(weddingId, createdAt)`; `(requestedBy, createdAt)`; `(status, createdAt)`                                                         | History and processing         | Planned  |
 
 Indexes support a known access pattern, uniqueness rule or job; each adds write cost.
 
@@ -950,6 +1199,10 @@ Indexes support a known access pattern, uniqueness rule or job; each adds write 
 - Deleting a guest soft-deletes the guest, revokes their invitation token (removing
   `tokenHash` and `tokenCiphertext`) and keeps their assignments, RSVPs, deliveries and
   activity as history (0018).
+- Revoking a member sets `status = REVOKED` and deletes nothing: their tasks, assignments,
+  expenses, payments, bookings, guests and audit entries stay, with their `createdBy` and
+  other references (Phase 10, §7.2).
+- Member invitations are never deleted; terminal states are kept as history (§7.5).
 - Wedding deletion is archive first, permanent later; account deletion is support-controlled.
 
 ## 22. Audit and traceability (Phase 4 for RSVP resets and invitation token changes)
@@ -968,6 +1221,23 @@ Phase 4 writes audit entries at least for organizer resets of an RSVP to `PENDIN
 for invitation token regeneration and revocation, and for every retrieval of an invitation
 link by an organizer (0019).
 
+**Phase 10** writes, with `resourceType` `member_invitation`, `wedding_membership` or
+`ownership_transfer`:
+`OWNERSHIP_TRANSFER_OFFERED`, `OWNERSHIP_TRANSFER_DECLINED`, `OWNERSHIP_TRANSFER_CANCELLED`,
+`MEMBER_INVITATION_CREATED`, `MEMBER_INVITATION_RESENT`, `MEMBER_INVITATION_ACCEPTED`,
+`MEMBER_INVITATION_DECLINED`, `MEMBER_INVITATION_EXPIRED`, `MEMBER_INVITATION_REVOKED`,
+`MEMBER_ROLE_CHANGED`, `MEMBER_PERMISSIONS_CHANGED`, `MEMBER_REMOVED`, `MEMBER_REACTIVATED`,
+`OWNERSHIP_TRANSFERRED`, and `PERMISSION_DENIED` for refused management actions (§8.3; not for
+ordinary `404`s). `metadata` holds what identifies the change — the invitee email, old and new
+role, the added and removed overrides, the target membership and user — and never the raw
+token or its hash. The entry's `actorUserId`, `weddingId` and `createdAt` give the actor,
+tenant and time; `metadata.outcome` is `SUCCEEDED` or `DENIED`.
+
+The sensitive operations of P10-6 stay audited as today: guest-link regeneration, revocation
+and every link retrieval (Phase 4, 0019), every send in `invitation_deliveries`, and QR
+regeneration when the QR module is built (§22 above). A refusal of any of them to a
+non-owner without the grant is a `PERMISSION_DENIED` entry.
+
 ## 23. Database security
 
 - Never trust a client-supplied `weddingId` without resolving membership and authorization.
@@ -982,19 +1252,22 @@ link by an organizer (0019).
 
 ## 24. Transaction and consistency rules
 
-| Operation                                   | Guidance                                                                             |
-| ------------------------------------------- | ------------------------------------------------------------------------------------ |
-| Simple CRUD                                 | No transaction                                                                       |
-| Create wedding + OWNER membership           | Transaction (Built — 0016)                                                           |
-| Accept partner invitation                   | Transaction: membership and connection change together                               |
-| Add, edit or remove a payment               | Transaction: the payment and the expense's `paidMinor` and status (0028 #8)          |
-| Link a task, expense or booking to an event | Transaction: the record and a claim on the event, so a concurrent deletion conflicts |
-| Create or reopen a booking                  | Transaction: the booking and a claim on its vendor (0032 #15)                        |
-| Delete a vendor                             | Transaction: check no booking is active, then set `deletedAt` (0032 #15)             |
-| Regenerate or revoke a token                | Single-document update                                                               |
-| Upload photo                                | S3 and metadata coordinated with compensating cleanup                                |
-| Publish website                             | Transaction only if several documents change together                                |
-| RSVP update                                 | Single-document update; audit per consistency requirement                            |
+| Operation                                   | Guidance                                                                                  |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Simple CRUD                                 | No transaction                                                                            |
+| Create wedding + OWNER membership           | Transaction (Built — 0016)                                                                |
+| Accept partner invitation                   | Transaction: membership and connection change together                                    |
+| Accept a member invitation                  | Transaction: conditional `PENDING` → `ACCEPTED`, membership created or reactivated, audit |
+| Change a role, overrides or remove a member | Single conditional update on the membership (not `OWNER`, still `ACTIVE`) + audit         |
+| Transfer ownership                          | Transaction: both membership rows and the audit entry (§7.6)                              |
+| Add, edit or remove a payment               | Transaction: the payment and the expense's `paidMinor` and status (0028 #8)               |
+| Link a task, expense or booking to an event | Transaction: the record and a claim on the event, so a concurrent deletion conflicts      |
+| Create or reopen a booking                  | Transaction: the booking and a claim on its vendor (0032 #15)                             |
+| Delete a vendor                             | Transaction: check no booking is active, then set `deletedAt` (0032 #15)                  |
+| Regenerate or revoke a token                | Single-document update                                                                    |
+| Upload photo                                | S3 and metadata coordinated with compensating cleanup                                     |
+| Publish website                             | Transaction only if several documents change together                                     |
+| RSVP update                                 | Single-document update; audit per consistency requirement                                 |
 
 Transactions are a consistency tool, not a wrapper around every repository call.
 
@@ -1014,6 +1287,9 @@ Transactions are a consistency tool, not a wrapper around every repository call.
 | Resolve user           | `users.email`                                                 |
 | List my weddings       | `wedding_memberships.userId + status`                         |
 | Resolve wedding access | `wedding_memberships.userId + weddingId + status`             |
+| List members           | `wedding_memberships.weddingId + status + role`               |
+| Open member invitation | `member_invitations.tokenHash`                                |
+| Pending invitations    | `member_invitations.weddingId + status + createdAt`           |
 | List events            | `events.weddingId` (not deleted) ordered by `date, startTime` |
 | Search guests          | `guests.weddingId + name/mobile`                              |
 | Duplicate mobile       | `guests.weddingId + mobile`                                   |
@@ -1034,6 +1310,13 @@ Transactions are a consistency tool, not a wrapper around every repository call.
 ## 27. Key data invariants
 
 - A user owns at most one wedding; one membership per user per wedding.
+- Every wedding keeps at least one `ACTIVE` `OWNER` membership and at most two `OWNER` rows
+  (seats 1 and 2); `memberType = OWNER` ⇔ `role = OWNER` ⇔ `ownerSeat` set; organizer
+  invitations never create owners (Phase 10).
+- At most one `PENDING` ownership transfer per wedding; a completed transfer moves exactly one
+  seat and never touches the other owner's row.
+- A member invitation token works once; at most one `PENDING` invitation per wedding and
+  email.
 - A guest belongs to exactly one wedding; at most one active assignment per guest and event.
 - `attendeeCount` matches `rsvpStatus` (0017).
 - One invitation per guest; only the current token works; a deleted guest has no working
@@ -1083,7 +1366,6 @@ Then the remaining planned collections as their phases are approved.
 | ------------- | ------------------------------------------------------------------ |
 | Invitations   | Webhook handling; encryption algorithm and key rotation procedure  |
 | QR            | Expiry policy and regeneration details                             |
-| Permissions   | Default matrix per role                                            |
 | Website       | `publicIdentifier` generation and collisions; sitemap and metadata |
 | Google Places | Fields that may be stored or cached (discovery deferred — 0032 #3) |
 | Notifications | Templates and default schedules (product-deferred)                 |
@@ -1091,6 +1373,21 @@ Then the remaining planned collections as their phases are approved.
 | Retention     | Audit, delivery history, soft-deleted data, permanent purge        |
 | Backups       | RPO/RTO, retention, restore-test cadence                           |
 | Indexes       | Final production set after observing real query plans              |
+| Phase 10      | Member-invitation rate limits (proposed in 0034 R1–R2)             |
+
+**Phase 10 decisions (approved by the product owner, 2026-10-27; recorded in decision 0034).**
+The default matrix is in §8; the eight follow-up decisions are applied in §7 and §8:
+
+| #     | Decision                                                                                                               | Where              |
+| ----- | ---------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| P10-1 | No email verification before accepting; token plus matching account email                                              | §7.5               |
+| P10-2 | Invitations expire seven days after the token is issued; checked on every read and on acceptance                       | §7.5               |
+| P10-3 | A revoked member may be re-invited; the same membership row is reused, overrides cleared, access only after acceptance | §7.2               |
+| P10-4 | An Admin cannot assign the Admin role or manage other Admins                                                           | §8.3               |
+| P10-5 | An owner transfers only their own seat; the recipient accepts; the giver becomes Admin; at most two owners             | §7.2, §7.6         |
+| P10-6 | Guest-link sending and QR regeneration are owner-only by default, grantable by override                                | §8.1–§8.3          |
+| P10-7 | Membership status `INVITED` stays reserved and is not written                                                          | §7.2               |
+| P10-8 | Dashboard sections need `VIEW` on their module; any active member can be a task assignee or payer                      | API Design §6, §23 |
 
 ## 33. Decision summary
 
