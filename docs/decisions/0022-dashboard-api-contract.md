@@ -1,6 +1,7 @@
 # 0022 — Dashboard API contract (Phase 4)
 
-**Status:** Accepted (approved by the product owner on 2026-10-11).
+**Status:** Accepted (approved by the product owner on 2026-10-11; authorization amended by
+[0034](0034-phase-10-authorization.md) on 2026-10-27).
 
 Defines `GET /api/v1/weddings/{weddingId}/dashboard`, listed as "Planned" in API Design
 v1.1 §6, for the four Phase 4 dashboard summaries (0019 #5, Phase 4 PRD §10.2) and the O10
@@ -33,7 +34,9 @@ The full contract is in API Design v1.1 §6.
   `rsvpBreakdown`.
 - Values are computed from current data on every request; no totals are stored.
 - Authorization and errors are the same as the other wedding routes: an active member
-  (`OWNER` until Phase 10); `401 UNAUTHENTICATED`; `404 WEDDING_NOT_FOUND`.
+  (`OWNER` until Phase 10); `401 UNAUTHENTICATED`; `404 WEDDING_NOT_FOUND`. **Amended by
+  [0034](0034-phase-10-authorization.md):** from Phase 10 each section is returned only with
+  `VIEW` on its module (P10-8, API Design §6).
 - The countdown and wedding details still come from `GET /weddings/{weddingId}` (0016).
 - Event fields come from the approved O10 design: name, date, times and venue name. `type`
   is included for the per-type icon, and `id` as the resource identifier.

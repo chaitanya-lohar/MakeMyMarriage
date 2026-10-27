@@ -3,6 +3,8 @@
 **Status:** Accepted (approved by the product owner on 2026-10-10, answers Q1–Q6 of the
 Phase 4 readiness check). Amends [0017](0017-phase-4-guests-and-invitations.md) #16 (adds a
 route) and closes the open item in [0018](0018-invitation-token-storage-and-guest-access.md).
+Q1 #1 (who may retrieve the link) amended by [0034](0034-phase-10-authorization.md) on
+2026-10-27.
 
 ## Decisions
 
@@ -12,7 +14,9 @@ route) and closes the open item in [0018](0018-invitation-token-storage-and-gues
    `GET /api/v1/weddings/{weddingId}/guests/{guestId}/invitation/link`.
    - It returns the existing link; it never creates a token. The server decrypts the stored
      encrypted copy (0018).
-   - The usual wedding-membership check applies (organizer authorization).
+   - The usual wedding-membership check applies (organizer authorization). **Amended by
+     [0034](0034-phase-10-authorization.md):** from Phase 10 it needs `INVITATIONS:SEND`,
+     which is owner-only by default and can be granted by override (P10-6).
    - Every retrieval is recorded in the audit history.
    - The token never appears in application logs.
 2. Copy Link and WhatsApp sharing **reuse the existing link**. Only regeneration replaces it;

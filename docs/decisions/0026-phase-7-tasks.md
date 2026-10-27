@@ -1,7 +1,8 @@
 # 0026 — Phase 7: tasks
 
 **Status:** Accepted (approved by the product owner on 2026-10-19; #20 amended on
-2026-10-20). Answers P7-TASK-Q01–Q26
+2026-10-20; #14 amended by [0034](0034-phase-10-authorization.md) on 2026-10-27). Answers
+P7-TASK-Q01–Q26
 and R1–R3 from the Phase 7 discovery; the full specification is the
 [Phase 7 PRD v1.0](../specs/PHASE_7_PRD_v1.0.md).
 
@@ -63,6 +64,10 @@ routes (Database Design §13, API Design §13), and settles what those left open
     change the status of, cancel and delete its tasks. Everything else returns `404`, as for
     other wedding routes. Per-member permissions arrive in Phase 10; partner privacy is
     decided by A4 (0011). Until then all members of a wedding see all its tasks.
+    **Amended by [0034](0034-phase-10-authorization.md):** from Phase 10 these actions need
+    the `TASKS` permissions (API Design §23). A member without the permission gets `403`. Any
+    `ACTIVE` member can still be chosen as an assignee, and being chosen grants no access
+    (P10-8).
 
 ### History and audit
 

@@ -10,13 +10,15 @@
 | Base path  | `/api/v1`                                                         |
 | Supersedes | API Design v1.0 (archived in `docs/archive/specs/`)               |
 
-| Version | Date       | Change                                                                                                                |
-| ------- | ---------- | --------------------------------------------------------------------------------------------------------------------- |
-| 1.0     | 2026-09-24 | Baseline contract.                                                                                                    |
-| 1.1     | 2026-10-10 | Consolidated: v1.0 plus decisions 0001, 0008, 0009, 0010, 0012, 0015–0019 and the endpoints built in Phases 2–3.      |
-| 1.1     | 2026-10-14 | Decision 0025: the API runs on Vercel; emails are sent directly, with no worker or job queue.                         |
-| 1.1     | 2026-10-20 | Decision 0028 (Phase 8): expense and payment payloads, list filters and totals, dashboard expense summary.            |
-| 1.1     | 2026-10-24 | Decision 0032 (Phase 9): vendor and booking routes, expense `vendorId`, dashboard vendor summary; discovery deferred. |
+| Version | Date       | Change                                                                                                                                                                                                                                          |
+| ------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.0     | 2026-09-24 | Baseline contract.                                                                                                                                                                                                                              |
+| 1.1     | 2026-10-10 | Consolidated: v1.0 plus decisions 0001, 0008, 0009, 0010, 0012, 0015–0019 and the endpoints built in Phases 2–3.                                                                                                                                |
+| 1.1     | 2026-10-14 | Decision 0025: the API runs on Vercel; emails are sent directly, with no worker or job queue.                                                                                                                                                   |
+| 1.1     | 2026-10-20 | Decision 0028 (Phase 8): expense and payment payloads, list filters and totals, dashboard expense summary.                                                                                                                                      |
+| 1.1     | 2026-10-24 | Decision 0032 (Phase 9): vendor and booking routes, expense `vendorId`, dashboard vendor summary; discovery deferred.                                                                                                                           |
+| 1.1     | 2026-10-27 | Phase 10 requirements (product owner): §7.1 member, invitation, permission, audit and ownership routes; §6 and §23 required permissions for every route; §21 error codes; §25 and §28.                                                          |
+| 1.1     | 2026-10-27 | Phase 10 decisions P10-1–P10-8 applied: expiry and re-invitation rules, Admin limits, ownership-seat transfer routes, `INVITATIONS:SEND`, per-section dashboard permissions, assignee and payer eligibility, rollout over the Phase 4–9 routes. |
 
 **Status of each route group** — _Built_: implemented; the generated OpenAPI contract
 (`packages/api-client/openapi.json`) is the exact reference. _Phase 4_: approved, not built.
@@ -106,14 +108,14 @@ guest, QR or public URLs. Unversioned paths such as `/api/auth/*` are never used
 
 ## 6. Wedding and workspace API (decision 0016)
 
-| Method | Endpoint                          | Purpose                                             | Auth                          | Status  |
-| ------ | --------------------------------- | --------------------------------------------------- | ----------------------------- | ------- |
-| POST   | `/weddings`                       | Create the user's wedding; user becomes OWNER       | User                          | Built   |
-| GET    | `/weddings`                       | Weddings with an `ACTIVE` membership (may be empty) | User                          | Built   |
-| GET    | `/weddings/{weddingId}`           | One wedding                                         | Member                        | Built   |
-| PATCH  | `/weddings/{weddingId}`           | Update wedding details                              | Member (OWNER until Phase 10) | Built   |
-| DELETE | `/weddings/{weddingId}`           | Archive / soft-delete the wedding                   | Owner                         | Planned |
-| GET    | `/weddings/{weddingId}/dashboard` | Dashboard summary (0019, 0021, 0022)                | Member                        | Phase 4 |
+| Method | Endpoint                          | Purpose                                             | Auth                                                  | Status  |
+| ------ | --------------------------------- | --------------------------------------------------- | ----------------------------------------------------- | ------- |
+| POST   | `/weddings`                       | Create the user's wedding; user becomes OWNER       | User                                                  | Built   |
+| GET    | `/weddings`                       | Weddings with an `ACTIVE` membership (may be empty) | User                                                  | Built   |
+| GET    | `/weddings/{weddingId}`           | One wedding                                         | Member                                                | Built   |
+| PATCH  | `/weddings/{weddingId}`           | Update wedding details                              | `WEDDING_SETTINGS:EDIT` (Phase 10; owners until then) | Built   |
+| DELETE | `/weddings/{weddingId}`           | Archive / soft-delete the wedding                   | Owner                                                 | Planned |
+| GET    | `/weddings/{weddingId}/dashboard` | Dashboard summary (0019, 0021, 0022)                | Member                                                | Phase 4 |
 
 ```json
 POST /api/v1/weddings
@@ -199,26 +201,195 @@ serviceDate, eventId, eventName }] }`, counting only vendors that are not delete
   yet".
 - The countdown and wedding details come from `GET /weddings/{weddingId}`. Later modules add
   their own summaries when they are built (PRD §18).
+- **Permissions (Phase 10, P10-8):** the route needs only an active membership, but the
+  service computes and returns a section **only** when the caller has `VIEW` on its module:
+  `upcomingEvents` needs `EVENTS:VIEW`; `guestTotals` needs `GUESTS:VIEW`; `rsvpBreakdown` and
+  `expectedAttendees` need `INVITATIONS:VIEW`; `taskCounts`, `upcomingTasks` and `hasTasks` need
+  `TASKS:VIEW`; `expenseSummary` needs `EXPENSES:VIEW`; `vendorSummary` needs `VENDORS:VIEW`.
+  A section the caller may not view is **absent** from the response (not empty, not zeroed)
+  and its queries are not run, so no count or total leaks through another section. Within a
+  section, event names come from that section's own data. Later sections follow the same rule.
 
-## 7. Membership, partner and sharing API (Planned)
+## 7. Membership, partner and sharing API
 
-| Method | Endpoint                                       | Purpose                          |
-| ------ | ---------------------------------------------- | -------------------------------- |
-| GET    | `/weddings/{weddingId}/members`                | List members and organizers      |
-| POST   | `/weddings/{weddingId}/members/invitations`    | Invite an organizer or member    |
-| PATCH  | `/weddings/{weddingId}/members/{membershipId}` | Change role, status or overrides |
-| DELETE | `/weddings/{weddingId}/members/{membershipId}` | Revoke a membership              |
-| GET    | `/weddings/{weddingId}/partner`                | Get the partner connection       |
-| POST   | `/weddings/{weddingId}/partner/invitations`    | Invite the partner               |
-| POST   | `/partner/invitations/{token}/accept`          | Accept a partner invitation      |
-| POST   | `/weddings/{weddingId}/partner/disconnect`     | Disconnect                       |
-| GET    | `/weddings/{weddingId}/shares`                 | List explicit shares             |
-| POST   | `/weddings/{weddingId}/shares`                 | Create a resource share          |
-| DELETE | `/weddings/{weddingId}/shares/{shareId}`       | Revoke a share                   |
+### 7.1 Members, organizer invitations and permissions (Planned — Phase 10)
+
+The routes follow the v1.0 conventions; the first four rows were already in v1.0, the rest
+are added for Phase 10. Permission keys, the default matrix, Admin limits and protected
+actions: Database Design §8. Evaluation: System Design §7.2–§7.4. Decisions P10-1–P10-8:
+decision 0034 and Database Design §32.
+
+| Method | Endpoint                                                          | Required permission                                   | Purpose                      |
+| ------ | ----------------------------------------------------------------- | ----------------------------------------------------- | ---------------------------- |
+| GET    | `/weddings/{weddingId}/members`                                   | Active member (directory); `MEMBERS:VIEW` for details | List members                 |
+| GET    | `/weddings/{weddingId}/members/{membershipId}/permissions`        | Own (`me`): active member; others: `MEMBERS:VIEW`     | Effective permissions        |
+| PATCH  | `/weddings/{weddingId}/members/{membershipId}`                    | `MEMBERS:CHANGE_ROLE` / `MEMBERS:EDIT_PERMISSIONS`    | Change role or overrides     |
+| DELETE | `/weddings/{weddingId}/members/{membershipId}`                    | `MEMBERS:REMOVE`                                      | Revoke a membership          |
+| POST   | `/weddings/{weddingId}/members/invitations`                       | `MEMBERS:INVITE`                                      | Invite an organizer by email |
+| GET    | `/weddings/{weddingId}/members/invitations`                       | `MEMBERS:VIEW`                                        | List invitations             |
+| POST   | `/weddings/{weddingId}/members/invitations/{invitationId}/resend` | `MEMBERS:INVITE`                                      | New token, new expiry, email |
+| POST   | `/weddings/{weddingId}/members/invitations/{invitationId}/revoke` | `MEMBERS:INVITE`                                      | Revoke a pending invitation  |
+| GET    | `/member-invitations/{token}`                                     | Token only (public, rate-limited)                     | Invitation details           |
+| POST   | `/member-invitations/{token}/accept`                              | Signed in; account email = invitation email           | Accept                       |
+| POST   | `/member-invitations/{token}/decline`                             | Token only (public, rate-limited)                     | Decline                      |
+| GET    | `/weddings/{weddingId}/audit-logs`                                | `AUDIT:VIEW`                                          | Audit history                |
+| GET    | `/weddings/{weddingId}/ownership-transfers`                       | Owners; the recipient sees offers made to them        | Pending and past offers      |
+| POST   | `/weddings/{weddingId}/ownership-transfers`                       | Owner only (protected)                                | Offer own seat (P10-5)       |
+| POST   | `/weddings/{weddingId}/ownership-transfers/{transferId}/accept`   | The recipient member                                  | Accept                       |
+| POST   | `/weddings/{weddingId}/ownership-transfers/{transferId}/decline`  | The recipient member                                  | Decline                      |
+| POST   | `/weddings/{weddingId}/ownership-transfers/{transferId}/cancel`   | The offering owner                                    | Cancel                       |
+
+**Common rules.** Every `/weddings/{weddingId}/…` route first requires an `ACTIVE` membership
+of that wedding (otherwise `404 WEDDING_NOT_FOUND`, as today). An active member without the
+required permission gets `403 PERMISSION_DENIED` (they already know the wedding exists);
+refused management actions are audited (`PERMISSION_DENIED`). An ID of another wedding, a
+revoked member or a malformed ID is `404 MEMBER_NOT_FOUND` / `404 MEMBER_INVITATION_NOT_FOUND`.
+Token routes never reveal whether a token existed: unknown, revoked or used tokens give the
+same `404 MEMBER_INVITATION_NOT_FOUND`, except where the caller must be told the state (below).
+
+**`GET …/members`** — query `status` (default `ACTIVE`; `REVOKED` needs `MEMBERS:VIEW`),
+`limit` (≤ 100) and `cursor` (§24). Order: owners first, then display name. Every active
+member gets the directory form `{ membershipId, userId, displayName, isOwner }`, which the task
+assignee and expense payer pickers use. With `MEMBERS:VIEW` each item adds `email`, `role`,
+`status`, `hasOverrides`, `invitedBy`, `invitedAt`, `acceptedAt`, `revokedAt`.
+
+**Selection eligibility (P10-8).** Three different things:
+
+| Question                                   | Rule                                                                                                                    |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| Who **can be chosen** as assignee or payer | Any `ACTIVE` member, whatever their role or permissions                                                                 |
+| Who **may set** assignees or payers        | The caller needs `TASKS:CREATE`/`EDIT` or `EXPENSES:CREATE`/`EDIT` for that write                                       |
+| What the chosen member **may see or do**   | Only their own permissions; being chosen grants nothing (a `VIEWER` assignee without `TASKS:VIEW` cannot open the task) |
+
+The API applies the same rule as the pickers: `assigneeIds` and `paidByUserId` are accepted
+when they name an `ACTIVE` member (else `404 MEMBER_NOT_FOUND`), with no permission check on
+the chosen member (Phase 7 §13 and Phase 8 §12 are unchanged otherwise, including 0030).
+
+**`GET …/members/{membershipId}/permissions`** — `membershipId` may be `me`. Returns
+`{ role, isOwner, permissions: { [module]: action[] }, overrides: [{ module, action, effect }] }`
+— the effective result of Database Design §8.4, which the web app uses to show or hide
+controls. The server still authorizes every request; hiding a button is never the check.
+
+**`POST …/members/invitations`** — body `{ email, role, permissionOverrides?, message? }`.
+
+- `email` valid, ≤ 254, lower-cased; `role` ∈ `ADMIN`, `ORGANIZER`, `EDITOR`, `VIEWER`
+  (`OWNER` → `400 VALIDATION_FAILED`); `message` ≤ 500; overrides as in PATCH below.
+- **P10-4:** a non-owner may invite only `ORGANIZER`, `EDITOR` or `VIEWER`; `role: ADMIN` from a
+  non-owner is `403 PERMISSION_DENIED` (`details.reason: ADMIN_ROLE_OWNER_ONLY`), audited.
+  Overrides in the invitation follow the grant ceiling.
+- `409 MEMBER_ALREADY_ACTIVE` when the email belongs to an active member;
+  `409 MEMBER_INVITATION_ALREADY_PENDING` when a pending invitation exists (the client offers
+  resend).
+- **Re-invitation (P10-3):** inviting the email of a revoked member is allowed and uses this
+  same route. The membership stays `REVOKED` — the person has no access — until the new
+  invitation is accepted. The response says so with `existingMembershipStatus: "REVOKED"`.
+- `201` with `{ id, email, role, status: "PENDING", expiresAt, emailSent,
+existingMembershipStatus }` (`expiresAt` = now + 7 days, P10-2). The email is sent
+  during the request (0025); a provider failure leaves the invitation `PENDING` with
+  `emailSent: false`, and resend is available. The raw token is never returned.
+- Audit `MEMBER_INVITATION_CREATED`. Rate-limited per wedding (§28; numbers proposed in 0034).
+
+**`GET …/members/invitations`** — `status` filter (default `PENDING`), `limit`, `cursor`;
+newest first; expired invitations show `EXPIRED` (Database Design §7.5).
+
+**`resend` / `revoke`** — only for `PENDING` (else `409 MEMBER_INVITATION_NOT_PENDING` with
+`details.status`; an invitation past `expiresAt` is reported `EXPIRED` and written so). Resend
+replaces the token, sets `expiresAt` to now + 7 days and sends again (`200`); the previous link
+stops working. Revoke sets `REVOKED` (`204`); repeating a revoke is `409`. Both audited; both
+need `MEMBERS:INVITE` and follow the same P10-4 limit as creation (a non-owner cannot resend or
+revoke an `ADMIN` invitation).
+
+**`GET /member-invitations/{token}`** — `{ weddingDisplayName, invitedByName, role, message,
+status, expiresAt, emailHint }` (`emailHint` masks the address, e.g. `me***@gmail.com`) so the
+page can ask the invitee to sign in with the right account. `EXPIRED`, `ACCEPTED`, `DECLINED`
+and `REVOKED` are returned as statuses so the page can explain; no wedding data beyond the
+display name.
+
+**`POST /member-invitations/{token}/accept`** — signed-in user only (`401` otherwise).
+
+- `403 MEMBER_INVITATION_EMAIL_MISMATCH` unless the account email equals the invitation email
+  (lower-cased). **No email verification is required (P10-1).**
+- **Expiry (P10-2):** `409 MEMBER_INVITATION_EXPIRED` when `expiresAt` has passed — checked in
+  the conditional update itself, whatever the stored status says; the invitation is then
+  written `EXPIRED` (audited). `409 MEMBER_INVITATION_NOT_PENDING` for accepted, declined or
+  revoked. `409 MEMBER_ALREADY_ACTIVE` if the user is already an active member.
+- In one transaction (Database Design §24): conditional `PENDING` and `expiresAt > now` →
+  `ACCEPTED`; membership created `ACTIVE` with the invited role and overrides, or — for a
+  revoked member (P10-3) — the **same row** reactivated: old overrides cleared, the
+  invitation's role and overrides applied, `ACTIVE`. Audit `MEMBER_INVITATION_ACCEPTED` (and
+  `MEMBER_REACTIVATED`). `200` with `{ weddingId, membershipId, role }`. Access starts with the
+  next request. A repeated accept after success is `409`; the token is dead. A pending
+  invitation never grants access.
+
+**`POST /member-invitations/{token}/decline`** — token only, so an invitee without an
+account can decline. `PENDING` → `DECLINED`, `204`; audited. Same `409`s as accept.
+
+**`PATCH …/members/{membershipId}`** — body `{ role?, permissionOverrides? }` (at least one).
+
+- `role` needs `MEMBERS:CHANGE_ROLE`; `permissionOverrides` (the complete list, replacing the
+  stored one) needs `MEMBERS:EDIT_PERMISSIONS`. Each entry
+  `{ module, action, effect: "ALLOW" | "DENY" }` with a known module and an action of that
+  module; duplicates `400`; at most 64.
+- Refused with `403 PERMISSION_DENIED` (audited), `details.reason`:
+  `OWNER_MEMBERSHIP_PROTECTED` (an `OWNER` target), `SELF_MODIFICATION_NOT_ALLOWED` (the caller's
+  own row), `ADMIN_ROLE_OWNER_ONLY` (a non-owner assigning `ADMIN`), `ADMIN_MEMBERSHIP_OWNER_ONLY`
+  (a non-owner changing an `ADMIN`'s role or overrides — P10-4), `GRANT_EXCEEDS_CALLER` (an
+  `ALLOW` the caller does not hold). `role: OWNER` and protected actions in an override →
+  `400 VALIDATION_FAILED`; owners are made only by transfer.
+- `200` with the member (details form). Audit `MEMBER_ROLE_CHANGED` / `MEMBER_PERMISSIONS_CHANGED`
+  with old and new values. A role change keeps existing overrides.
+
+**`DELETE …/members/{membershipId}`** — `MEMBERS:REMOVE`. Not for `OWNER` rows, the caller's own
+row, or (for non-owners) `ADMIN` rows — `403 PERMISSION_DENIED` with the reasons above. Sets
+`REVOKED`; the member's next request to any route of this wedding is `404`; their data stays;
+a pending ownership offer to them is cancelled. `204`; repeating is `404`. Audit
+`MEMBER_REMOVED`.
+
+**`GET …/audit-logs`** — `AUDIT:VIEW`. Query `action`, `resourceType`, `actorUserId`, `from`,
+`to` (dates), `limit` (≤ 100), `cursor`; newest first. Items
+`{ id, action, resourceType, resourceId, actorUserId, actorName, metadata, createdAt }` with the
+metadata already free of secrets (Database Design §22). Read-only; reads are not audited.
+
+**Ownership-seat transfer (P10-5, Database Design §7.6).** It moves the caller's own seat,
+never the whole wedding and never the other owner's seat. Not grantable to non-owners.
+
+- `GET …/ownership-transfers` — owners see every offer of the wedding; a member sees only offers
+  made to them. Items `{ id, fromMembershipId, fromName, toMembershipId, toName, ownerSeat,
+status, createdAt, respondedAt }`.
+- `POST …/ownership-transfers` `{ toMembershipId }` — caller must be an `OWNER` (else
+  `403 PERMISSION_DENIED`, `OWNER_ONLY`); the seat is the caller's own. The target must be an
+  `ACTIVE` `MEMBER` of this wedding (`404 MEMBER_NOT_FOUND`; an owner target is
+  `400 VALIDATION_FAILED`), must not own another wedding (`409 WEDDING_ALREADY_OWNED`, 0012), and
+  no other offer may be pending (`409 OWNERSHIP_TRANSFER_ALREADY_PENDING`). `201`. Audit
+  `OWNERSHIP_TRANSFER_OFFERED`.
+- `…/{transferId}/accept` — only the recipient (`403` otherwise). One transaction
+  (Database Design §7.6): offer `ACCEPTED`; giver → `ADMIN` member, seat removed; recipient →
+  `OWNER` with that seat; both overrides cleared. Any condition no longer true →
+  `409 OWNERSHIP_TRANSFER_NOT_PENDING` (offer cancelled with `MEMBERSHIP_CHANGED`) or
+  `409 WEDDING_ALREADY_OWNED`; nothing is applied partially. `200` with both memberships.
+  Audit `OWNERSHIP_TRANSFERRED`.
+- `…/{transferId}/decline` (recipient) and `…/{transferId}/cancel` (the giving owner) — `204`;
+  audited (`OWNERSHIP_TRANSFER_DECLINED`, `_CANCELLED`); a non-pending offer is `409`.
+- No expiry is defined; an offer stays pending until one of these happens.
+
+### 7.2 Partner and sharing (Planned — Phase 16)
+
+| Method | Endpoint                                    | Purpose                     |
+| ------ | ------------------------------------------- | --------------------------- |
+| GET    | `/weddings/{weddingId}/partner`             | Get the partner connection  |
+| POST   | `/weddings/{weddingId}/partner/invitations` | Invite the partner          |
+| POST   | `/partner/invitations/{token}/accept`       | Accept a partner invitation |
+| POST   | `/weddings/{weddingId}/partner/disconnect`  | Disconnect                  |
+| GET    | `/weddings/{weddingId}/shares`              | List explicit shares        |
+| POST   | `/weddings/{weddingId}/shares`              | Create a resource share     |
+| DELETE | `/weddings/{weddingId}/shares/{shareId}`    | Revoke a share              |
 
 - Membership answers "who can access this wedding"; sharing answers "which protected
-  resource is shared"; the partner connection records the relationship.
+  resource is shared"; the partner connection records the relationship. Partner invitations
+  are separate from organizer invitations (§7.1) and are the only invitations that create an
+  `OWNER` membership.
 - Accepting returns a clear domain error while the invitee owns a wedding (0012, N1).
+- Partner routes are owner-only (`PARTNER_SHARING`, protected — Database Design §8.3).
 - Share resource types and disconnect behaviour depend on A4 and A5 (0011).
 
 ## 8. Event API (Phase 4 — decision 0017)
@@ -707,30 +878,40 @@ database errors are returned. A `204` response has no body.
 
 Error codes in use or approved:
 
-| Code                         | HTTP | Where                                |
-| ---------------------------- | ---- | ------------------------------------ |
-| `VALIDATION_FAILED`          | 400  | Any DTO or rule violation            |
-| `UNAUTHENTICATED`            | 401  | No or ended session                  |
-| `INVALID_CREDENTIALS`        | 401  | Sign-in (0015)                       |
-| `EMAIL_ALREADY_REGISTERED`   | 409  | Registration (0015)                  |
-| `RESET_TOKEN_INVALID`        | 400  | Password reset (0015)                |
-| `RATE_LIMITED`               | 429  | Rate limits                          |
-| `WEDDING_ALREADY_OWNED`      | 409  | Create wedding (0016)                |
-| `WEDDING_NOT_FOUND`          | 404  | Any wedding route (0016)             |
-| `EVENT_NOT_FOUND`            | 404  | Phase 4                              |
-| `GUEST_NOT_FOUND`            | 404  | Phase 4                              |
-| `GUEST_EVENT_NOT_FOUND`      | 404  | Phase 4                              |
-| `INVITATION_NOT_FOUND`       | 404  | Phase 4 (organizer and guest routes) |
-| `INVITATION_ALREADY_EXISTS`  | 409  | Phase 4                              |
-| `INVITATION_REVOKED`         | 409  | Phase 4                              |
-| `GUEST_EMAIL_REQUIRED`       | 422  | Phase 4                              |
-| `EXPENSE_NOT_FOUND`          | 404  | Phase 8                              |
-| `PAYMENT_NOT_FOUND`          | 404  | Phase 8                              |
-| `PAYMENT_EXCEEDS_BALANCE`    | 409  | Phase 8 (0028 #9)                    |
-| `AMOUNT_BELOW_PAID`          | 409  | Phase 8 (0028 #10)                   |
-| `VENDOR_NOT_FOUND`           | 404  | Phase 9                              |
-| `VENDOR_BOOKING_NOT_FOUND`   | 404  | Phase 9                              |
-| `VENDOR_HAS_ACTIVE_BOOKINGS` | 409  | Phase 9 (0032 #15)                   |
+| Code                                 | HTTP | Where                                                                                                                                 |
+| ------------------------------------ | ---- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `VALIDATION_FAILED`                  | 400  | Any DTO or rule violation                                                                                                             |
+| `UNAUTHENTICATED`                    | 401  | No or ended session                                                                                                                   |
+| `INVALID_CREDENTIALS`                | 401  | Sign-in (0015)                                                                                                                        |
+| `EMAIL_ALREADY_REGISTERED`           | 409  | Registration (0015)                                                                                                                   |
+| `RESET_TOKEN_INVALID`                | 400  | Password reset (0015)                                                                                                                 |
+| `RATE_LIMITED`                       | 429  | Rate limits                                                                                                                           |
+| `WEDDING_ALREADY_OWNED`              | 409  | Create wedding (0016)                                                                                                                 |
+| `WEDDING_NOT_FOUND`                  | 404  | Any wedding route (0016)                                                                                                              |
+| `EVENT_NOT_FOUND`                    | 404  | Phase 4                                                                                                                               |
+| `GUEST_NOT_FOUND`                    | 404  | Phase 4                                                                                                                               |
+| `GUEST_EVENT_NOT_FOUND`              | 404  | Phase 4                                                                                                                               |
+| `INVITATION_NOT_FOUND`               | 404  | Phase 4 (organizer and guest routes)                                                                                                  |
+| `INVITATION_ALREADY_EXISTS`          | 409  | Phase 4                                                                                                                               |
+| `INVITATION_REVOKED`                 | 409  | Phase 4                                                                                                                               |
+| `GUEST_EMAIL_REQUIRED`               | 422  | Phase 4                                                                                                                               |
+| `EXPENSE_NOT_FOUND`                  | 404  | Phase 8                                                                                                                               |
+| `PAYMENT_NOT_FOUND`                  | 404  | Phase 8                                                                                                                               |
+| `PAYMENT_EXCEEDS_BALANCE`            | 409  | Phase 8 (0028 #9)                                                                                                                     |
+| `AMOUNT_BELOW_PAID`                  | 409  | Phase 8 (0028 #10)                                                                                                                    |
+| `VENDOR_NOT_FOUND`                   | 404  | Phase 9                                                                                                                               |
+| `VENDOR_BOOKING_NOT_FOUND`           | 404  | Phase 9                                                                                                                               |
+| `VENDOR_HAS_ACTIVE_BOOKINGS`         | 409  | Phase 9 (0032 #15)                                                                                                                    |
+| `PERMISSION_DENIED`                  | 403  | Phase 10: active member lacking the permission; `details.reason` (e.g. `OWNER_MEMBERSHIP_PROTECTED`, `SELF_MODIFICATION_NOT_ALLOWED`) |
+| `MEMBER_NOT_FOUND`                   | 404  | Phase 8 (payers); Phase 10 members                                                                                                    |
+| `MEMBER_ALREADY_ACTIVE`              | 409  | Phase 10                                                                                                                              |
+| `MEMBER_INVITATION_NOT_FOUND`        | 404  | Phase 10                                                                                                                              |
+| `MEMBER_INVITATION_ALREADY_PENDING`  | 409  | Phase 10                                                                                                                              |
+| `MEMBER_INVITATION_NOT_PENDING`      | 409  | Phase 10 (`details.status`)                                                                                                           |
+| `MEMBER_INVITATION_EXPIRED`          | 409  | Phase 10                                                                                                                              |
+| `MEMBER_INVITATION_EMAIL_MISMATCH`   | 403  | Phase 10                                                                                                                              |
+| `OWNERSHIP_TRANSFER_ALREADY_PENDING` | 409  | Phase 10                                                                                                                              |
+| `OWNERSHIP_TRANSFER_NOT_PENDING`     | 409  | Phase 10                                                                                                                              |
 
 ## 22. Validation and DTO strategy
 
@@ -748,19 +929,60 @@ Request → authentication guard → resolve weddingId → membership lookup →
         → application service → repository (weddingId-scoped query)
 ```
 
-| Example                         | Required authorization                        |
-| ------------------------------- | --------------------------------------------- |
-| Create guest                    | CREATE on Guests                              |
-| Edit RSVP manually              | EDIT/MANAGE on GuestEvent                     |
-| Create, send, revoke invitation | MANAGE on Invitations                         |
-| Edit expense                    | EDIT on Expenses                              |
-| View expense                    | VIEW on Expenses (no visibility check — 0009) |
-| Publish website                 | CONFIGURE/MANAGE on Website                   |
-| Regenerate QR                   | MANAGE on Memory QR                           |
-| Delete guest photo              | DELETE on Gallery                             |
-| View audit logs                 | VIEW/MANAGE on Audit                          |
+From Phase 10 each route declares its required `(module, action)` (Database Design §8); the
+wedding access guard resolves the membership and its effective permissions once per request,
+and a permission check (a decorator plus a guard, System Design §7.7) refuses with
+`403 PERMISSION_DENIED`. Services still scope every query by `weddingId`.
 
-Until Phase 10 only `OWNER` members exist, and owners pass every check.
+Required permissions for the built routes (Phases 3–9) and the next ones:
+
+| Routes                                                                 | Required permission                                                                                                                               |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /weddings`, `GET /weddings/{id}`                                  | Active membership                                                                                                                                 |
+| `PATCH /weddings/{id}`                                                 | `WEDDING_SETTINGS:EDIT`                                                                                                                           |
+| `DELETE /weddings/{id}` (planned)                                      | Owner only (protected)                                                                                                                            |
+| `GET …/dashboard`                                                      | Active membership; each section only with `VIEW` on its module (§6, P10-8)                                                                        |
+| Events `GET` / `POST` / `PATCH` / `DELETE`                             | `EVENTS:VIEW` / `CREATE` / `EDIT` / `DELETE`                                                                                                      |
+| Guests and guest-event assignments                                     | `GUESTS:VIEW` / `CREATE` / `EDIT` / `DELETE`                                                                                                      |
+| Organizer RSVP changes (`PATCH …/guest-events/{id}`, reset to Pending) | `INVITATIONS:EDIT`                                                                                                                                |
+| `GET …/invitation`, `…/deliveries`                                     | `INVITATIONS:VIEW`                                                                                                                                |
+| Create the invitation                                                  | `INVITATIONS:CREATE`                                                                                                                              |
+| `…/invitation/send`, `…/resend`, `…/link` (guest link)                 | `INVITATIONS:SEND` — owner-only by default, grantable (P10-6); audited                                                                            |
+| `…/invitation/regenerate`, `…/revoke`                                  | `INVITATIONS:MANAGE` — owner-only by default, grantable (P10-6); audited                                                                          |
+| Tasks, assignees, activities                                           | `TASKS:VIEW` / `CREATE` / `EDIT` / `DELETE` (assignee changes are `EDIT`; any active member may be chosen — §7.1)                                 |
+| Expenses and payments                                                  | `EXPENSES:VIEW` / `CREATE` / `EDIT` / `DELETE` (a payment: add `CREATE`, edit `EDIT`, remove `DELETE`; any active member may be the payer — §7.1) |
+| Vendors and bookings                                                   | `VENDORS:VIEW` / `CREATE` / `EDIT` / `DELETE` (cancel or reopen a booking: `EDIT`)                                                                |
+| Members, invitations, audit, ownership                                 | §7.1                                                                                                                                              |
+| Website, gallery, QR, live stream, reports (planned)                   | Their module's actions, including `WEBSITE:PUBLISH`, `MEMORY_QR:REGENERATE` (owner-only by default, P10-6), `REPORTS:EXPORT`                      |
+
+- Side effects run with the permission of the action that causes them: deleting an event
+  (`EVENTS:DELETE`) still turns its tasks, expenses and bookings into whole-wedding items
+  without the caller needing those modules' permissions.
+- A list of another module's items embedded in a response (for example the event picker on a
+  task form) needs `VIEW` on that module; without it the field is omitted.
+- Guest-token and public-website routes are unchanged: they never use memberships.
+
+**Rollout over the built routes (Phases 4–9).** Decisions 0026 #14, 0028 #19 and 0032 #19 let
+any `ACTIVE` member do everything with tasks, expenses and vendors, and the Phase 4 routes
+(events, guests, invitations, RSVP) and the dashboard likewise rely only on the wedding access
+guard. Phase 10 replaces that rule; there is no fallback:
+
+1. Inventory every controller route under `/weddings/{weddingId}` (generated OpenAPI contract)
+   and give each one exactly one `(module, action)` from the table above.
+2. Enforce it centrally: the permission guard runs on every wedding route; a route without a
+   declared permission fails a contract test (only routes explicitly marked "membership
+   only" — `GET /weddings`, `GET /weddings/{id}`, `GET …/dashboard`, `GET …/members`,
+   `GET …/members/me/permissions` — are exempt).
+3. Keep the existing tenant checks: the guard's `ACTIVE` lookup and the `weddingId` filter in
+   every repository; IDs of other weddings stay `404`.
+4. Move the dashboard to per-section permissions (§6).
+5. Move guest-link sending, link retrieval, regeneration and revocation to
+   `INVITATIONS:SEND` / `INVITATIONS:MANAGE`.
+6. Tests for every route: an allowed role; a role without the permission (`403`); a revoked
+   member (`404` on the next request); a member of another wedding (`404`); a `DENY` override
+   beating the role default; an `ALLOW` override granting a Custom action.
+
+Until Phase 10 is built only `OWNER` members exist, and owners pass every check.
 
 ## 24. Pagination, filtering and sorting
 
@@ -775,15 +997,17 @@ parameters; no MongoDB operators from query strings.
 
 ## 25. Idempotency and duplicate protection
 
-| Operation              | Strategy                                                                       |
-| ---------------------- | ------------------------------------------------------------------------------ |
-| Create guest           | Normal POST; duplicate mobile produces a warning, never a block                |
-| Assign guest to event  | Partial unique active assignment; repeat returns the existing one              |
-| Send/resend invitation | Each attempt is a delivery record; optional `Idempotency-Key`; jobs idempotent |
-| Accept partner invite  | Idempotent on invitation/connection state                                      |
-| Create payment         | Optional `Idempotency-Key`                                                     |
-| Generate QR            | POST creates; regenerate is explicit                                           |
-| Report export          | Optional `Idempotency-Key`                                                     |
+| Operation              | Strategy                                                                                                                                       |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Create guest           | Normal POST; duplicate mobile produces a warning, never a block                                                                                |
+| Assign guest to event  | Partial unique active assignment; repeat returns the existing one                                                                              |
+| Send/resend invitation | Each attempt is a delivery record; optional `Idempotency-Key`; jobs idempotent                                                                 |
+| Accept partner invite  | Idempotent on invitation/connection state                                                                                                      |
+| Member invitation      | One pending per wedding and email (`409`); accept/decline/revoke are conditional on `PENDING`, so a repeat is `409`, never a second membership |
+| Ownership transfer     | One open offer per wedding; acceptance conditional on `PENDING`                                                                                |
+| Create payment         | Optional `Idempotency-Key`                                                                                                                     |
+| Generate QR            | POST creates; regenerate is explicit                                                                                                           |
+| Report export          | Optional `Idempotency-Key`                                                                                                                     |
 
 Idempotency keys are stored with the result for a bounded period (0010 #16).
 
@@ -813,15 +1037,17 @@ There is no worker or job queue (0025).
 
 ## 28. Rate limiting and abuse protection
 
-| Endpoint class           | Protection                                                       |
-| ------------------------ | ---------------------------------------------------------------- |
-| Sign-in / password reset | Per-identity limits (0015)                                       |
-| Guest invitation token   | Token and IP limits                                              |
-| Guest RSVP               | Token and IP limits + state validation                           |
-| Guest photo upload       | Token and IP limits + file size and content limits               |
-| QR endpoints             | Token and IP limits                                              |
-| Public website           | General traffic limit                                            |
-| Vendor discovery         | Provider-aware limits and permitted caching (deferred — 0032 #3) |
+| Endpoint class                      | Protection                                                                         |
+| ----------------------------------- | ---------------------------------------------------------------------------------- |
+| Sign-in / password reset            | Per-identity limits (0015)                                                         |
+| Guest invitation token              | Token and IP limits                                                                |
+| Guest RSVP                          | Token and IP limits + state validation                                             |
+| Member invitation token             | Token and IP limits, as for guest routes (0023: 120 per IP, 60 per token a minute) |
+| Create or resend member invitations | Per-wedding limit; numbers proposed in 0034 R1–R2, not contractual until confirmed |
+| Guest photo upload                  | Token and IP limits + file size and content limits                                 |
+| QR endpoints                        | Token and IP limits                                                                |
+| Public website                      | General traffic limit                                                              |
+| Vendor discovery                    | Provider-aware limits and permitted caching (deferred — 0032 #3)                   |
 
 Numeric limits beyond 0015 are set from observed traffic and abuse testing.
 
@@ -902,7 +1128,7 @@ notes absent from guest responses.
 | ---- | -------------------- |
 
 | Webhooks | Delivery webhooks for `DELIVERED`/`FAILED` |
-| Roles | Role names' default permission matrix |
+| Roles | Settled for Phase 10: default matrix and decisions P10-1–P10-8 (Database Design §8, §32). Still open: member-invitation rate limits (proposed in 0034 R1–R2) |
 | Sharing | Resource types and actions for `resource_shares` (A4) |
 | Reminders | Schedules, recipients, templates |
 | Uploads | File size and type limits; image processing |

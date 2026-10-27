@@ -11,17 +11,17 @@ The single place to see where MakeMyMarriage stands. Read this first.
 
 ## Snapshot
 
-| Item            | State                                                                           |
-| --------------- | ------------------------------------------------------------------------------- |
-| Current phase   | Phase 9 (Vendors) — done and merged (PR #31)                                    |
-| Next phase      | Phase 10 (Organizers and permissions) — not started; requires explicit approval |
-| `main`          | Scaffold and Phases 1–4, 7–9 (PRs #1–31); decisions 0001–0033; Phase 9 PRD      |
-| Open PRs        | None                                                                            |
-| Live deployment | None yet                                                                        |
+| Item            | State                                                                                                                                        |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Current phase   | Phase 9 (Vendors) — done and merged (PR #31)                                                                                                 |
+| Next phase      | Phase 10 (Organizers and permissions) — design and decision 0034 on `docs/phase-10-technical-design`, not merged; implementation not started |
+| `main`          | Scaffold and Phases 1–4, 7–9 (PRs #1–31); decisions 0001–0033; Phase 9 PRD                                                                   |
+| Open PRs        | None                                                                                                                                         |
+| Live deployment | None yet                                                                                                                                     |
 
 ### Branches
 
-Every branch below except `fix/phase-4-review` is merged into `main`; new work starts from `main`.
+Every branch below except `feat/vercel-single-runtime` and `docs/phase-10-technical-design` is merged into `main`; new work starts from `main`.
 
 | Branch                            | Contains                                                                                | State             |
 | --------------------------------- | --------------------------------------------------------------------------------------- | ----------------- |
@@ -54,6 +54,7 @@ Every branch below except `fix/phase-4-review` is merged into `main`; new work s
 | `docs/phase-9-vendors`            | Decisions 0032 and 0033, the Phase 9 PRD and the spec updates                           | Merged (direct)   |
 | `feat/phase-9`                    | Phase 9: vendors, bookings, expense linking and dashboard summary                       | Merged (PR #31)   |
 | `chore/ignore-codex-config`       | `.gitignore` ignores the local Codex MCP configuration (`.codex/config.toml`)           | Merged (direct)   |
+| `docs/phase-10-technical-design`  | Decision 0034, Phase 10 spec updates, amendments to 0012, 0019, 0022, 0026, 0028, 0032  | Pushed, no PR     |
 
 The merged branches can be deleted, on GitHub and locally.
 
@@ -257,6 +258,7 @@ checked only for loading the saved values.
 
 | Date       | Change                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-27 | Phase 10 technical design on `docs/phase-10-technical-design` (pushed, not merged): System, Database and API Design and PRD §24 updated with the approved role matrix and P10-1–P10-8; decision 0034 records them, the owner-seat migration steps and the end of any-member access, and amends 0019, 0022, 0026 #14, 0028 #19 and 0032 #19 (supplements 0012). Interpretations R1–R6, including the invitation rate limits, are proposed and await confirmation. A4/A5 stay open. Implementation not started.                                                                                                                                                                                                                                   |
 | 2026-10-24 | Phase 9 (Vendors) implementation merged to `main` by PR #31 (`668088f`). Includes vendor and booking management, expense vendor linking and dashboard summaries. API/web typechecks, 68 API unit tests, 9 vendor API integration tests, 316 web tests and the Chrome Phase 9 end-to-end flow passed before merge. Phase 10 (Organizers and permissions) is next and has not started.                                                                                                                                                                                                                                                                                                                                                            |
 | 2026-10-24 | `docs/phase-9-vendors` and `chore/ignore-codex-config` merged into `main` and pushed directly (c1a2831), without pull requests, at the product owner's instruction (no GitHub CLI on this machine); CI runs after the push. Phase 9 implementation assigned to Codex with a prepared prompt.                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | 2026-10-24 | Decision 0033: Phase 9 Stitch screens V1–V9 approved after two review rounds (the first round, with a booking delete button, the unapproved "Expenses & Budget" shell and invented features, is not approved). Cancelling a booking needs no confirmation; the event shortcut stays visible with a "No vendors yet" state; no Undo toast; a reopening note; the refused-delete dialog lists active bookings; no total count. Shell and small fixes applied in code; wording draft. Phase 9 PRD §4.2 and §10 updated. Implementation awaits approval.                                                                                                                                                                                            |

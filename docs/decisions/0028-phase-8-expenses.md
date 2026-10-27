@@ -1,6 +1,7 @@
 # 0028 — Phase 8: expenses
 
-**Status:** Accepted (approved by the product owner on 2026-10-20). Answers P8-EXP-Q01–Q27,
+**Status:** Accepted (approved by the product owner on 2026-10-20; #19 amended by
+[0034](0034-phase-10-authorization.md) on 2026-10-27). Answers P8-EXP-Q01–Q27,
 C1–C3 and P1–P3 from the Phase 8 discovery; the full specification is the
 [Phase 8 PRD v1.0](../specs/PHASE_8_PRD_v1.0.md).
 
@@ -88,6 +89,10 @@ routes (Database Design §12, API Design §12) left open.
     expenses and manage their payments. Everything else returns `404`, as for other wedding
     routes. Expenses are shared with the connected partner with no private option (0009) and
     never appear on the public website. Fine-grained permissions arrive in Phase 10.
+    **Amended by [0034](0034-phase-10-authorization.md):** from Phase 10 these actions need
+    the `EXPENSES` permissions (API Design §23). A member without the permission gets `403`.
+    Any `ACTIVE` member can still be chosen as a payer, and being chosen grants no access
+    (P10-8).
 
 ### Screens
 

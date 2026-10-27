@@ -31,6 +31,7 @@ Production-ready wedding planning and management platform for Indian weddings.
 | 1.2     | 2026-10-10 | Consolidated master: PRD v1.1 plus decisions 0008–0018 and the product-owner answers of 2026-10-10 (Q1–Q8, invitation token, smaller rules). |
 | 1.2     | 2026-10-20 | Decision 0028: §15 and §18 updated for Phase 8 (expenses).                                                                                   |
 | 1.2     | 2026-10-24 | Decision 0032: §15, §17, §18 and §30 updated for Phase 9 (vendors and bookings; discovery and attachments deferred).                         |
+| 1.2     | 2026-10-27 | Phase 10 requirements and decisions P10-1–P10-8 (product owner): §24 default role matrix approved; §30 updated.                              |
 
 ## 1. Executive summary
 
@@ -423,13 +424,49 @@ Decisions 0009, 0011 and 0012.
 
 ## 24. Organizer and permission management
 
-- Owners manage organizers; different organizers can have different permissions.
-- Permissions support View, Create, Edit, Delete and Manage/Configure where appropriate.
-  Example: an organizer may manage guests and tasks but have no expense or settings access.
-- Predefined roles: Owner, Admin, Organizer, Editor, Viewer, customizable per member.
-- Authorization is enforced server-side.
-- **Deferred:** exact default permission matrix for each role beyond the approved Owner
-  behaviour.
+Approved Phase 10 requirements and decisions P10-1–P10-8 (product owner, 2026-10-27; decision
+0034); technical detail in Database Design §7–§8 and §32, System Design §7.2–§7.11 and API Design §7.1.
+
+- Owners manage organizers; different organizers can have different permissions. Owners
+  invite family, friends, planners and coordinators by email; invitations need acceptance and
+  expire after seven days. No email verification is required to accept (P10-1, P10-2).
+- Predefined roles: Owner, Admin, Organizer, Editor, Viewer, each with default permissions
+  per module, customizable per member with allow/deny overrides (deny wins).
+- **Default role matrix (approved):**
+
+  | Module                         | Owner | Admin  | Organizer | Editor | Viewer |
+  | ------------------------------ | ----- | ------ | --------- | ------ | ------ |
+  | Wedding settings               | Full  | Custom | No        | No     | No     |
+  | Events                         | Full  | Manage | Manage    | Edit   | View   |
+  | Guests                         | Full  | Manage | Manage    | Edit   | View   |
+  | Invitations and RSVP           | Full  | Manage | Manage    | Edit   | View   |
+  | Tasks                          | Full  | Manage | Manage    | Edit   | View   |
+  | Expenses                       | Full  | Manage | View      | Edit   | View   |
+  | Vendors                        | Full  | Manage | Manage    | Edit   | View   |
+  | Wedding website                | Full  | Custom | No        | No     | No     |
+  | Gallery and memories           | Full  | Manage | Custom    | Custom | View   |
+  | Memory QR codes                | Full  | Manage | No        | No     | No     |
+  | Live streaming                 | Full  | Manage | Custom    | Custom | View   |
+  | Reports and exports            | Full  | Custom | Custom    | No     | No     |
+  | Organizer management           | Full  | Custom | No        | No     | No     |
+  | Audit history                  | Full  | Custom | No        | No     | No     |
+  | Partner connection and sharing | Full  | No     | No        | No     | No     |
+
+  Custom means no access until explicitly granted.
+
+- Sensitive actions are never implied by ordinary access: sending guest invitation links and
+  regenerating memory QR codes are owner-only by default and can be granted per member
+  (P10-6). Ownership transfer, wedding archive, partner actions and changes to owners are
+  owner-only.
+- An Admin cannot assign the Admin role or manage other Admins (P10-4).
+- A wedding has at most two owners. An owner can transfer only their own ownership seat; the
+  recipient must accept, and the transferring owner becomes an Admin (P10-5).
+- A removed member loses access immediately; their wedding records stay. A removed member can
+  be invited again; their access returns only when they accept, with earlier custom
+  permissions cleared (P10-3).
+- Dashboard sections show only to members who can view that module; any active member can be
+  chosen as a task assignee or payer without gaining access (P10-8).
+- Authorization is enforced server-side for every protected operation.
 
 ## 25. Settings and management dashboard
 
@@ -515,7 +552,7 @@ Public website: Home, Our Story, Events, RSVP, Gallery, Live Stream, Share Your 
 | Guest fields beyond the core set | Deferred until a real need is established.                              |
 | Vendor management depth          | Decided for Phase 9 (0032); discovery and attachments deferred.         |
 | Reminder cadence and channels    | Engine included; schedules, channels and customization deferred.        |
-| Roles and permission templates   | Granular authorization required; default matrix deferred.               |
+| Roles and permission templates   | Default matrix approved for Phase 10 (§24, 2026-10-27).                 |
 | QR expiry                        | Deferred. Revoke and regenerate are approved.                           |
 | Invitation token expiry          | No automatic expiry in V1 (0017); revisit only through a new decision.  |
 
