@@ -26,6 +26,23 @@ export const AuditAction = {
   VendorBookingUpdated: 'VENDOR_BOOKING_UPDATED',
   VendorBookingStatusChanged: 'VENDOR_BOOKING_STATUS_CHANGED',
   VendorBookingEventUnlinked: 'VENDOR_BOOKING_EVENT_UNLINKED',
+  /** Phase 10: membership, invitation and ownership changes (Database Design §22). */
+  MemberInvitationCreated: 'MEMBER_INVITATION_CREATED',
+  MemberInvitationResent: 'MEMBER_INVITATION_RESENT',
+  MemberInvitationAccepted: 'MEMBER_INVITATION_ACCEPTED',
+  MemberInvitationDeclined: 'MEMBER_INVITATION_DECLINED',
+  MemberInvitationExpired: 'MEMBER_INVITATION_EXPIRED',
+  MemberInvitationRevoked: 'MEMBER_INVITATION_REVOKED',
+  MemberRoleChanged: 'MEMBER_ROLE_CHANGED',
+  MemberPermissionsChanged: 'MEMBER_PERMISSIONS_CHANGED',
+  MemberRemoved: 'MEMBER_REMOVED',
+  MemberReactivated: 'MEMBER_REACTIVATED',
+  OwnershipTransferOffered: 'OWNERSHIP_TRANSFER_OFFERED',
+  OwnershipTransferDeclined: 'OWNERSHIP_TRANSFER_DECLINED',
+  OwnershipTransferCancelled: 'OWNERSHIP_TRANSFER_CANCELLED',
+  OwnershipTransferred: 'OWNERSHIP_TRANSFERRED',
+  /** A refused management action (§8.3); never written for ordinary 404s. */
+  PermissionDenied: 'PERMISSION_DENIED',
 } as const;
 
 export type AuditAction = (typeof AuditAction)[keyof typeof AuditAction];
@@ -38,6 +55,23 @@ export interface AuditEntry {
   resourceType: string;
   resourceId: string;
   metadata?: Record<string, unknown>;
+}
+
+/** Filters of the audit history view (API Design §7.1); `from` and `to` are instants. */
+export interface AuditListQuery {
+  action?: AuditAction;
+  resourceType?: string;
+  actorUserId?: string;
+  from?: Date;
+  /** Exclusive. */
+  to?: Date;
+  limit: number;
+  cursor?: string;
+}
+
+export interface AuditPage {
+  records: AuditRecord[];
+  nextCursor: string | null;
 }
 
 export interface AuditRecord extends AuditEntry {

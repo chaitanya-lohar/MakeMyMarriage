@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { AuditModule } from '../audit/index.js';
 import { PermissionGuard } from './api/permission.guard.js';
 import { WeddingAccessGuard } from './api/wedding-access.guard.js';
 import { MembershipsService } from './application/services/memberships.service.js';
@@ -19,6 +20,7 @@ import {
     MongooseModule.forFeature([
       { name: WeddingMembershipRecord.name, schema: WeddingMembershipSchema },
     ]),
+    AuditModule,
   ],
   providers: [
     WeddingMembershipsRepository,

@@ -11,9 +11,13 @@ export {
 } from './api/permission.decorators.js';
 export { MemberType, MembershipRole, MembershipStatus } from './domain/enums/membership.js';
 export { PermissionAction, PermissionEffect, PermissionModule } from './domain/enums/permission.js';
-export { EffectivePermissions } from './domain/rules/evaluate-permissions.js';
+export { EffectivePermissions, evaluatePermissions } from './domain/rules/evaluate-permissions.js';
 export {
   DEFAULT_ROLE_MATRIX,
+  defaultActions,
+  isManagementAction,
+  isModuleAction,
+  isProtectedModule,
   MODULE_ACTIONS,
   OWNER_ONLY_BY_DEFAULT,
   ProtectedOperation,

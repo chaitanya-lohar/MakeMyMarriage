@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { Transaction } from '../../../../infrastructure/database/transaction.js';
+import type { MembershipStatus } from '../../domain/enums/membership.js';
 import type { Membership } from '../../domain/types/membership.js';
 import { WeddingMembershipsRepository } from '../../infrastructure/repositories/wedding-memberships.repository.js';
 
@@ -24,6 +25,40 @@ export class MembershipsService {
   /** The user's ACTIVE membership of a wedding, or null — the basis of every access check. */
   findActive(userId: string, weddingId: string): Promise<Membership | null> {
     return this.memberships.findActive(userId, weddingId);
+  }
+
+  /** A wedding's memberships with the given status. */
+  listForWedding(weddingId: string, status: MembershipStatus): Promise<Membership[]> {
+    return this.memberships.listForWedding(weddingId, status);
+  }
+
+  /** One membership of the wedding, whatever its status, or null. */
+  findInWedding(weddingId: string, membershipId: string): Promise<Membership | null> {
+    return this.memberships.findInWedding(weddingId, membershipId);
+  }
+
+  /** Sets an ACTIVE non-owner member's role and overrides; null when no longer one. */
+  updateAccess(
+    weddingId: string,
+    membershipId: string,
+    access: Pick<Membership, 'role' | 'permissionOverrides'>,
+  ): Promise<Membership | null> {
+    return this.memberships.updateAccess(weddingId, membershipId, access);
+  }
+
+  /** Revokes an ACTIVE non-owner member; null when no longer one. Their data stays. */
+  revoke(
+    weddingId: string,
+    membershipId: string,
+    revokedBy: string,
+    now: Date = new Date(),
+  ): Promise<Membership | null> {
+    return this.memberships.revoke(weddingId, membershipId, revokedBy, now);
+  }
+
+  /** The user's active memberships, oldest first. */
+  listActiveForUser(userId: string): Promise<Membership[]> {
+    return this.memberships.listActiveForUser(userId);
   }
 
   /** IDs of the weddings in which the user has an ACTIVE membership, oldest first. */

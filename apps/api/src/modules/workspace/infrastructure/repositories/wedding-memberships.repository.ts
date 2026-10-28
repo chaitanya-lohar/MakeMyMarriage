@@ -91,6 +91,78 @@ export class WeddingMembershipsRepository {
     return document ? toMembership(document) : null;
   }
 
+  /** A wedding's memberships with the given status, in no particular order. */
+  async listForWedding(weddingId: string, status: MembershipStatus): Promise<Membership[]> {
+    if (!isValidObjectId(weddingId)) return [];
+    const documents = await this.memberships.find({
+      weddingId: new Types.ObjectId(weddingId),
+      status,
+    });
+    return documents.map(toMembership);
+  }
+
+  /** One membership of the wedding, whatever its status, or null. */
+  async findInWedding(weddingId: string, membershipId: string): Promise<Membership | null> {
+    if (!isValidObjectId(weddingId) || !isValidObjectId(membershipId)) return null;
+    const document = await this.memberships.findOne({
+      _id: new Types.ObjectId(membershipId),
+      weddingId: new Types.ObjectId(weddingId),
+    });
+    return document ? toMembership(document) : null;
+  }
+
+  /**
+   * Sets an ACTIVE non-owner membership's role and overrides; null when it is no longer one
+   * (Database Design §7.2: owner rows never change here).
+   */
+  async updateAccess(
+    weddingId: string,
+    membershipId: string,
+    access: Pick<Membership, 'role' | 'permissionOverrides'>,
+  ): Promise<Membership | null> {
+    if (!isValidObjectId(weddingId) || !isValidObjectId(membershipId)) return null;
+    const document = await this.memberships.findOneAndUpdate(
+      {
+        _id: new Types.ObjectId(membershipId),
+        weddingId: new Types.ObjectId(weddingId),
+        memberType: MemberType.Member,
+        status: MembershipStatus.Active,
+      },
+      access.permissionOverrides.length > 0
+        ? { $set: { role: access.role, permissionOverrides: access.permissionOverrides } }
+        : { $set: { role: access.role }, $unset: { permissionOverrides: 1 } },
+      { new: true },
+    );
+    return document ? toMembership(document) : null;
+  }
+
+  /** Revokes an ACTIVE non-owner membership; null when it is no longer one. Deletes nothing. */
+  async revoke(
+    weddingId: string,
+    membershipId: string,
+    revokedBy: string,
+    now: Date,
+  ): Promise<Membership | null> {
+    if (!isValidObjectId(weddingId) || !isValidObjectId(membershipId)) return null;
+    const document = await this.memberships.findOneAndUpdate(
+      {
+        _id: new Types.ObjectId(membershipId),
+        weddingId: new Types.ObjectId(weddingId),
+        memberType: MemberType.Member,
+        status: MembershipStatus.Active,
+      },
+      {
+        $set: {
+          status: MembershipStatus.Revoked,
+          revokedAt: now,
+          revokedBy: new Types.ObjectId(revokedBy),
+        },
+      },
+      { new: true },
+    );
+    return document ? toMembership(document) : null;
+  }
+
   /** The user's active memberships, oldest first. */
   async listActiveForUser(userId: string): Promise<Membership[]> {
     if (!isValidObjectId(userId)) return [];

@@ -31,3 +31,5 @@ export const AuditLogSchema = SchemaFactory.createForClass(AuditLogRecord);
 
 // A resource's history, newest first.
 AuditLogSchema.index({ resourceType: 1, resourceId: 1, createdAt: -1 });
+// A wedding's audit history, newest first (Phase 10, Database Design §20).
+AuditLogSchema.index({ weddingId: 1, createdAt: -1, _id: -1 });
