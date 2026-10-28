@@ -5,7 +5,13 @@ import {
   ApiEnvelopeResponse,
   ApiErrorResponses,
 } from '../../../../common/http/api-envelope.decorator.js';
-import { WeddingAccessGuard } from '../../../workspace/index.js';
+import {
+  MembershipOnly,
+  PermissionAction,
+  PermissionModule,
+  RequirePermission,
+  WeddingAccessGuard,
+} from '../../../workspace/index.js';
 import { CreateWeddingUseCase } from '../../application/use-cases/create-wedding.use-case.js';
 import { GetWeddingUseCase } from '../../application/use-cases/get-wedding.use-case.js';
 import { ListWeddingsUseCase } from '../../application/use-cases/list-weddings.use-case.js';
@@ -57,6 +63,7 @@ export class WeddingsController {
   }
 
   @Get(':weddingId')
+  @MembershipOnly()
   @UseGuards(WeddingAccessGuard)
   @ApiOperation({ summary: 'Get a wedding' })
   @ApiEnvelopeResponse(200, WeddingDto)
@@ -69,6 +76,7 @@ export class WeddingsController {
   }
 
   @Patch(':weddingId')
+  @RequirePermission(PermissionModule.WeddingSettings, PermissionAction.Edit)
   @UseGuards(WeddingAccessGuard)
   @ApiOperation({ summary: "Update a wedding's details" })
   @ApiEnvelopeResponse(200, WeddingDto)

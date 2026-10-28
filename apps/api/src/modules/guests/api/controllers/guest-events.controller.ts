@@ -14,7 +14,12 @@ import {
   ApiEnvelopeResponse,
   ApiErrorResponses,
 } from '../../../../common/http/api-envelope.decorator.js';
-import { WeddingAccessGuard } from '../../../workspace/index.js';
+import {
+  PermissionAction,
+  PermissionModule,
+  RequirePermission,
+  WeddingAccessGuard,
+} from '../../../workspace/index.js';
 import { GuestAssignmentsUseCase } from '../../application/use-cases/guest-assignments.use-case.js';
 import { UpdateRsvpUseCase } from '../../application/use-cases/update-rsvp.use-case.js';
 import { GuestEventDto, UpdateRsvpDto } from '../dto/guest-event.dto.js';
@@ -36,6 +41,7 @@ export class GuestEventsController {
   ) {}
 
   @Patch(':guestEventId')
+  @RequirePermission(PermissionModule.Invitations, PermissionAction.Edit)
   @ApiOperation({
     summary: 'Organizer RSVP update; any of the four combinations, including a reset to PENDING',
   })
@@ -59,6 +65,7 @@ export class GuestEventsController {
   }
 
   @Delete(':guestEventId')
+  @RequirePermission(PermissionModule.Guests, PermissionAction.Delete)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Remove the assignment; it is kept as history with its RSVP' })
   @ApiEnvelopeResponse(204)

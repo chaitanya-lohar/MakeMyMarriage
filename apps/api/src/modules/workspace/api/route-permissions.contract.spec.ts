@@ -96,65 +96,6 @@ const MEMBERSHIP_ONLY_ROUTES = new Set([
   'GET /weddings/:weddingId/members/me/permissions',
 ]);
 
-/**
- * TODO(Phase 10 slice 2): the Phase 3–9 routes, built before permissions existed. Slice 2
- * annotates each with its permission from API Design §23 and removes it here; the list must
- * end empty. The ratchet below fails when an entry is annotated but still listed, or no
- * longer exists, so the list can only shrink, and every new route is checked in full.
- */
-const NOT_YET_ANNOTATED = new Set([
-  'DELETE /weddings/:weddingId/events/:eventId',
-  'DELETE /weddings/:weddingId/expenses/:expenseId',
-  'DELETE /weddings/:weddingId/expenses/:expenseId/payments/:paymentId',
-  'DELETE /weddings/:weddingId/guest-events/:guestEventId',
-  'DELETE /weddings/:weddingId/guests/:guestId',
-  'DELETE /weddings/:weddingId/tasks/:taskId',
-  'DELETE /weddings/:weddingId/tasks/:taskId/assignees/:userId',
-  'DELETE /weddings/:weddingId/vendors/:vendorId',
-  'GET /weddings/:weddingId',
-  'GET /weddings/:weddingId/dashboard',
-  'GET /weddings/:weddingId/events',
-  'GET /weddings/:weddingId/events/:eventId',
-  'GET /weddings/:weddingId/expenses',
-  'GET /weddings/:weddingId/expenses/:expenseId',
-  'GET /weddings/:weddingId/expenses/:expenseId/payments',
-  'GET /weddings/:weddingId/guests',
-  'GET /weddings/:weddingId/guests/:guestId',
-  'GET /weddings/:weddingId/guests/:guestId/events',
-  'GET /weddings/:weddingId/guests/:guestId/invitation/deliveries',
-  'GET /weddings/:weddingId/guests/:guestId/invitation/link',
-  'GET /weddings/:weddingId/tasks',
-  'GET /weddings/:weddingId/tasks/:taskId',
-  'GET /weddings/:weddingId/tasks/:taskId/activities',
-  'GET /weddings/:weddingId/vendors',
-  'GET /weddings/:weddingId/vendors/:vendorId',
-  'GET /weddings/:weddingId/vendors/:vendorId/bookings',
-  'GET /weddings/:weddingId/vendors/:vendorId/bookings/:bookingId',
-  'PATCH /weddings/:weddingId',
-  'PATCH /weddings/:weddingId/events/:eventId',
-  'PATCH /weddings/:weddingId/expenses/:expenseId',
-  'PATCH /weddings/:weddingId/expenses/:expenseId/payments/:paymentId',
-  'PATCH /weddings/:weddingId/guest-events/:guestEventId',
-  'PATCH /weddings/:weddingId/guests/:guestId',
-  'PATCH /weddings/:weddingId/tasks/:taskId',
-  'PATCH /weddings/:weddingId/vendors/:vendorId',
-  'PATCH /weddings/:weddingId/vendors/:vendorId/bookings/:bookingId',
-  'POST /weddings/:weddingId/events',
-  'POST /weddings/:weddingId/expenses',
-  'POST /weddings/:weddingId/expenses/:expenseId/payments',
-  'POST /weddings/:weddingId/guests',
-  'POST /weddings/:weddingId/guests/:guestId/events',
-  'POST /weddings/:weddingId/guests/:guestId/invitation',
-  'POST /weddings/:weddingId/guests/:guestId/invitation/regenerate',
-  'POST /weddings/:weddingId/guests/:guestId/invitation/resend',
-  'POST /weddings/:weddingId/guests/:guestId/invitation/revoke',
-  'POST /weddings/:weddingId/guests/:guestId/invitation/send',
-  'POST /weddings/:weddingId/tasks',
-  'POST /weddings/:weddingId/tasks/:taskId/assignees',
-  'POST /weddings/:weddingId/vendors',
-  'POST /weddings/:weddingId/vendors/:vendorId/bookings',
-]);
-
 const isWeddingRoute = (route: RouteInfo) => route.key.includes('/:weddingId');
 const declarations = (route: RouteInfo) =>
   Number(!!route.permission) + Number(route.membershipOnly);
@@ -169,7 +110,6 @@ describe('route-permission contract (API Design §23)', async () => {
 
   it('declares exactly one permission, or membership only, on every wedding route', () => {
     const offending = weddingRoutes
-      .filter((route) => !NOT_YET_ANNOTATED.has(route.key))
       .filter((route) => declarations(route) !== 1)
       .map((route) => route.key);
     expect(offending).toEqual([]);
@@ -207,14 +147,5 @@ describe('route-permission contract (API Design §23)', async () => {
       .filter((route) => route.membershipOnly && !MEMBERSHIP_ONLY_ROUTES.has(route.key))
       .map((route) => route.key);
     expect(offending).toEqual([]);
-  });
-
-  it('only shrinks the not-yet-annotated list (TODO Phase 10 slice 2)', () => {
-    const byKey = new Map(routes.map((route) => [route.key, route]));
-    const stale = [...NOT_YET_ANNOTATED].filter((key) => {
-      const route = byKey.get(key);
-      return !route || declarations(route) > 0;
-    });
-    expect(stale).toEqual([]);
   });
 });

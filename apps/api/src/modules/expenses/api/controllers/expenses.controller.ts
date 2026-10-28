@@ -19,7 +19,12 @@ import {
   ApiPaginatedResponse,
 } from '../../../../common/http/api-envelope.decorator.js';
 import { Paginated } from '../../../../common/http/paginated.js';
-import { WeddingAccessGuard } from '../../../workspace/index.js';
+import {
+  PermissionAction,
+  PermissionModule,
+  RequirePermission,
+  WeddingAccessGuard,
+} from '../../../workspace/index.js';
 import { ExpensesService } from '../../application/services/expenses.service.js';
 import { ExpensePaymentsUseCase } from '../../application/use-cases/expense-payments.use-case.js';
 import { ListExpensesUseCase } from '../../application/use-cases/list-expenses.use-case.js';
@@ -85,6 +90,7 @@ export class ExpensesController {
   }
 
   @Get()
+  @RequirePermission(PermissionModule.Expenses, PermissionAction.View)
   @ApiOperation({
     summary: 'List, filter and search expenses, newest first, with totals for the filters',
   })
@@ -116,6 +122,7 @@ export class ExpensesController {
   }
 
   @Post()
+  @RequirePermission(PermissionModule.Expenses, PermissionAction.Create)
   @ApiOperation({ summary: 'Create an expense; it starts PENDING with nothing paid' })
   @ApiEnvelopeResponse(201, ExpenseDto)
   @ApiErrorResponses(
@@ -141,6 +148,7 @@ export class ExpensesController {
   }
 
   @Get(':expenseId')
+  @RequirePermission(PermissionModule.Expenses, PermissionAction.View)
   @ApiOperation({ summary: 'Get an expense' })
   @ApiEnvelopeResponse(200, ExpenseDto)
   @ApiErrorResponses({ status: 401, description: 'Not signed in' }, notFound)
@@ -152,6 +160,7 @@ export class ExpensesController {
   }
 
   @Patch(':expenseId')
+  @RequirePermission(PermissionModule.Expenses, PermissionAction.Edit)
   @ApiOperation({ summary: 'Update an expense; null clears an optional field' })
   @ApiEnvelopeResponse(200, ExpenseDto)
   @ApiErrorResponses(
@@ -173,6 +182,7 @@ export class ExpensesController {
   }
 
   @Delete(':expenseId')
+  @RequirePermission(PermissionModule.Expenses, PermissionAction.Delete)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Soft-delete an expense; it and its payments are kept, and audited' })
   @ApiEnvelopeResponse(204)
@@ -186,6 +196,7 @@ export class ExpensesController {
   }
 
   @Get(':expenseId/payments')
+  @RequirePermission(PermissionModule.Expenses, PermissionAction.View)
   @ApiOperation({ summary: "The expense's payments, oldest first" })
   @ApiEnvelopeResponse(200, [PaymentDto])
   @ApiErrorResponses({ status: 401, description: 'Not signed in' }, notFound)
@@ -199,6 +210,7 @@ export class ExpensesController {
   }
 
   @Post(':expenseId/payments')
+  @RequirePermission(PermissionModule.Expenses, PermissionAction.Create)
   @ApiOperation({ summary: 'Add a payment; the paid total and status update with it' })
   @ApiEnvelopeResponse(201, PaymentDto)
   @ApiErrorResponses(
@@ -219,6 +231,7 @@ export class ExpensesController {
   }
 
   @Patch(':expenseId/payments/:paymentId')
+  @RequirePermission(PermissionModule.Expenses, PermissionAction.Edit)
   @ApiOperation({ summary: "Replace a payment's details; the paid total and status update" })
   @ApiEnvelopeResponse(200, PaymentDto)
   @ApiErrorResponses(
@@ -246,6 +259,7 @@ export class ExpensesController {
   }
 
   @Delete(':expenseId/payments/:paymentId')
+  @RequirePermission(PermissionModule.Expenses, PermissionAction.Delete)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Remove a payment; the audit entry keeps its details' })
   @ApiEnvelopeResponse(204)

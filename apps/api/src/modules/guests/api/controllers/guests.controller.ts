@@ -21,7 +21,12 @@ import {
   ApiPaginatedResponse,
 } from '../../../../common/http/api-envelope.decorator.js';
 import { Paginated } from '../../../../common/http/paginated.js';
-import { WeddingAccessGuard } from '../../../workspace/index.js';
+import {
+  PermissionAction,
+  PermissionModule,
+  RequirePermission,
+  WeddingAccessGuard,
+} from '../../../workspace/index.js';
 import { GuestInvitations } from '../../application/ports/guest-invitations.port.js';
 import { GuestsService } from '../../application/services/guests.service.js';
 import { GuestAssignmentsUseCase } from '../../application/use-cases/guest-assignments.use-case.js';
@@ -76,6 +81,7 @@ export class GuestsController {
   }
 
   @Get()
+  @RequirePermission(PermissionModule.Guests, PermissionAction.View)
   @ApiOperation({ summary: 'List, search and filter guests, alphabetically' })
   @ApiPaginatedResponse(GuestDto)
   @ApiErrorResponses(
@@ -98,6 +104,7 @@ export class GuestsController {
   }
 
   @Post()
+  @RequirePermission(PermissionModule.Guests, PermissionAction.Create)
   @ApiOperation({ summary: 'Create a guest; warns about other guests with the same mobile' })
   @ApiEnvelopeResponse(201, GuestSaveResultDto)
   @ApiErrorResponses(
@@ -122,6 +129,7 @@ export class GuestsController {
   }
 
   @Get(':guestId')
+  @RequirePermission(PermissionModule.Guests, PermissionAction.View)
   @ApiOperation({ summary: 'Get a guest' })
   @ApiEnvelopeResponse(200, GuestDto)
   @ApiErrorResponses({ status: 401, description: 'Not signed in' }, notFound)
@@ -136,6 +144,7 @@ export class GuestsController {
   }
 
   @Patch(':guestId')
+  @RequirePermission(PermissionModule.Guests, PermissionAction.Edit)
   @ApiOperation({ summary: 'Update a guest; null clears an optional field' })
   @ApiEnvelopeResponse(200, GuestSaveResultDto)
   @ApiErrorResponses(
@@ -155,6 +164,7 @@ export class GuestsController {
   }
 
   @Delete(':guestId')
+  @RequirePermission(PermissionModule.Guests, PermissionAction.Delete)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Soft-delete a guest; their RSVP and invitation history is kept' })
   @ApiEnvelopeResponse(204)
@@ -168,6 +178,7 @@ export class GuestsController {
   }
 
   @Get(':guestId/events')
+  @RequirePermission(PermissionModule.Guests, PermissionAction.View)
   @ApiOperation({ summary: "The guest's active assignments, in event order" })
   @ApiEnvelopeResponse(200, [GuestEventDto])
   @ApiErrorResponses({ status: 401, description: 'Not signed in' }, notFound)
@@ -180,6 +191,7 @@ export class GuestsController {
   }
 
   @Post(':guestId/events')
+  @RequirePermission(PermissionModule.Guests, PermissionAction.Create)
   @ApiOperation({
     summary: 'Assign the guest to an event (201), or return the existing assignment (200)',
   })

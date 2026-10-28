@@ -19,7 +19,12 @@ import {
   ApiPaginatedResponse,
 } from '../../../../common/http/api-envelope.decorator.js';
 import { Paginated } from '../../../../common/http/paginated.js';
-import { WeddingAccessGuard } from '../../../workspace/index.js';
+import {
+  PermissionAction,
+  PermissionModule,
+  RequirePermission,
+  WeddingAccessGuard,
+} from '../../../workspace/index.js';
 import { VendorsService } from '../../application/services/vendors.service.js';
 import {
   BookingDetailsDto,
@@ -41,6 +46,7 @@ import type { VendorDetails, BookingDetails } from '../../domain/types/vendor.js
 export class VendorsController {
   constructor(private readonly vendors: VendorsService) {}
   @Get()
+  @RequirePermission(PermissionModule.Vendors, PermissionAction.View)
   @ApiOperation({ summary: 'List vendors in name order' })
   @ApiPaginatedResponse(VendorViewDto, VendorListMetaDto)
   async list(@Param('weddingId') w: string, @Query() q: VendorListQueryDto) {
@@ -51,6 +57,7 @@ export class VendorsController {
     );
   }
   @Post()
+  @RequirePermission(PermissionModule.Vendors, PermissionAction.Create)
   @ApiEnvelopeResponse(201, VendorDto)
   @ApiErrorResponses(
     { status: 400, description: 'VALIDATION_FAILED' },
@@ -63,13 +70,16 @@ export class VendorsController {
   ) {
     return VendorDto.from(await this.vendors.create(w, a.userId, this.details(b) as VendorDetails));
   }
-  @Get(':vendorId') @ApiEnvelopeResponse(200, VendorViewDto) async get(
-    @Param('weddingId') w: string,
-    @Param('vendorId') id: string,
-  ) {
+  @Get(':vendorId')
+  @RequirePermission(PermissionModule.Vendors, PermissionAction.View)
+  @ApiEnvelopeResponse(200, VendorViewDto)
+  async get(@Param('weddingId') w: string, @Param('vendorId') id: string) {
     return VendorViewDto.fromView(await this.vendors.get(w, id));
   }
-  @Patch(':vendorId') @ApiEnvelopeResponse(200, VendorDto) async update(
+  @Patch(':vendorId')
+  @RequirePermission(PermissionModule.Vendors, PermissionAction.Edit)
+  @ApiEnvelopeResponse(200, VendorDto)
+  async update(
     @Param('weddingId') w: string,
     @Param('vendorId') id: string,
     @CurrentAuth() a: RequestAuth,
@@ -77,20 +87,27 @@ export class VendorsController {
   ) {
     return VendorDto.from(await this.vendors.update(w, id, a.userId, this.details(b)));
   }
-  @Delete(':vendorId') @HttpCode(HttpStatus.NO_CONTENT) @ApiEnvelopeResponse(204) async delete(
+  @Delete(':vendorId')
+  @RequirePermission(PermissionModule.Vendors, PermissionAction.Delete)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiEnvelopeResponse(204)
+  async delete(
     @Param('weddingId') w: string,
     @Param('vendorId') id: string,
     @CurrentAuth() a: RequestAuth,
   ) {
     await this.vendors.delete(w, id, a.userId);
   }
-  @Get(':vendorId/bookings') @ApiEnvelopeResponse(200, [BookingDto]) async bookings(
-    @Param('weddingId') w: string,
-    @Param('vendorId') id: string,
-  ) {
+  @Get(':vendorId/bookings')
+  @RequirePermission(PermissionModule.Vendors, PermissionAction.View)
+  @ApiEnvelopeResponse(200, [BookingDto])
+  async bookings(@Param('weddingId') w: string, @Param('vendorId') id: string) {
     return (await this.vendors.bookings(w, id)).map((booking) => BookingDto.from(booking));
   }
-  @Post(':vendorId/bookings') @ApiEnvelopeResponse(201, BookingDto) async createBooking(
+  @Post(':vendorId/bookings')
+  @RequirePermission(PermissionModule.Vendors, PermissionAction.Create)
+  @ApiEnvelopeResponse(201, BookingDto)
+  async createBooking(
     @Param('weddingId') w: string,
     @Param('vendorId') id: string,
     @CurrentAuth() a: RequestAuth,
@@ -100,14 +117,20 @@ export class VendorsController {
       await this.vendors.createBooking(w, id, a.userId, this.booking(b, true) as BookingDetails),
     );
   }
-  @Get(':vendorId/bookings/:bookingId') @ApiEnvelopeResponse(200, BookingDto) async getBooking(
+  @Get(':vendorId/bookings/:bookingId')
+  @RequirePermission(PermissionModule.Vendors, PermissionAction.View)
+  @ApiEnvelopeResponse(200, BookingDto)
+  async getBooking(
     @Param('weddingId') w: string,
     @Param('vendorId') id: string,
     @Param('bookingId') bid: string,
   ) {
     return BookingDto.from(await this.vendors.booking(w, id, bid));
   }
-  @Patch(':vendorId/bookings/:bookingId') @ApiEnvelopeResponse(200, BookingDto) async updateBooking(
+  @Patch(':vendorId/bookings/:bookingId')
+  @RequirePermission(PermissionModule.Vendors, PermissionAction.Edit)
+  @ApiEnvelopeResponse(200, BookingDto)
+  async updateBooking(
     @Param('weddingId') w: string,
     @Param('vendorId') id: string,
     @Param('bookingId') bid: string,

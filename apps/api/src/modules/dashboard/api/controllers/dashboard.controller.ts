@@ -4,7 +4,7 @@ import {
   ApiEnvelopeResponse,
   ApiErrorResponses,
 } from '../../../../common/http/api-envelope.decorator.js';
-import { WeddingAccessGuard } from '../../../workspace/index.js';
+import { MembershipOnly, WeddingAccessGuard } from '../../../workspace/index.js';
 import { GetDashboardUseCase } from '../../application/use-cases/get-dashboard.use-case.js';
 import { DashboardDto } from '../dto/dashboard.dto.js';
 
@@ -17,6 +17,7 @@ export class DashboardController {
   constructor(private readonly dashboard: GetDashboardUseCase) {}
 
   @Get()
+  @MembershipOnly()
   @ApiOperation({
     summary: 'Upcoming events (at most five), guest totals and RSVP breakdown',
   })

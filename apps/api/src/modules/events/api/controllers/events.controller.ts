@@ -16,7 +16,12 @@ import {
   ApiEnvelopeResponse,
   ApiErrorResponses,
 } from '../../../../common/http/api-envelope.decorator.js';
-import { WeddingAccessGuard } from '../../../workspace/index.js';
+import {
+  PermissionAction,
+  PermissionModule,
+  RequirePermission,
+  WeddingAccessGuard,
+} from '../../../workspace/index.js';
 import { EventsService } from '../../application/services/events.service.js';
 import { CreateEventUseCase } from '../../application/use-cases/create-event.use-case.js';
 import { UpdateEventUseCase } from '../../application/use-cases/update-event.use-case.js';
@@ -41,6 +46,7 @@ export class EventsController {
   ) {}
 
   @Get()
+  @RequirePermission(PermissionModule.Events, PermissionAction.View)
   @ApiOperation({ summary: 'List active events, by date then start time (untimed first)' })
   @ApiEnvelopeResponse(200, [EventDto])
   @ApiErrorResponses({ status: 401, description: 'Not signed in' }, notFound)
@@ -50,6 +56,7 @@ export class EventsController {
   }
 
   @Post()
+  @RequirePermission(PermissionModule.Events, PermissionAction.Create)
   @ApiOperation({ summary: 'Create an event' })
   @ApiEnvelopeResponse(201, EventDto)
   @ApiErrorResponses(
@@ -77,6 +84,7 @@ export class EventsController {
   }
 
   @Get(':eventId')
+  @RequirePermission(PermissionModule.Events, PermissionAction.View)
   @ApiOperation({ summary: 'Get an event' })
   @ApiEnvelopeResponse(200, EventDto)
   @ApiErrorResponses({ status: 401, description: 'Not signed in' }, notFound)
@@ -88,6 +96,7 @@ export class EventsController {
   }
 
   @Patch(':eventId')
+  @RequirePermission(PermissionModule.Events, PermissionAction.Edit)
   @ApiOperation({ summary: 'Update an event; null clears an optional field' })
   @ApiEnvelopeResponse(200, EventDto)
   @ApiErrorResponses(
@@ -109,6 +118,7 @@ export class EventsController {
   }
 
   @Delete(':eventId')
+  @RequirePermission(PermissionModule.Events, PermissionAction.Delete)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Soft-delete an event; its RSVP and invitation history is kept' })
   @ApiEnvelopeResponse(204)

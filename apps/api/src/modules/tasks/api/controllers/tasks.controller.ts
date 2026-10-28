@@ -19,7 +19,12 @@ import {
   ApiPaginatedResponse,
 } from '../../../../common/http/api-envelope.decorator.js';
 import { Paginated } from '../../../../common/http/paginated.js';
-import { WeddingAccessGuard } from '../../../workspace/index.js';
+import {
+  PermissionAction,
+  PermissionModule,
+  RequirePermission,
+  WeddingAccessGuard,
+} from '../../../workspace/index.js';
 import { TasksService } from '../../application/services/tasks.service.js';
 import { ListTasksUseCase } from '../../application/use-cases/list-tasks.use-case.js';
 import { SaveTaskUseCase } from '../../application/use-cases/save-task.use-case.js';
@@ -62,6 +67,7 @@ export class TasksController {
   }
 
   @Get()
+  @RequirePermission(PermissionModule.Tasks, PermissionAction.View)
   @ApiOperation({
     summary: 'List, filter and search tasks: by due date (undated last), then Urgent → Low',
   })
@@ -96,6 +102,7 @@ export class TasksController {
   }
 
   @Post()
+  @RequirePermission(PermissionModule.Tasks, PermissionAction.Create)
   @ApiOperation({ summary: 'Create a task; status TODO and priority MEDIUM by default' })
   @ApiEnvelopeResponse(201, TaskDto)
   @ApiErrorResponses(
@@ -126,6 +133,7 @@ export class TasksController {
   }
 
   @Get(':taskId')
+  @RequirePermission(PermissionModule.Tasks, PermissionAction.View)
   @ApiOperation({ summary: 'Get a task' })
   @ApiEnvelopeResponse(200, TaskDto)
   @ApiErrorResponses({ status: 401, description: 'Not signed in' }, notFound)
@@ -137,6 +145,7 @@ export class TasksController {
   }
 
   @Patch(':taskId')
+  @RequirePermission(PermissionModule.Tasks, PermissionAction.Edit)
   @ApiOperation({
     summary: 'Update a task; null clears an optional field; any status may follow any other',
   })
@@ -162,6 +171,7 @@ export class TasksController {
   }
 
   @Delete(':taskId')
+  @RequirePermission(PermissionModule.Tasks, PermissionAction.Delete)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Soft-delete a task; its history is kept and the deletion audited' })
   @ApiEnvelopeResponse(204)
@@ -175,6 +185,7 @@ export class TasksController {
   }
 
   @Post(':taskId/assignees')
+  @RequirePermission(PermissionModule.Tasks, PermissionAction.Edit)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Assign a wedding member; assigning them again changes nothing' })
   @ApiEnvelopeResponse(200, TaskDto)
@@ -196,6 +207,7 @@ export class TasksController {
   }
 
   @Delete(':taskId/assignees/:userId')
+  @RequirePermission(PermissionModule.Tasks, PermissionAction.Edit)
   @ApiOperation({ summary: 'Unassign a member; unassigning someone not assigned changes nothing' })
   @ApiEnvelopeResponse(200, TaskDto)
   @ApiErrorResponses({ status: 401, description: 'Not signed in' }, notFound)
@@ -212,6 +224,7 @@ export class TasksController {
   }
 
   @Get(':taskId/activities')
+  @RequirePermission(PermissionModule.Tasks, PermissionAction.View)
   @ApiOperation({ summary: "The task's history, newest first" })
   @ApiEnvelopeResponse(200, [TaskActivityDto])
   @ApiErrorResponses({ status: 401, description: 'Not signed in' }, notFound)
