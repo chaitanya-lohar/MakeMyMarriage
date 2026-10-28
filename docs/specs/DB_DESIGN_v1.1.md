@@ -349,6 +349,7 @@ then runs a query constrained by `weddingId`.
   revokedBy?: ObjectId,
   expiredAt?: Date,         // written when the expiry is first observed (no background job — 0025)
   lastSentAt?: Date,
+  resentAt?: Date[],        // times of the latest resends, oldest first, at most 3 kept (0034 R2)
   createdAt: Date,
   updatedAt: Date
 }
@@ -378,6 +379,13 @@ then runs a query constrained by `weddingId`.
 - **No access while pending:** a `PENDING` invitation grants nothing; only the `ACTIVE`
   membership written at acceptance does.
 - At most one `PENDING` invitation per `(weddingId, email)`.
+- **Resend limit (0034 R2):** a resend is one conditional update, matched only while
+  `status = PENDING`, `expiresAt > now`, and fewer than three entries in `resentAt` are newer
+  than 24 hours (the third-latest, `resentAt[0]` when three are kept, is at least 24 hours
+  old). The update replaces `tokenHash`, sets `expiresAt` to now + 7 days, `lastSentAt`, and
+  pushes now onto `resentAt` keeping the last three. No match means the limit was reached
+  (or the invitation is no longer pending). Every resend is also audited
+  (`MEMBER_INVITATION_RESENT`).
 
 ### 7.6 `ownership_transfers` — ownership-seat transfer (Phase 10, P10-5)
 
@@ -1154,6 +1162,8 @@ Excel only; generated files are temporary, not permanent business data.
 | `member_invitations`    | `(weddingId, status, createdAt)`                                                                                                    | Invitation list                | Phase 10 |
 | `wedding_memberships`   | `(weddingId, ownerSeat)` UNIQUE where `memberType = OWNER` (`owner_seat_per_wedding`)                                               | At most two owners (P10-5)     | Phase 10 |
 | `ownership_transfers`   | `weddingId` UNIQUE where `status = PENDING`                                                                                         | One open offer per wedding     | Phase 10 |
+| `audit_logs`            | `(resourceType, resourceId, createdAt desc)`                                                                                        | One record's history           | Built    |
+| `audit_logs`            | `(weddingId, createdAt desc, _id desc)`                                                                                             | Audit history view (newest)    | Phase 10 |
 | `events`                | `(weddingId, date, startTime)`                                                                                                      | Event listing and order        | Phase 4  |
 | `events`                | `(weddingId, deletedAt)`                                                                                                            | Active/deleted filtering       | Phase 4  |
 | `guests`                | `(weddingId, name)`                                                                                                                 | Guest search                   | Phase 4  |
@@ -1353,6 +1363,15 @@ add fields before switching readers and writers; backfill large collections asyn
 remove obsolete fields only when no deployed version uses them; index changes are monitored
 deployment operations (automatic only in local and test).
 
+**Data migrations (from Phase 10).** A data change that an index depends on runs as a
+versioned migration before indexes are built. Migrations are numbered scripts in the API,
+run by a one-off command (`db:migrate`) in the same way as `db:indexes`. Each records its
+completion in a `schema_migrations` collection (`{ _id: name, appliedAt }`), so it runs once
+and a re-run is safe. A migration that finds inconsistent data stops, reports every case and
+changes nothing; data is never fixed silently (0004). Deployment order: `db:migrate`, then
+`db:indexes`, then the new code. Locally and in tests the migrations run at start-up before
+automatic index creation. The first migration is the owner-seat backfill (0034).
+
 ## 31. Implementation order
 
 Built: users, sessions, reset tokens (Phase 2); weddings and memberships (Phase 3).
@@ -1373,9 +1392,9 @@ Then the remaining planned collections as their phases are approved.
 | Retention     | Audit, delivery history, soft-deleted data, permanent purge        |
 | Backups       | RPO/RTO, retention, restore-test cadence                           |
 | Indexes       | Final production set after observing real query plans              |
-| Phase 10      | Member-invitation rate limits (proposed in 0034 R1–R2)             |
 
-**Phase 10 decisions (approved by the product owner, 2026-10-27; recorded in decision 0034).**
+**Phase 10 decisions (approved by the product owner, 2026-10-27; recorded in decision 0034;
+interpretations R1–R6 approved 2026-10-28).**
 The default matrix is in §8; the eight follow-up decisions are applied in §7 and §8:
 
 | #     | Decision                                                                                                               | Where              |
