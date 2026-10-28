@@ -1,9 +1,8 @@
 # 0034 — Phase 10: organizers, roles and permissions
 
 **Status:** Accepted for the default role matrix and decisions P10-1–P10-8 (approved by the
-product owner on 2026-10-27). The interpretations R1–R6 below are **Proposed**: recommended,
-not yet confirmed by the product owner. The numeric rate limits (R1, R2) are not contractual
-until confirmed. Amends [0026](0026-phase-7-tasks.md) #14, [0028](0028-phase-8-expenses.md)
+product owner on 2026-10-27). The interpretations R1–R6 below were approved by the product
+owner on 2026-10-28. Amends [0026](0026-phase-7-tasks.md) #14, [0028](0028-phase-8-expenses.md)
 #19, [0032](0032-phase-9-vendors.md) #19, [0019](0019-phase-4-design-decisions.md) Q1 #1 and
 [0022](0022-dashboard-api-contract.md); supplements [0012](0012-wedding-ownership-and-membership.md).
 
@@ -97,24 +96,23 @@ routes is set out in API Design §23 and System Design §7.11.
     on its module. Any `ACTIVE` member can be chosen as a task assignee or an expense payer.
     Being chosen grants no access.
 
-### Interpretations awaiting confirmation (Proposed)
+### Interpretations R1–R6 (approved 2026-10-28)
 
-The specifications already describe R3–R6 as the working interpretation. R1 and R2 are not in
-the specifications as numbers. API Design §28 and Database Design §32 point here until R1 and
-R2 are confirmed.
+The product owner approved these as written. The specifications apply them: API Design §7.1
+and §28, Database Design §7.5.
 
-| #   | Item                    | Recommendation                                                                                                                                                                                                                                                                                             |
+| #   | Item                    | Decision                                                                                                                                                                                                                                                                                                   |
 | --- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| R1  | Invitation creation     | At most **10 member invitations per wedding per hour**; `429 RATE_LIMITED` beyond it                                                                                                                                                                                                                       |
-| R2  | Invitation resend       | At most **3 resends per invitation per 24 hours**; `429 RATE_LIMITED` beyond it                                                                                                                                                                                                                            |
+| R1  | Invitation creation     | At most **10 member invitations per wedding in any rolling hour**; `429 RATE_LIMITED` beyond it                                                                                                                                                                                                            |
+| R2  | Invitation resend       | At most **3 resends per invitation in any rolling 24 hours**; `429 RATE_LIMITED` beyond it; each resend's time is recorded                                                                                                                                                                                 |
 | R3  | Ownership-offer expiry  | **No expiry.** An offer ends when the recipient declines, the giver cancels (`BY_OWNER`), or the offer is cancelled automatically (`MEMBERSHIP_CHANGED`). Automatic cancellation happens when the giver is no longer an owner, or the recipient is removed or becomes an owner. One open offer per wedding |
 | R4  | Guest-link access       | **Owner-only by default**, grantable by override. Retrieving a link (`GET …/invitation/link`), Copy Link and WhatsApp sharing count as sending (`INVITATIONS:SEND`), the same as email send and resend                                                                                                     |
 | R5  | Resending an invitation | Issues a new token and resets `expiresAt` to **7 days from the resend**. The previous link stops working                                                                                                                                                                                                   |
 | R6  | Declining an invitation | The **token alone** is enough, so an invitee without an account can decline. The token is single use, and declining is conditional on `PENDING` and not expired                                                                                                                                            |
 
-When the product owner confirms an item, its row is marked Accepted here. For R1 and R2, the
-numbers are also written into API Design §28 and Database Design §32 (0003). An item that is
-rejected is reopened through 0004.
+Both limits are enforced on the server and hold under concurrent requests (API Design §28).
+A resend never changes the membership: a revoked member stays revoked until they accept (R5,
+P10-3).
 
 ### Still open
 
@@ -124,7 +122,8 @@ rejected is reopened through 0004.
 
 The `owner_seat_per_wedding` index can only be created once every existing `OWNER` row has a
 seat. The migration runs with the Phase 10 implementation, as a versioned migration (Database
-Design §28). It is **not** part of this documentation change.
+Design §30). It runs **before** the index-creation command (`db:indexes`), which would
+otherwise try to build the index first. It is **not** part of this documentation change.
 
 1. **Identify** every `wedding_memberships` row with `memberType = OWNER`, grouped by
    `weddingId`.
@@ -161,5 +160,5 @@ Design §28). It is **not** part of this documentation change.
 | 0016                          | Only `OWNER` members exist in Phase 3; they may edit               | Editing the wedding needs `WEDDING_SETTINGS:EDIT`                             |
 | 0012 C1; Database Design §7.2 | The owner index does not limit the number of owners in a wedding   | At most two, through owner seats (7); one owned wedding per user is unchanged |
 | PRD v1.2 §24, §30             | Roles and permission templates: default matrix deferred            | Approved; rewritten in §24 (1, 3–10)                                          |
-| API Design v1.1 §28           | Member invitation limit: number set with Phase 10                  | Proposed R1, R2; not contractual until confirmed                              |
+| API Design v1.1 §28           | Member invitation limit: number set with Phase 10                  | R1, R2                                                                        |
 | Database Design v1.1 §7.2     | `INVITED` membership status                                        | Reserved, never written (9)                                                   |

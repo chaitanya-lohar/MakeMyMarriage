@@ -399,8 +399,32 @@ that rule everywhere, with no alternative path: every wedding route declares one
 from the few explicitly "membership only" routes; the dashboard moves to per-section checks;
 guest-link sending and management move to their own actions; the existing `ACTIVE` lookup
 and `weddingId` scoping stay; and each route gets tests for an allowed role, a refused role,
-a revoked member and another wedding's member. Those three decision records get an "Amended
-by" note when Phase 10's decision record is written.
+a revoked member and another wedding's member. Those three decision records carry an
+"Amended by 0034" note.
+
+### 7.12 Wedding selection in the web app (0035)
+
+A user can be an active member of several weddings (§7.2). The web app keeps one **selected
+wedding** at a time:
+
+- The workspace loads `GET /weddings` (API Design §6), which lists each wedding with the
+  user's own role in it. The selected wedding's ID is remembered on the device (browser
+  storage, per user). On load, a remembered ID that is not in the list is discarded; the
+  default is the first wedding in the API's order (the owned wedding first).
+- With two or more weddings, the wedding block at the top of the navigation is a selector
+  (Stitch P10 · M11). With one wedding it is plain text; with none, the existing "no wedding
+  yet" screens apply.
+- Switching replaces the whole workspace context: the selected ID, the effective permissions
+  (`GET …/members/me/permissions` for the new wedding), the navigation and all cached data.
+  Nothing from the previous wedding is reused.
+- The server never relies on the selection: every route still takes `weddingId` in its path
+  and checks that wedding's `ACTIVE` membership and permissions. A remembered ID is only a
+  preference.
+- If the selected wedding's membership ends (removal, or the wedding becomes unavailable),
+  the next request returns `404`; the app shows "You no longer have access to this wedding"
+  with "Choose another wedding" (when others remain) and "Go to home".
+- Permissions in the web app only show or hide controls; the server authorizes every request
+  (§7.3).
 
 ## 8. Partner connection and sharing
 

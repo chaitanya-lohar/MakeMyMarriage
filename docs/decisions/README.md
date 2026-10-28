@@ -39,7 +39,8 @@ in a specification, the record names that statement.
 | [0031](0031-wording-approval.md)                          | Wording of Phases 4, 7 and 8 approved                               | Accepted                                            |
 | [0032](0032-phase-9-vendors.md)                           | Phase 9: vendors (bookings, deletion rule, expense link, dashboard) | Accepted; supplemented by 0033; #19 amended by 0034 |
 | [0033](0033-phase-9-design-approval.md)                   | Phase 9 design approval: screens, additions and corrections         | Accepted                                            |
-| [0034](0034-phase-10-authorization.md)                    | Phase 10: organizers, roles and permissions (P10-1–P10-8)           | Accepted; R1–R6 proposed                            |
+| [0034](0034-phase-10-authorization.md)                    | Phase 10: organizers, roles and permissions (P10-1–P10-8)           | Accepted                                            |
+| [0035](0035-phase-10-design-approval.md)                  | Phase 10 design approval: screens, UI decisions, corrections        | Accepted                                            |
 
 Conflicts between specifications or decision records are handled with the protocol in
 [0004](0004-specification-authority.md) — never resolved silently in code.

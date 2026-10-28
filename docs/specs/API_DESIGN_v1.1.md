@@ -138,6 +138,16 @@ POST /api/v1/weddings
   invalid ID.
 - Registration never creates a wedding, and wedding creation never creates a website.
 
+**`GET /weddings` and the wedding selector (Phase 10 — 0035).** Each item is the wedding plus
+the caller's own membership of it: `{ …wedding, membership: { membershipId, role, isOwner } }`.
+Only `ACTIVE` memberships are listed; order: the wedding the user owns first, then by
+`startDate` (undated last), then name. The web app's wedding selector (Stitch P10 · M11) uses
+this list; it shows each wedding's name, date, city and the user's role in that wedding.
+`GET /weddings/{weddingId}` adds the same `membership` object. Choosing a wedding changes only
+which `weddingId` the web app puts in its requests; every request is authorized against the
+membership of the wedding in its path, so a role or permission never carries from one wedding
+to another (System Design §7.12).
+
 ### Dashboard (Phase 4 — decisions 0019, 0021, 0022)
 
 ```json
@@ -287,7 +297,12 @@ controls. The server still authorizes every request; hiding a button is never th
 existingMembershipStatus }` (`expiresAt` = now + 7 days, P10-2). The email is sent
   during the request (0025); a provider failure leaves the invitation `PENDING` with
   `emailSent: false`, and resend is available. The raw token is never returned.
-- Audit `MEMBER_INVITATION_CREATED`. Rate-limited per wedding (§28; numbers proposed in 0034).
+- Audit `MEMBER_INVITATION_CREATED`.
+- **Rate limit (0034 R1):** at most 10 invitations per wedding in any rolling hour, counted on
+  the server after validation and the `409` checks, so a refused request does not use a slot.
+  The 11th is `429 RATE_LIMITED` with `details.retryAfterSeconds`; nothing is created or sent.
+  The count is an atomic sliding-window counter in Redis per wedding (the `RateLimiter`
+  service), so concurrent requests cannot exceed the limit.
 
 **`GET …/members/invitations`** — `status` filter (default `PENDING`), `limit`, `cursor`;
 newest first; expired invitations show `EXPIRED` (Database Design §7.5).
@@ -298,6 +313,11 @@ replaces the token, sets `expiresAt` to now + 7 days and sends again (`200`); th
 stops working. Revoke sets `REVOKED` (`204`); repeating a revoke is `409`. Both audited; both
 need `MEMBERS:INVITE` and follow the same P10-4 limit as creation (a non-owner cannot resend or
 revoke an `ADMIN` invitation).
+**Resend limit (0034 R2):** at most 3 resends per invitation in any rolling 24 hours; the 4th
+is `429 RATE_LIMITED` with `details.retryAfterSeconds`, and the token, `expiresAt` and email
+stay unchanged. The check and the recording of the resend time are one conditional update
+on the invitation (Database Design §7.5), so concurrent resends cannot exceed it. A resend
+never changes the membership: a revoked member stays revoked until they accept (R5).
 
 **`GET /member-invitations/{token}`** — `{ weddingDisplayName, invitedByName, role, message,
 status, expiresAt, emailHint }` (`emailHint` masks the address, e.g. `me***@gmail.com`) so the
@@ -1037,17 +1057,18 @@ There is no worker or job queue (0025).
 
 ## 28. Rate limiting and abuse protection
 
-| Endpoint class                      | Protection                                                                         |
-| ----------------------------------- | ---------------------------------------------------------------------------------- |
-| Sign-in / password reset            | Per-identity limits (0015)                                                         |
-| Guest invitation token              | Token and IP limits                                                                |
-| Guest RSVP                          | Token and IP limits + state validation                                             |
-| Member invitation token             | Token and IP limits, as for guest routes (0023: 120 per IP, 60 per token a minute) |
-| Create or resend member invitations | Per-wedding limit; numbers proposed in 0034 R1–R2, not contractual until confirmed |
-| Guest photo upload                  | Token and IP limits + file size and content limits                                 |
-| QR endpoints                        | Token and IP limits                                                                |
-| Public website                      | General traffic limit                                                              |
-| Vendor discovery                    | Provider-aware limits and permitted caching (deferred — 0032 #3)                   |
+| Endpoint class             | Protection                                                                         |
+| -------------------------- | ---------------------------------------------------------------------------------- |
+| Sign-in / password reset   | Per-identity limits (0015)                                                         |
+| Guest invitation token     | Token and IP limits                                                                |
+| Guest RSVP                 | Token and IP limits + state validation                                             |
+| Member invitation token    | Token and IP limits, as for guest routes (0023: 120 per IP, 60 per token a minute) |
+| Create member invitations  | 10 per wedding in any rolling hour (0034 R1)                                       |
+| Resend a member invitation | 3 per invitation in any rolling 24 hours (0034 R2)                                 |
+| Guest photo upload         | Token and IP limits + file size and content limits                                 |
+| QR endpoints               | Token and IP limits                                                                |
+| Public website             | General traffic limit                                                              |
+| Vendor discovery           | Provider-aware limits and permitted caching (deferred — 0032 #3)                   |
 
 Numeric limits beyond 0015 are set from observed traffic and abuse testing.
 
@@ -1128,7 +1149,7 @@ notes absent from guest responses.
 | ---- | -------------------- |
 
 | Webhooks | Delivery webhooks for `DELIVERED`/`FAILED` |
-| Roles | Settled for Phase 10: default matrix and decisions P10-1–P10-8 (Database Design §8, §32). Still open: member-invitation rate limits (proposed in 0034 R1–R2) |
+| Roles | Settled for Phase 10: default matrix and decisions P10-1–P10-8 (Database Design §8, §32). Interpretations R1–R6 approved (0034); UI decisions in 0035 |
 | Sharing | Resource types and actions for `resource_shares` (A4) |
 | Reminders | Schedules, recipients, templates |
 | Uploads | File size and type limits; image processing |
