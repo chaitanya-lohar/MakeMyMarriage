@@ -19,6 +19,18 @@ function toMembership(document: WeddingMembershipDocument): Membership {
     memberType: document.memberType,
     role: document.role,
     status: document.status,
+    ...(document.ownerSeat !== undefined && { ownerSeat: document.ownerSeat }),
+    permissionOverrides: (document.permissionOverrides ?? []).map(({ module, action, effect }) => ({
+      module,
+      action,
+      effect,
+    })),
+    ...(document.acceptedAt && { acceptedAt: document.acceptedAt }),
+    ...(document.invitationId && { invitationId: document.invitationId.toString() }),
+    ...(document.invitedBy && { invitedBy: document.invitedBy.toString() }),
+    ...(document.invitedAt && { invitedAt: document.invitedAt }),
+    ...(document.revokedAt && { revokedAt: document.revokedAt }),
+    ...(document.revokedBy && { revokedBy: document.revokedBy.toString() }),
   };
 }
 
@@ -44,6 +56,8 @@ export class WeddingMembershipsRepository {
             memberType: MemberType.Owner,
             role: MembershipRole.Owner,
             status: MembershipStatus.Active,
+            // The creator takes the first owner seat (Database Design §7.2, P10-5).
+            ownerSeat: 1,
             acceptedAt: new Date(),
           },
         ],
