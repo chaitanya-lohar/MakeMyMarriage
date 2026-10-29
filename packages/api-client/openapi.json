@@ -5002,9 +5002,1814 @@
             "session": []
           }
         ],
-        "summary": "Upcoming events (at most five), guest totals and RSVP breakdown",
+        "summary": "Upcoming events, guests, RSVPs, tasks, expenses and vendors; each section only with VIEW on its module",
         "tags": [
           "Weddings"
+        ]
+      }
+    },
+    "/api/v1/weddings/{weddingId}/members": {
+      "get": {
+        "operationId": "MembersController_list",
+        "parameters": [
+          {
+            "name": "weddingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "ACTIVE",
+              "type": "string",
+              "enum": [
+                "ACTIVE",
+                "REVOKED"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 100,
+              "type": "number"
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "description": "`meta.pagination.nextCursor` of the previous page.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/MemberDto"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginatedMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_FAILED — invalid query or cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "PERMISSION_DENIED — removed members need MEMBERS:VIEW",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "WEDDING_NOT_FOUND, or MEMBER_NOT_FOUND — missing, removed or another wedding",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Members, owners first; directory fields for all, details with MEMBERS:VIEW",
+        "tags": [
+          "Members"
+        ]
+      }
+    },
+    "/api/v1/weddings/{weddingId}/members/me/permissions": {
+      "get": {
+        "operationId": "MembersController_me",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/MemberPermissionsDto"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ResponseMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "WEDDING_NOT_FOUND, or MEMBER_NOT_FOUND — missing, removed or another wedding",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "The caller's effective permissions in this wedding",
+        "tags": [
+          "Members"
+        ]
+      }
+    },
+    "/api/v1/weddings/{weddingId}/members/{membershipId}/permissions": {
+      "get": {
+        "operationId": "MembersController_permissions",
+        "parameters": [
+          {
+            "name": "weddingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "membershipId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/MemberPermissionsDto"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ResponseMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "PERMISSION_DENIED, with details.reason for a protected membership (P10-4)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "WEDDING_NOT_FOUND, or MEMBER_NOT_FOUND — missing, removed or another wedding",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "A member's effective permissions",
+        "tags": [
+          "Members"
+        ]
+      }
+    },
+    "/api/v1/weddings/{weddingId}/members/{membershipId}": {
+      "patch": {
+        "operationId": "MembersController_update",
+        "parameters": [
+          {
+            "name": "weddingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "membershipId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMemberDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/MemberDto"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ResponseMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_FAILED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "PERMISSION_DENIED, with details.reason for a protected membership (P10-4)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "WEDDING_NOT_FOUND, or MEMBER_NOT_FOUND — missing, removed or another wedding",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Change a member's role and/or custom permissions",
+        "tags": [
+          "Members"
+        ]
+      },
+      "delete": {
+        "operationId": "MembersController_remove",
+        "parameters": [
+          {
+            "name": "weddingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "membershipId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "nullable": true,
+                      "example": null,
+                      "description": "Always null."
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ResponseMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "PERMISSION_DENIED, with details.reason for a protected membership (P10-4)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "WEDDING_NOT_FOUND, or MEMBER_NOT_FOUND — missing, removed or another wedding",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Remove a member; their records stay",
+        "tags": [
+          "Members"
+        ]
+      }
+    },
+    "/api/v1/weddings/{weddingId}/audit-logs": {
+      "get": {
+        "operationId": "MembersController_auditLogs",
+        "parameters": [
+          {
+            "name": "weddingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "action",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "RSVP_RESET_TO_PENDING",
+                "INVITATION_TOKEN_REGENERATED",
+                "INVITATION_TOKEN_REVOKED",
+                "INVITATION_LINK_RETRIEVED",
+                "TASK_DELETED",
+                "EXPENSE_CREATED",
+                "EXPENSE_UPDATED",
+                "EXPENSE_DELETED",
+                "EXPENSE_EVENT_UNLINKED",
+                "EXPENSE_PAYMENT_ADDED",
+                "EXPENSE_PAYMENT_UPDATED",
+                "EXPENSE_PAYMENT_REMOVED",
+                "VENDOR_CREATED",
+                "VENDOR_UPDATED",
+                "VENDOR_DELETED",
+                "VENDOR_BOOKING_CREATED",
+                "VENDOR_BOOKING_UPDATED",
+                "VENDOR_BOOKING_STATUS_CHANGED",
+                "VENDOR_BOOKING_EVENT_UNLINKED",
+                "MEMBER_INVITATION_CREATED",
+                "MEMBER_INVITATION_RESENT",
+                "MEMBER_INVITATION_ACCEPTED",
+                "MEMBER_INVITATION_DECLINED",
+                "MEMBER_INVITATION_EXPIRED",
+                "MEMBER_INVITATION_REVOKED",
+                "MEMBER_ROLE_CHANGED",
+                "MEMBER_PERMISSIONS_CHANGED",
+                "MEMBER_REMOVED",
+                "MEMBER_REACTIVATED",
+                "OWNERSHIP_TRANSFER_OFFERED",
+                "OWNERSHIP_TRANSFER_DECLINED",
+                "OWNERSHIP_TRANSFER_CANCELLED",
+                "OWNERSHIP_TRANSFERRED",
+                "PERMISSION_DENIED"
+              ]
+            }
+          },
+          {
+            "name": "resourceType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "wedding_membership",
+              "type": "string"
+            }
+          },
+          {
+            "name": "actorUserId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "description": "Inclusive, in the wedding timezone.",
+            "schema": {
+              "format": "date",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "description": "Inclusive, in the wedding timezone.",
+            "schema": {
+              "format": "date",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "type": "number"
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "description": "`meta.pagination.nextCursor` of the previous page.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AuditLogDto"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginatedMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_FAILED — invalid query or cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "PERMISSION_DENIED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "WEDDING_NOT_FOUND, or MEMBER_NOT_FOUND — missing, removed or another wedding",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "The wedding's audit history, newest first",
+        "tags": [
+          "Members"
+        ]
+      }
+    },
+    "/api/v1/weddings/{weddingId}/members/invitations": {
+      "post": {
+        "operationId": "MemberInvitationsController_create",
+        "parameters": [
+          {
+            "name": "weddingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMemberInvitationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/SentMemberInvitationDto"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ResponseMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_FAILED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "PERMISSION_DENIED (ADMIN_ROLE_OWNER_ONLY, GRANT_EXCEEDS_CALLER)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "WEDDING_NOT_FOUND or MEMBER_INVITATION_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "MEMBER_ALREADY_ACTIVE or MEMBER_INVITATION_ALREADY_PENDING",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "RATE_LIMITED (details.retryAfterSeconds)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Invite an organizer by email; expires in 7 days",
+        "tags": [
+          "Members"
+        ]
+      },
+      "get": {
+        "operationId": "MemberInvitationsController_list",
+        "parameters": [
+          {
+            "name": "weddingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "PENDING",
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "ACCEPTED",
+                "DECLINED",
+                "EXPIRED",
+                "REVOKED"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 25,
+              "type": "number"
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "description": "`meta.pagination.nextCursor` of the previous page.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/MemberInvitationDto"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginatedMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_FAILED — invalid query or cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "PERMISSION_DENIED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "WEDDING_NOT_FOUND or MEMBER_INVITATION_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Invitations by status (default PENDING), newest first",
+        "tags": [
+          "Members"
+        ]
+      }
+    },
+    "/api/v1/weddings/{weddingId}/members/invitations/{invitationId}/resend": {
+      "post": {
+        "operationId": "MemberInvitationsController_resend",
+        "parameters": [
+          {
+            "name": "weddingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "invitationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ResentMemberInvitationDto"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ResponseMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "PERMISSION_DENIED (ADMIN_ROLE_OWNER_ONLY)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "WEDDING_NOT_FOUND or MEMBER_INVITATION_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "MEMBER_INVITATION_NOT_PENDING (details.status) or MEMBER_INVITATION_EXPIRED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "RATE_LIMITED (details.retryAfterSeconds)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Send a new link; the old one stops working; expires in 7 days",
+        "tags": [
+          "Members"
+        ]
+      }
+    },
+    "/api/v1/weddings/{weddingId}/members/invitations/{invitationId}/revoke": {
+      "post": {
+        "operationId": "MemberInvitationsController_revoke",
+        "parameters": [
+          {
+            "name": "weddingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "invitationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "nullable": true,
+                      "example": null,
+                      "description": "Always null."
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ResponseMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "PERMISSION_DENIED (ADMIN_ROLE_OWNER_ONLY)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "WEDDING_NOT_FOUND or MEMBER_INVITATION_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "MEMBER_INVITATION_NOT_PENDING (details.status) or MEMBER_INVITATION_EXPIRED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Revoke a pending invitation; the link stops working",
+        "tags": [
+          "Members"
+        ]
+      }
+    },
+    "/api/v1/member-invitations/{token}": {
+      "get": {
+        "operationId": "MemberInvitationResponseController_details",
+        "parameters": [
+          {
+            "name": "token",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/MemberInvitationDetailsDto"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ResponseMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "MEMBER_INVITATION_NOT_FOUND — unknown token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "RATE_LIMITED (details.retryAfterSeconds)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "The invitation behind a token, with its status",
+        "tags": [
+          "Member invitation"
+        ]
+      }
+    },
+    "/api/v1/member-invitations/{token}/accept": {
+      "post": {
+        "operationId": "MemberInvitationResponseController_accept",
+        "parameters": [
+          {
+            "name": "token",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/AcceptedMemberInvitationDto"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ResponseMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "MEMBER_INVITATION_EMAIL_MISMATCH",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "MEMBER_INVITATION_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "MEMBER_INVITATION_EXPIRED, MEMBER_INVITATION_NOT_PENDING or MEMBER_ALREADY_ACTIVE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "RATE_LIMITED (details.retryAfterSeconds)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Accept as the signed-in user; no email verification needed",
+        "tags": [
+          "Member invitation"
+        ]
+      }
+    },
+    "/api/v1/member-invitations/{token}/decline": {
+      "post": {
+        "operationId": "MemberInvitationResponseController_decline",
+        "parameters": [
+          {
+            "name": "token",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "nullable": true,
+                      "example": null,
+                      "description": "Always null."
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ResponseMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "MEMBER_INVITATION_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "MEMBER_INVITATION_EXPIRED or MEMBER_INVITATION_NOT_PENDING",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "RATE_LIMITED (details.retryAfterSeconds)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Decline with the token alone",
+        "tags": [
+          "Member invitation"
+        ]
+      }
+    },
+    "/api/v1/weddings/{weddingId}/ownership-transfers": {
+      "get": {
+        "operationId": "OwnershipTransfersController_list",
+        "parameters": [
+          {
+            "name": "weddingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/OwnershipTransferDto"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ResponseMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "WEDDING_NOT_FOUND, MEMBER_NOT_FOUND or OWNERSHIP_TRANSFER_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Offers: all for owners, those made to the caller for others",
+        "tags": [
+          "Members"
+        ]
+      },
+      "post": {
+        "operationId": "OwnershipTransfersController_offer",
+        "parameters": [
+          {
+            "name": "weddingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOwnershipTransferDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/OwnershipTransferDto"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ResponseMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_FAILED — the target is already an owner",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "PERMISSION_DENIED (OWNER_ONLY)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "WEDDING_NOT_FOUND, MEMBER_NOT_FOUND or OWNERSHIP_TRANSFER_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "OWNERSHIP_TRANSFER_ALREADY_PENDING or WEDDING_ALREADY_OWNED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Offer the caller's own owner seat to a member",
+        "tags": [
+          "Members"
+        ]
+      }
+    },
+    "/api/v1/weddings/{weddingId}/ownership-transfers/{transferId}/accept": {
+      "post": {
+        "operationId": "OwnershipTransfersController_accept",
+        "parameters": [
+          {
+            "name": "weddingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "transferId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/CompletedOwnershipTransferDto"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ResponseMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "PERMISSION_DENIED — not the recipient",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "WEDDING_NOT_FOUND, MEMBER_NOT_FOUND or OWNERSHIP_TRANSFER_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "OWNERSHIP_TRANSFER_NOT_PENDING or WEDDING_ALREADY_OWNED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "The recipient accepts; the giver becomes an Admin",
+        "tags": [
+          "Members"
+        ]
+      }
+    },
+    "/api/v1/weddings/{weddingId}/ownership-transfers/{transferId}/decline": {
+      "post": {
+        "operationId": "OwnershipTransfersController_decline",
+        "parameters": [
+          {
+            "name": "weddingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "transferId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "nullable": true,
+                      "example": null,
+                      "description": "Always null."
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ResponseMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "PERMISSION_DENIED — not the recipient",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "WEDDING_NOT_FOUND, MEMBER_NOT_FOUND or OWNERSHIP_TRANSFER_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "OWNERSHIP_TRANSFER_NOT_PENDING",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "The recipient declines",
+        "tags": [
+          "Members"
+        ]
+      }
+    },
+    "/api/v1/weddings/{weddingId}/ownership-transfers/{transferId}/cancel": {
+      "post": {
+        "operationId": "OwnershipTransfersController_cancel",
+        "parameters": [
+          {
+            "name": "weddingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "transferId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "nullable": true,
+                      "example": null,
+                      "description": "Always null."
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ResponseMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "PERMISSION_DENIED — not the giving owner",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "WEDDING_NOT_FOUND, MEMBER_NOT_FOUND or OWNERSHIP_TRANSFER_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "OWNERSHIP_TRANSFER_NOT_PENDING",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "The giving owner cancels the offer",
+        "tags": [
+          "Members"
         ]
       }
     }
@@ -5201,6 +7006,32 @@
           "password"
         ]
       },
+      "WeddingMembershipDto": {
+        "type": "object",
+        "properties": {
+          "membershipId": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "OWNER",
+              "ADMIN",
+              "ORGANIZER",
+              "EDITOR",
+              "VIEWER"
+            ]
+          },
+          "isOwner": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "membershipId",
+          "role",
+          "isOwner"
+        ]
+      },
       "WeddingDto": {
         "type": "object",
         "properties": {
@@ -5245,6 +7076,14 @@
           "timezone": {
             "type": "string",
             "example": "Asia/Kolkata"
+          },
+          "membership": {
+            "description": "The caller's role in this wedding (GET /weddings and GET /weddings/{id}).",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WeddingMembershipDto"
+              }
+            ]
           }
         },
         "required": [
@@ -7583,7 +9422,7 @@
           "expectedAttendees": {
             "type": "number",
             "example": 38,
-            "description": "Sum of attendeeCount over counted ATTENDING assignments for this event."
+            "description": "Sum of attendeeCount over counted ATTENDING assignments for this event. Only with INVITATIONS:VIEW."
           }
         },
         "required": [
@@ -7593,8 +9432,7 @@
           "date",
           "startTime",
           "endTime",
-          "venueName",
-          "expectedAttendees"
+          "venueName"
         ]
       },
       "GuestTotalsDto": {
@@ -7877,17 +9715,22 @@
         "type": "object",
         "properties": {
           "upcomingEvents": {
-            "description": "At most five events dated today or later (wedding timezone), by date then start time, untimed first. A dashboard limit only.",
+            "description": "At most five events dated today or later (wedding timezone), by date then start time, untimed first. A dashboard limit only. Only with EVENTS:VIEW.",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/DashboardEventDto"
             }
           },
           "guestTotals": {
-            "$ref": "#/components/schemas/GuestTotalsDto"
+            "description": "Only with GUESTS:VIEW.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GuestTotalsDto"
+              }
+            ]
           },
           "rsvpBreakdown": {
-            "description": "Counted assignments per status across all counted events, past and future.",
+            "description": "Counted assignments per status across all counted events, past and future. Only with INVITATIONS:VIEW.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/RsvpBreakdownDto"
@@ -7895,7 +9738,7 @@
             ]
           },
           "taskCounts": {
-            "description": "Over tasks that are not deleted (0026 #20).",
+            "description": "Over tasks that are not deleted (0026 #20). Only with TASKS:VIEW.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/TaskCountsDto"
@@ -7904,17 +9747,17 @@
           },
           "hasTasks": {
             "type": "boolean",
-            "description": "Whether the wedding has any task that is not deleted, Cancelled included, so a wedding whose tasks are all cancelled is told apart from one with none (0026 #20)."
+            "description": "Whether the wedding has any task that is not deleted, Cancelled included, so a wedding whose tasks are all cancelled is told apart from one with none (0026 #20). Only with TASKS:VIEW."
           },
           "upcomingTasks": {
-            "description": "Open tasks due up to seven days after today, every overdue task included; by due date (overdue first), then priority. At most five; never undated tasks.",
+            "description": "Open tasks due up to seven days after today, every overdue task included; by due date (overdue first), then priority. At most five; never undated tasks. Only with TASKS:VIEW.",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/DashboardTaskDto"
             }
           },
           "expenseSummary": {
-            "description": "Over expenses that are not deleted: Total, Paid, Pending; by category and by event, largest first (0028 #23).",
+            "description": "Over expenses that are not deleted: Total, Paid, Pending; by category and by event, largest first (0028 #23). Only with EXPENSES:VIEW.",
             "allOf": [
               {
                 "$ref": "#/components/schemas/ExpenseSummaryDto"
@@ -7922,18 +9765,728 @@
             ]
           },
           "vendorSummary": {
-            "$ref": "#/components/schemas/VendorSummaryDto"
+            "description": "Only with VENDORS:VIEW.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/VendorSummaryDto"
+              }
+            ]
+          }
+        }
+      },
+      "MemberDto": {
+        "type": "object",
+        "properties": {
+          "membershipId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "isOwner": {
+            "type": "boolean"
+          },
+          "email": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "OWNER",
+              "ADMIN",
+              "ORGANIZER",
+              "EDITOR",
+              "VIEWER"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "INVITED",
+              "ACTIVE",
+              "REVOKED"
+            ]
+          },
+          "hasOverrides": {
+            "type": "boolean"
+          },
+          "invitedBy": {
+            "type": "string",
+            "nullable": true
+          },
+          "invitedAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "acceptedAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "revokedAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
           }
         },
         "required": [
-          "upcomingEvents",
-          "guestTotals",
-          "rsvpBreakdown",
-          "taskCounts",
-          "hasTasks",
-          "upcomingTasks",
-          "expenseSummary",
-          "vendorSummary"
+          "membershipId",
+          "userId",
+          "displayName",
+          "isOwner"
+        ]
+      },
+      "PermissionOverrideDto": {
+        "type": "object",
+        "properties": {
+          "module": {
+            "type": "string",
+            "enum": [
+              "WEDDING_SETTINGS",
+              "EVENTS",
+              "GUESTS",
+              "INVITATIONS",
+              "TASKS",
+              "EXPENSES",
+              "VENDORS",
+              "WEBSITE",
+              "GALLERY",
+              "MEMORY_QR",
+              "LIVE_STREAM",
+              "REPORTS",
+              "MEMBERS",
+              "AUDIT",
+              "PARTNER_SHARING"
+            ]
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "VIEW",
+              "CREATE",
+              "EDIT",
+              "DELETE",
+              "SEND",
+              "MANAGE",
+              "CONFIGURE",
+              "PUBLISH",
+              "REGENERATE",
+              "EXPORT",
+              "INVITE",
+              "CHANGE_ROLE",
+              "EDIT_PERMISSIONS",
+              "REMOVE"
+            ]
+          },
+          "effect": {
+            "type": "string",
+            "enum": [
+              "ALLOW",
+              "DENY"
+            ]
+          }
+        },
+        "required": [
+          "module",
+          "action",
+          "effect"
+        ]
+      },
+      "MemberPermissionsDto": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string"
+          },
+          "isOwner": {
+            "type": "boolean"
+          },
+          "permissions": {
+            "type": "object",
+            "description": "{ [module]: action[] } — only modules that grant something.",
+            "example": {
+              "EVENTS": [
+                "VIEW",
+                "CREATE",
+                "EDIT",
+                "DELETE"
+              ],
+              "EXPENSES": [
+                "VIEW"
+              ]
+            }
+          },
+          "overrides": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PermissionOverrideDto"
+            }
+          }
+        },
+        "required": [
+          "role",
+          "isOwner",
+          "permissions",
+          "overrides"
+        ]
+      },
+      "UpdateMemberDto": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "ADMIN",
+              "ORGANIZER",
+              "EDITOR",
+              "VIEWER"
+            ]
+          },
+          "permissionOverrides": {
+            "maxItems": 64,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PermissionOverrideDto"
+            }
+          }
+        }
+      },
+      "AuditLogDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "RSVP_RESET_TO_PENDING",
+              "INVITATION_TOKEN_REGENERATED",
+              "INVITATION_TOKEN_REVOKED",
+              "INVITATION_LINK_RETRIEVED",
+              "TASK_DELETED",
+              "EXPENSE_CREATED",
+              "EXPENSE_UPDATED",
+              "EXPENSE_DELETED",
+              "EXPENSE_EVENT_UNLINKED",
+              "EXPENSE_PAYMENT_ADDED",
+              "EXPENSE_PAYMENT_UPDATED",
+              "EXPENSE_PAYMENT_REMOVED",
+              "VENDOR_CREATED",
+              "VENDOR_UPDATED",
+              "VENDOR_DELETED",
+              "VENDOR_BOOKING_CREATED",
+              "VENDOR_BOOKING_UPDATED",
+              "VENDOR_BOOKING_STATUS_CHANGED",
+              "VENDOR_BOOKING_EVENT_UNLINKED",
+              "MEMBER_INVITATION_CREATED",
+              "MEMBER_INVITATION_RESENT",
+              "MEMBER_INVITATION_ACCEPTED",
+              "MEMBER_INVITATION_DECLINED",
+              "MEMBER_INVITATION_EXPIRED",
+              "MEMBER_INVITATION_REVOKED",
+              "MEMBER_ROLE_CHANGED",
+              "MEMBER_PERMISSIONS_CHANGED",
+              "MEMBER_REMOVED",
+              "MEMBER_REACTIVATED",
+              "OWNERSHIP_TRANSFER_OFFERED",
+              "OWNERSHIP_TRANSFER_DECLINED",
+              "OWNERSHIP_TRANSFER_CANCELLED",
+              "OWNERSHIP_TRANSFERRED",
+              "PERMISSION_DENIED"
+            ]
+          },
+          "resourceType": {
+            "type": "string"
+          },
+          "resourceId": {
+            "type": "string"
+          },
+          "actorUserId": {
+            "type": "string",
+            "nullable": true
+          },
+          "actorName": {
+            "type": "string",
+            "nullable": true
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "action",
+          "resourceType",
+          "resourceId",
+          "actorUserId",
+          "actorName",
+          "metadata",
+          "createdAt"
+        ]
+      },
+      "SentMemberInvitationDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "ADMIN",
+              "ORGANIZER",
+              "EDITOR",
+              "VIEWER"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "ACCEPTED",
+              "DECLINED",
+              "EXPIRED",
+              "REVOKED"
+            ]
+          },
+          "expiresAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "invitedBy": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "permissionOverrides": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PermissionOverrideDto"
+            }
+          },
+          "respondedAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "lastSentAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "emailSent": {
+            "type": "boolean",
+            "description": "False when the email could not be sent; resend is available."
+          },
+          "existingMembershipStatus": {
+            "type": "string",
+            "enum": [
+              "REVOKED"
+            ],
+            "nullable": true,
+            "description": "REVOKED when re-inviting a removed member (P10-3)."
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "role",
+          "status",
+          "expiresAt",
+          "invitedBy",
+          "message",
+          "permissionOverrides",
+          "respondedAt",
+          "lastSentAt",
+          "createdAt",
+          "emailSent",
+          "existingMembershipStatus"
+        ]
+      },
+      "CreateMemberInvitationDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "kavita@example.com",
+            "maxLength": 254
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "ADMIN",
+              "ORGANIZER",
+              "EDITOR",
+              "VIEWER"
+            ]
+          },
+          "permissionOverrides": {
+            "maxItems": 64,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PermissionOverrideDto"
+            }
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "email",
+          "role"
+        ]
+      },
+      "MemberInvitationDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "ADMIN",
+              "ORGANIZER",
+              "EDITOR",
+              "VIEWER"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "ACCEPTED",
+              "DECLINED",
+              "EXPIRED",
+              "REVOKED"
+            ]
+          },
+          "expiresAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "invitedBy": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "permissionOverrides": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PermissionOverrideDto"
+            }
+          },
+          "respondedAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "lastSentAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "role",
+          "status",
+          "expiresAt",
+          "invitedBy",
+          "message",
+          "permissionOverrides",
+          "respondedAt",
+          "lastSentAt",
+          "createdAt"
+        ]
+      },
+      "ResentMemberInvitationDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "ADMIN",
+              "ORGANIZER",
+              "EDITOR",
+              "VIEWER"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "ACCEPTED",
+              "DECLINED",
+              "EXPIRED",
+              "REVOKED"
+            ]
+          },
+          "expiresAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "invitedBy": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "permissionOverrides": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PermissionOverrideDto"
+            }
+          },
+          "respondedAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "lastSentAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "emailSent": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "role",
+          "status",
+          "expiresAt",
+          "invitedBy",
+          "message",
+          "permissionOverrides",
+          "respondedAt",
+          "lastSentAt",
+          "createdAt",
+          "emailSent"
+        ]
+      },
+      "MemberInvitationDetailsDto": {
+        "type": "object",
+        "properties": {
+          "weddingDisplayName": {
+            "type": "string"
+          },
+          "invitedByName": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "ADMIN",
+              "ORGANIZER",
+              "EDITOR",
+              "VIEWER"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "ACCEPTED",
+              "DECLINED",
+              "EXPIRED",
+              "REVOKED"
+            ]
+          },
+          "expiresAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "emailHint": {
+            "type": "string",
+            "example": "me***@gmail.com"
+          }
+        },
+        "required": [
+          "weddingDisplayName",
+          "invitedByName",
+          "role",
+          "message",
+          "status",
+          "expiresAt",
+          "emailHint"
+        ]
+      },
+      "AcceptedMemberInvitationDto": {
+        "type": "object",
+        "properties": {
+          "weddingId": {
+            "type": "string"
+          },
+          "membershipId": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "ADMIN",
+              "ORGANIZER",
+              "EDITOR",
+              "VIEWER"
+            ]
+          }
+        },
+        "required": [
+          "weddingId",
+          "membershipId",
+          "role"
+        ]
+      },
+      "OwnershipTransferDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "fromMembershipId": {
+            "type": "string"
+          },
+          "fromName": {
+            "type": "string"
+          },
+          "toMembershipId": {
+            "type": "string"
+          },
+          "toName": {
+            "type": "string"
+          },
+          "ownerSeat": {
+            "type": "number",
+            "enum": [
+              1,
+              2
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "ACCEPTED",
+              "DECLINED",
+              "CANCELLED"
+            ]
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "respondedAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "fromMembershipId",
+          "fromName",
+          "toMembershipId",
+          "toName",
+          "ownerSeat",
+          "status",
+          "createdAt",
+          "respondedAt"
+        ]
+      },
+      "CreateOwnershipTransferDto": {
+        "type": "object",
+        "properties": {
+          "toMembershipId": {
+            "type": "string",
+            "description": "An ACTIVE non-owner member of this wedding."
+          }
+        },
+        "required": [
+          "toMembershipId"
+        ]
+      },
+      "TransferredMembershipDto": {
+        "type": "object",
+        "properties": {
+          "membershipId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "isOwner": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "membershipId",
+          "userId",
+          "role",
+          "isOwner"
+        ]
+      },
+      "CompletedOwnershipTransferDto": {
+        "type": "object",
+        "properties": {
+          "giver": {
+            "$ref": "#/components/schemas/TransferredMembershipDto"
+          },
+          "recipient": {
+            "$ref": "#/components/schemas/TransferredMembershipDto"
+          }
+        },
+        "required": [
+          "giver",
+          "recipient"
         ]
       }
     }
