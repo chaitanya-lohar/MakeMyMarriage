@@ -266,6 +266,26 @@ export class MemberInvitationsService {
     }
     await this.assertLive(invitation, now);
 
+    // Already a member (0036): the invitation is closed as accepted, linked to the existing
+    // membership, which is not changed; the answer stays MEMBER_ALREADY_ACTIVE.
+    const existing = await this.memberships.findActive(userId, invitation.weddingId);
+    if (existing) {
+      const closed = await this.invitations.accept(
+        hashInvitationToken(token),
+        { userId, membershipId: existing.id },
+        now,
+      );
+      if (closed) {
+        await this.record(closed, userId, AuditAction.MemberInvitationAccepted, {
+          email: closed.email,
+          role: closed.role,
+          membershipId: existing.id,
+          alreadyMember: true,
+        });
+      }
+      throw InvitationsErrors.alreadyActive();
+    }
+
     const membership = await this.transactions
       .run(async (transaction) => {
         const admitted = await this.memberships.admitFromInvitation(
