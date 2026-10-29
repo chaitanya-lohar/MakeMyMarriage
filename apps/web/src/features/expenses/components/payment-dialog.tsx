@@ -13,6 +13,7 @@ import { Icon } from '@/components/ui/icon';
 import { useModal } from '@/components/ui/use-modal';
 import { networkError } from '@/features/weddings/content';
 import { api, call, type ApiError } from '@/lib/api';
+import { pickerCopy, useMemberDirectory } from '@/features/members/components/member-picker';
 import { methodLabels, paymentForm } from '../content';
 import {
   emptyPaymentForm,
@@ -93,6 +94,32 @@ export function PaymentDialog({
     editing?.paidByType === 'WEDDING_MEMBER' && editing.paidByUserId !== user.id
       ? { id: editing.paidByUserId ?? '', name: editing.paidByName }
       : null;
+
+  // Every active member may be the payer (P10-8, Stitch "P10 · M10"); being chosen grants
+  // nothing. While the directory loads, the signed-in member stands in.
+  const directory = useMemberDirectory(weddingId, user.id) ?? [
+    { userId: user.id, displayName: user.displayName, isOwner: false },
+  ];
+  const memberOptions = [
+    ...directory.map((member) => ({
+      value: member.userId,
+      label:
+        member.userId === user.id
+          ? paymentForm.paidBy.me.replace('{name}', user.displayName)
+          : member.displayName,
+      owner: member.isOwner,
+    })),
+    // A former member who paid stays selectable when editing (0030).
+    ...(otherMember && !directory.some((member) => member.userId === otherMember.id)
+      ? [
+          {
+            value: otherMember.id,
+            label: `${otherMember.name} (${pickerCopy.former})`,
+            owner: false,
+          },
+        ]
+      : []),
+  ];
 
   const ids = {
     amount: useId(),
@@ -290,12 +317,8 @@ export function PaymentDialog({
             </legend>
             <div className="grid grid-cols-2 gap-2">
               {[
-                {
-                  value: user.id,
-                  label: paymentForm.paidBy.me.replace('{name}', user.displayName),
-                },
-                ...(otherMember ? [{ value: otherMember.id, label: otherMember.name }] : []),
-                { value: OTHER_PAYER, label: paymentForm.paidBy.someoneElse },
+                ...memberOptions,
+                { value: OTHER_PAYER, label: paymentForm.paidBy.someoneElse, owner: false },
               ].map((option) => (
                 <label key={option.value} className={radio(values.payer === option.value)}>
                   <input
@@ -308,9 +331,15 @@ export function PaymentDialog({
                     className="sr-only"
                   />
                   <span className="break-words">{option.label}</span>
+                  {option.owner && (
+                    <span className="ml-1 rounded-full border border-hairline px-1.5 text-label-sm">
+                      {pickerCopy.owner}
+                    </span>
+                  )}
                 </label>
               ))}
             </div>
+            <p className="mt-1.5 text-body-sm text-on-surface-variant">{pickerCopy.helper}</p>
           </fieldset>
 
           {values.payer === OTHER_PAYER && (

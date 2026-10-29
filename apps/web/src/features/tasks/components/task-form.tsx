@@ -12,6 +12,11 @@ import { TASKS_PATH } from '@/features/workspace/components/shell-parts';
 import { PageHeader, SkeletonCard } from '@/features/workspace/components/workspace-page';
 import { SESSION_ENDED_PATH, useReadyWorkspace } from '@/features/workspace/workspace-context';
 import { api, call } from '@/lib/api';
+import {
+  MultiMemberPicker,
+  useMemberDirectory,
+  type PickableMember,
+} from '@/features/members/components/member-picker';
 import { priorityLabels, statusLabels, taskFields, taskForm, tasksPage } from '../content';
 import {
   emptyTaskForm,
@@ -103,8 +108,21 @@ function TaskForm({
   // null while the events load; the select is disabled until then.
   const [events, setEvents] = useState<ApiEvent[] | null>(null);
   const [values, setValues] = useState<TaskFormValues>(() =>
-    task ? formFromTask(task, user.id) : emptyTaskForm(presetEventId ?? ''),
+    task ? formFromTask(task) : emptyTaskForm(presetEventId ?? ''),
   );
+  const directory = useMemberDirectory(wedding.id, user.id);
+  // Assignees who have since left the wedding stay listed, so an edit never drops them (0030).
+  const pickable = directory && [
+    ...directory,
+    ...(task?.assignees ?? [])
+      .filter((assignee) => !directory.some((member) => member.userId === assignee.userId))
+      .map((assignee) => ({
+        userId: assignee.userId,
+        displayName: assignee.displayName,
+        isOwner: false,
+        former: true,
+      })),
+  ];
   const [errors, setErrors] = useState<TaskFormErrors>({});
   const [banner, setBanner] = useState<BannerState>(null);
   const [pending, setPending] = useState(false);
@@ -136,7 +154,7 @@ function TaskForm({
 
   function change<K extends keyof TaskFormValues>(field: K, value: TaskFormValues[K]) {
     setValues((previous) => ({ ...previous, [field]: value }));
-    if (field !== 'assignToMe' && errors[field as Exclude<K, 'assignToMe'>]) {
+    if (field !== 'assigneeIds' && errors[field as Exclude<K, 'assigneeIds'>]) {
       setErrors((previous) => ({ ...previous, [field]: undefined }));
     }
   }
@@ -159,13 +177,13 @@ function TaskForm({
       ? await call(() =>
           api.PATCH('/api/v1/weddings/{weddingId}/tasks/{taskId}', {
             params: { path: { weddingId: wedding.id, taskId: task.id } },
-            body: toTaskChanges(values, user.id, task),
+            body: toTaskChanges(values, task),
           }),
         )
       : await call(() =>
           api.POST('/api/v1/weddings/{weddingId}/tasks', {
             params: { path: { weddingId: wedding.id } },
-            body: toNewTaskPayload(values, user.id),
+            body: toNewTaskPayload(values),
           }),
         );
     if (result.data) {
@@ -217,7 +235,8 @@ function TaskForm({
             events={events}
             linkedEvent={task?.eventId ? { id: task.eventId, name: task.eventName } : null}
             fromEvent={Boolean(presetEventId) && values.eventId === presetEventId}
-            userName={user.displayName}
+            members={pickable}
+            currentUserId={user.id}
             onChange={change}
             disabled={pending}
           />
@@ -248,7 +267,8 @@ function TaskFields({
   events,
   linkedEvent,
   fromEvent,
-  userName,
+  members,
+  currentUserId,
   onChange,
   disabled,
 }: {
@@ -260,7 +280,9 @@ function TaskFields({
   linkedEvent: { id: string; name: string | null } | null;
   /** True while the event preset from an event's shortcut is still chosen. */
   fromEvent: boolean;
-  userName: string;
+  /** Null while the member directory loads. */
+  members: PickableMember[] | null;
+  currentUserId: string;
   onChange: <K extends keyof TaskFormValues>(field: K, value: TaskFormValues[K]) => void;
   disabled: boolean;
 }) {
@@ -435,22 +457,18 @@ function TaskFields({
           <legend className="mb-1.5 block text-body-sm font-medium text-navy">
             {taskFields.assignee.label}
           </legend>
-          <label
-            htmlFor={ids.assignee}
-            className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border border-outline-variant/70 bg-white px-3"
-          >
-            <input
-              id={ids.assignee}
-              type="checkbox"
-              checked={values.assignToMe}
-              onChange={(changeEvent) => onChange('assignToMe', changeEvent.target.checked)}
+          {members ? (
+            <MultiMemberPicker
+              name={ids.assignee}
+              members={members}
+              currentUserId={currentUserId}
+              selected={values.assigneeIds}
+              onChange={(userIds) => onChange('assigneeIds', userIds)}
               disabled={disabled}
-              className="size-5 accent-navy"
             />
-            <span className="text-body-md break-words text-navy">
-              {taskFields.assignee.assignToMe.replace('{name}', userName)}
-            </span>
-          </label>
+          ) : (
+            <div className="h-11 animate-pulse rounded-lg bg-surface-container-low" />
+          )}
         </fieldset>
       </div>
 

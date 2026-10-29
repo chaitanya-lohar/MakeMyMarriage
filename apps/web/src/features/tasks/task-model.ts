@@ -37,10 +37,11 @@ export interface TaskFormValues {
   dueDate: string;
   /** An event ID, or empty for a whole-wedding task. */
   eventId: string;
-  assignToMe: boolean;
+  /** The chosen assignees: any active members (P10-8; Stitch "P10 · M10"). */
+  assigneeIds: string[];
 }
 
-export type TaskFormField = Exclude<keyof TaskFormValues, 'assignToMe'>;
+export type TaskFormField = Exclude<keyof TaskFormValues, 'assigneeIds'>;
 export type TaskFormErrors = Partial<Record<TaskFormField, string>>;
 
 export function emptyTaskForm(eventId = ''): TaskFormValues {
@@ -52,11 +53,11 @@ export function emptyTaskForm(eventId = ''): TaskFormValues {
     priority: 'MEDIUM',
     dueDate: '',
     eventId,
-    assignToMe: false,
+    assigneeIds: [],
   };
 }
 
-export function formFromTask(task: ApiTask, userId: string): TaskFormValues {
+export function formFromTask(task: ApiTask): TaskFormValues {
   return {
     title: task.title,
     description: task.description ?? '',
@@ -65,7 +66,7 @@ export function formFromTask(task: ApiTask, userId: string): TaskFormValues {
     priority: task.priority,
     dueDate: task.dueDate ?? '',
     eventId: task.eventId ?? '',
-    assignToMe: task.assignees.some((assignee) => assignee.userId === userId),
+    assigneeIds: task.assignees.map((assignee) => assignee.userId),
   };
 }
 
@@ -92,8 +93,8 @@ export function validateTaskForm(values: TaskFormValues): TaskFormErrors {
 
 const orNull = (value: string) => value.trim() || null;
 
-/** The full request body for a new task. Today only the signed-in member can be assigned (0026 #13). */
-export function toNewTaskPayload(values: TaskFormValues, userId: string) {
+/** The full request body for a new task; any active member may be an assignee (P10-8). */
+export function toNewTaskPayload(values: TaskFormValues) {
   return {
     title: values.title.trim(),
     description: orNull(values.description),
@@ -102,18 +103,18 @@ export function toNewTaskPayload(values: TaskFormValues, userId: string) {
     priority: values.priority,
     dueDate: values.dueDate || null,
     eventId: values.eventId || null,
-    assigneeIds: values.assignToMe ? [userId] : [],
+    assigneeIds: [...values.assigneeIds],
   };
 }
 
 /**
  * The PATCH body for an edit: only the fields that differ from the task as loaded, so a change
  * made meanwhile in another tab (say, its status) is not undone (review P7-M2). `assigneeIds`
- * is sent only when "Assign to me" changed, and keeps everyone else assigned.
+ * is sent only when the chosen assignees changed.
  */
-export function toTaskChanges(values: TaskFormValues, userId: string, task: ApiTask) {
-  const full = toNewTaskPayload(values, userId);
-  const loaded = toNewTaskPayload(formFromTask(task, userId), userId);
+export function toTaskChanges(values: TaskFormValues, task: ApiTask) {
+  const full = toNewTaskPayload(values);
+  const loaded = toNewTaskPayload(formFromTask(task));
   const changes: Partial<ReturnType<typeof toNewTaskPayload>> = {};
   for (const key of [
     'title',
@@ -126,10 +127,10 @@ export function toTaskChanges(values: TaskFormValues, userId: string, task: ApiT
   ] as const) {
     if (full[key] !== loaded[key]) Object.assign(changes, { [key]: full[key] });
   }
-  if (values.assignToMe !== formFromTask(task, userId).assignToMe) {
-    const others = task.assignees.map((assignee) => assignee.userId).filter((id) => id !== userId);
-    changes.assigneeIds = values.assignToMe ? [...others, userId] : others;
-  }
+  const sameAssignees =
+    full.assigneeIds.length === loaded.assigneeIds.length &&
+    full.assigneeIds.every((id) => loaded.assigneeIds.includes(id));
+  if (!sameAssignees) changes.assigneeIds = full.assigneeIds;
   return changes;
 }
 
