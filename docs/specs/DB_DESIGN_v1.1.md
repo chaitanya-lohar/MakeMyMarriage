@@ -376,6 +376,8 @@ then runs a query constrained by `weddingId`.
   accept. Email verification is **not** required (V1 has none — 0015): possession of the
   single-use emailed token plus the matching account email is the proof. Declining needs only
   the token, so an invitee without an account can decline (API Design §7.1).
+- **Invitee already a member (0036):** accepting closes the invitation as `ACCEPTED` with the
+  existing `membershipId`; the membership is not changed.
 - **No access while pending:** a `PENDING` invitation grants nothing; only the `ACTIVE`
   membership written at acceptance does.
 - At most one `PENDING` invitation per `(weddingId, email)`.
