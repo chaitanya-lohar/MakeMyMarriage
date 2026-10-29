@@ -6,7 +6,8 @@ import type { ApiUser } from '@/lib/api';
 import type { ApiWedding } from '@/features/weddings/wedding-form-model';
 import { workspaceNav } from '../content';
 import { useWorkspace } from '../workspace-context';
-import { NavLinks, UserAvatar, UserSummary, WeddingName, WorkspaceLogo } from './shell-parts';
+import { NavLinks, UserAvatar, UserSummary, WorkspaceLogo } from './shell-parts';
+import { WeddingSelector } from './wedding-selector';
 
 /**
  * The workspace header below 1024px, with a drawer that holds the navigation and the user
@@ -81,7 +82,11 @@ export function MobileNav({ user, wedding }: { user?: ApiUser; wedding?: ApiWedd
                       <span aria-hidden="true" className="size-1.5 rounded-full bg-champagne" />
                       {workspaceNav.yourWedding}
                     </p>
-                    <WeddingName name={wedding.displayName} className="text-headline-sm" />
+                    <WeddingSelector
+                      wedding={wedding}
+                      size="text-headline-sm"
+                      onNavigate={() => setOpen(false)}
+                    />
                   </div>
                   <NavLinks onNavigate={() => setOpen(false)} />
                 </>

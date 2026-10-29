@@ -23,8 +23,12 @@ import {
   EXPENSES_PATH,
   TASKS_PATH,
 } from '@/features/workspace/components/shell-parts';
-import { PageHeader, SkeletonCard } from '@/features/workspace/components/workspace-page';
-import { SESSION_ENDED_PATH, useReadyWorkspace } from '@/features/workspace/workspace-context';
+import { Can, PageHeader, SkeletonCard } from '@/features/workspace/components/workspace-page';
+import {
+  SESSION_ENDED_PATH,
+  usePermissions,
+  useReadyWorkspace,
+} from '@/features/workspace/workspace-context';
 import { api, call } from '@/lib/api';
 import {
   deleteEvent,
@@ -111,7 +115,10 @@ export function EditEventPage({ wedding, eventId }: { wedding: ApiWedding; event
 function EventForm({ wedding, event }: { wedding: ApiWedding; event: ApiEvent | null }) {
   const router = useRouter();
   const { setNotice } = useReadyWorkspace();
+  const { can } = usePermissions();
   const current = event;
+  // Without EDIT an event opens read-only; Delete needs DELETE (Stitch "P10 · M8").
+  const readOnly = current !== null && !can('EVENTS', 'EDIT');
   const [values, setValues] = useState<EventFormValues>(() =>
     event ? formFromEvent(event) : emptyEventForm,
   );
@@ -138,7 +145,7 @@ function EventForm({ wedding, event }: { wedding: ApiWedding; event: ApiEvent | 
 
   async function save(formEvent: FormEvent<HTMLFormElement>) {
     formEvent.preventDefault();
-    if (submitting.current) return;
+    if (submitting.current || readOnly) return;
     setBanner(null);
     const found = validateEventForm(values);
     setErrors(found);
@@ -213,20 +220,24 @@ function EventForm({ wedding, event }: { wedding: ApiWedding; event: ApiEvent | 
           // expense panel and no totals on the event page (0027, 0029).
           current && (
             <>
-              <Link
-                href={`${TASKS_PATH}/new?eventId=${current.id}`}
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-champagne bg-white px-5 text-label-md text-navy transition-colors hover:bg-ivory focus-visible:outline-2 focus-visible:outline-secondary"
-              >
-                <Icon name="add_task" className="size-5" />
-                {eventTaskShortcut}
-              </Link>
-              <Link
-                href={`${EXPENSES_PATH}/new?eventId=${current.id}`}
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-champagne bg-white px-5 text-label-md text-navy transition-colors hover:bg-ivory focus-visible:outline-2 focus-visible:outline-secondary"
-              >
-                <Icon name="add_card" className="size-5" />
-                {eventExpenseShortcut}
-              </Link>
+              <Can module="TASKS" action="CREATE">
+                <Link
+                  href={`${TASKS_PATH}/new?eventId=${current.id}`}
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-champagne bg-white px-5 text-label-md text-navy transition-colors hover:bg-ivory focus-visible:outline-2 focus-visible:outline-secondary"
+                >
+                  <Icon name="add_task" className="size-5" />
+                  {eventTaskShortcut}
+                </Link>
+              </Can>
+              <Can module="EXPENSES" action="CREATE">
+                <Link
+                  href={`${EXPENSES_PATH}/new?eventId=${current.id}`}
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-champagne bg-white px-5 text-label-md text-navy transition-colors hover:bg-ivory focus-visible:outline-2 focus-visible:outline-secondary"
+                >
+                  <Icon name="add_card" className="size-5" />
+                  {eventExpenseShortcut}
+                </Link>
+              </Can>
             </>
           )
         }
@@ -247,10 +258,15 @@ function EventForm({ wedding, event }: { wedding: ApiWedding; event: ApiEvent | 
         </div>
 
         <form onSubmit={(formEvent) => void save(formEvent)} noValidate className="mt-6 first:mt-0">
-          <EventFields values={values} errors={errors} onChange={change} disabled={pending} />
+          <EventFields
+            values={values}
+            errors={errors}
+            onChange={change}
+            disabled={pending || readOnly}
+          />
           <div className="mt-8 flex flex-col-reverse gap-3 border-t border-hairline pt-6 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              {current && (
+              {current && can('EVENTS', 'DELETE') && (
                 <QuietButton
                   icon="delete"
                   onClick={() => setConfirming(true)}
@@ -268,14 +284,16 @@ function EventForm({ wedding, event }: { wedding: ApiWedding; event: ApiEvent | 
               >
                 {eventForm.cancel}
               </Link>
-              <PrimaryButton
-                type="submit"
-                pending={pending}
-                pendingLabel={eventForm.saving}
-                icon="arrow_forward"
-              >
-                {eventForm.save}
-              </PrimaryButton>
+              {!readOnly && (
+                <PrimaryButton
+                  type="submit"
+                  pending={pending}
+                  pendingLabel={eventForm.saving}
+                  icon="arrow_forward"
+                >
+                  {eventForm.save}
+                </PrimaryButton>
+              )}
             </div>
           </div>
         </form>

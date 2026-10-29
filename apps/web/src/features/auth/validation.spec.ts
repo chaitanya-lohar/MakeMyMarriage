@@ -31,6 +31,7 @@ describe('isInvalidEmailError', () => {
     message: 'The request contains invalid input.',
     status: 400,
     fields: {},
+    details: {},
     ...overrides,
   });
 

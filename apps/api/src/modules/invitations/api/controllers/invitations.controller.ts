@@ -14,7 +14,12 @@ import {
   ApiEnvelopeResponse,
   ApiErrorResponses,
 } from '../../../../common/http/api-envelope.decorator.js';
-import { WeddingAccessGuard } from '../../../workspace/index.js';
+import {
+  PermissionAction,
+  PermissionModule,
+  RequirePermission,
+  WeddingAccessGuard,
+} from '../../../workspace/index.js';
 import { ManageInvitationUseCase } from '../../application/use-cases/manage-invitation.use-case.js';
 import { DeliveryKind } from '../../domain/types/invitation.js';
 import {
@@ -50,6 +55,7 @@ export class InvitationsController {
   constructor(private readonly invitations: ManageInvitationUseCase) {}
 
   @Post()
+  @RequirePermission(PermissionModule.Invitations, PermissionAction.Create)
   @ApiOperation({ summary: 'Create the invitation and its first link' })
   @ApiEnvelopeResponse(201, InvitationWithLinkDto)
   @ApiErrorResponses(signedOut, notFound, {
@@ -70,6 +76,7 @@ export class InvitationsController {
   }
 
   @Post('regenerate')
+  @RequirePermission(PermissionModule.Invitations, PermissionAction.Manage)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Replace the link (also when revoked); the old one stops working; status DRAFT',
@@ -90,6 +97,7 @@ export class InvitationsController {
   }
 
   @Post('send')
+  @RequirePermission(PermissionModule.Invitations, PermissionAction.Send)
   @HttpCode(HttpStatus.ACCEPTED)
   @ApiHeader(idempotencyKey)
   @ApiOperation({ summary: 'Send the invitation email' })
@@ -112,6 +120,7 @@ export class InvitationsController {
   }
 
   @Post('resend')
+  @RequirePermission(PermissionModule.Invitations, PermissionAction.Send)
   @HttpCode(HttpStatus.ACCEPTED)
   @ApiHeader(idempotencyKey)
   @ApiOperation({ summary: 'Send the invitation email again, with the same link' })
@@ -134,6 +143,7 @@ export class InvitationsController {
   }
 
   @Post('revoke')
+  @RequirePermission(PermissionModule.Invitations, PermissionAction.Manage)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Revoke the link; no new link is created; email status unchanged' })
   @ApiEnvelopeResponse(200, InvitationDto)
@@ -147,6 +157,7 @@ export class InvitationsController {
   }
 
   @Get('link')
+  @RequirePermission(PermissionModule.Invitations, PermissionAction.Send)
   @ApiOperation({ summary: 'The current link, for Copy Link and WhatsApp (audited)' })
   @ApiEnvelopeResponse(200, InvitationLinkDto)
   @ApiErrorResponses(signedOut, notFound, revoked)
@@ -159,6 +170,7 @@ export class InvitationsController {
   }
 
   @Get('deliveries')
+  @RequirePermission(PermissionModule.Invitations, PermissionAction.View)
   @ApiOperation({ summary: 'Email attempts and activity (opens), oldest first' })
   @ApiEnvelopeResponse(200, InvitationHistoryDto)
   @ApiErrorResponses(signedOut, notFound)

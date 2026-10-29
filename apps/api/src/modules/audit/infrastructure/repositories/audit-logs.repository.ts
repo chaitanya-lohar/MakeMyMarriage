@@ -1,9 +1,27 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { isValidObjectId, Model, trusted, Types } from 'mongoose';
 import { sessionOf, type Transaction } from '../../../../infrastructure/database/transaction.js';
-import type { AuditEntry, AuditRecord } from '../../domain/types/audit-entry.js';
+import {
+  afterTimeCursor,
+  decodeTimeCursor,
+  encodeTimeCursor,
+} from '../../../../infrastructure/database/time-cursor.js';
+import type {
+  AuditEntry,
+  AuditListQuery,
+  AuditPage,
+  AuditRecord,
+} from '../../domain/types/audit-entry.js';
 import { AuditLogRecord, type AuditLogDocument } from '../schemas/audit-log.schema.js';
+
+/** The cursor is not one this API issued. */
+export class InvalidAuditCursorError extends Error {
+  constructor() {
+    super('Invalid audit cursor');
+    this.name = 'InvalidAuditCursorError';
+  }
+}
 
 function toRecord(document: AuditLogDocument): AuditRecord {
   return {
@@ -37,6 +55,44 @@ export class AuditLogsRepository {
       ],
       { session: sessionOf(transaction) },
     );
+  }
+
+  /**
+   * A wedding's entries matching the filters, newest first, one page at a time (API Design
+   * §7.1). Throws InvalidAuditCursorError for a cursor this API did not issue.
+   */
+  async listForWedding(weddingId: string, query: AuditListQuery): Promise<AuditPage> {
+    const filter: Record<string, unknown> = { weddingId: new Types.ObjectId(weddingId) };
+    if (query.action) filter.action = query.action;
+    if (query.resourceType) filter.resourceType = query.resourceType;
+    if (query.actorUserId) {
+      if (!isValidObjectId(query.actorUserId)) return { records: [], nextCursor: null };
+      filter.actorUserId = new Types.ObjectId(query.actorUserId);
+    }
+    const createdAt: Record<string, Date> = {};
+    if (query.from) createdAt.$gte = query.from;
+    if (query.to) createdAt.$lt = query.to;
+    const conditions: Record<string, unknown>[] = [filter];
+    // Operators are wrapped in trusted(): the connection sanitizes filters (database.module).
+    if (query.from || query.to) conditions.push({ createdAt: trusted(createdAt) });
+    if (query.cursor) {
+      const position = decodeTimeCursor(query.cursor);
+      if (!position) throw new InvalidAuditCursorError();
+      conditions.push(afterTimeCursor(position));
+    }
+    const documents = await this.logs
+      .find({ $and: conditions })
+      .sort({ createdAt: -1, _id: -1 })
+      .limit(query.limit + 1);
+    const records = documents.slice(0, query.limit).map(toRecord);
+    const last = records.at(-1);
+    return {
+      records,
+      nextCursor:
+        documents.length > query.limit && last
+          ? encodeTimeCursor({ createdAt: last.createdAt, id: last.id })
+          : null,
+    };
   }
 
   /** A resource's entries, oldest first. */

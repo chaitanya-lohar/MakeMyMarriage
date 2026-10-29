@@ -23,7 +23,7 @@ type Problem = 'server' | 'network' | 'already-owned' | null;
 /** Stitch "P3 · S3 Create Wedding" and its submission states (decision 0016). */
 export function CreateWeddingForm() {
   const router = useRouter();
-  const { setWedding, setNotice, reload } = useWorkspace();
+  const { weddingCreated, setNotice, reload } = useWorkspace();
   const [values, setValues] = useState(emptyWeddingForm);
   const [errors, setErrors] = useState<WeddingFormErrors>({});
   const [problem, setProblem] = useState<Problem>(null);
@@ -46,8 +46,8 @@ export function CreateWeddingForm() {
       api.POST('/api/v1/weddings', { body: toWeddingPayload(values) }),
     );
     if (result.data) {
-      setWedding(result.data);
       setNotice('wedding-created');
+      weddingCreated(result.data);
       router.push(DASHBOARD_PATH);
       return;
     }

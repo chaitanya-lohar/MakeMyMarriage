@@ -22,6 +22,11 @@ export class UsersService {
     return this.users.findManyByIds(ids);
   }
 
+  /** The account with this email, normalized; never the password hash. */
+  async findByEmail(email: string): Promise<User | null> {
+    return (await this.users.findCredentialsByEmail(normalizeEmail(email)))?.user ?? null;
+  }
+
   findCredentialsByEmail(email: string): Promise<UserCredentials | null> {
     return this.users.findCredentialsByEmail(normalizeEmail(email));
   }

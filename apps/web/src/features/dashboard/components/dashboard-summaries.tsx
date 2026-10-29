@@ -29,13 +29,15 @@ import { formatVendorDate } from '@/features/vendors/vendor-model';
 import { VENDORS_PATH } from '@/features/workspace/components/shell-parts';
 
 type ApiDashboard = components['schemas']['DashboardDto'];
-type UpcomingEvent = ApiDashboard['upcomingEvents'][number];
-type UpcomingTask = ApiDashboard['upcomingTasks'][number];
+type UpcomingEvent = NonNullable<ApiDashboard['upcomingEvents']>[number];
+type UpcomingTask = NonNullable<ApiDashboard['upcomingTasks']>[number];
 
 /**
  * The Phase 4 summaries below the Phase 3 cards (Stitch "P4 · O10", decisions 0019 #5 and
  * 0022), with the Phase 7 Tasks card after Upcoming events ("P7 · T6", decisions 0026 #20 and
- * 0027). The API returns at most five upcoming events and five upcoming tasks.
+ * 0027). The API returns at most five upcoming events and five upcoming tasks. Each card
+ * shows only when the API returns its section, which it does only for members who may view
+ * that module; a hidden card leaves no gap (API Design §6, P10-8, Stitch "P10 · M8").
  */
 export function DashboardSummaries({ wedding }: { wedding: ApiWedding }) {
   const router = useRouter();
@@ -107,159 +109,176 @@ export function DashboardSummaries({ wedding }: { wedding: ApiWedding }) {
   } = state.data;
   return (
     <div className="mt-6 grid gap-6 md:grid-cols-2">
-      <Card icon="festival" title={copy.upcomingTitle}>
-        {upcomingEvents.length === 0 ? (
-          <div className="py-4 text-center">
-            <p className="font-medium text-navy">{copy.noUpcomingTitle}</p>
-            <p className="mb-4 text-body-sm text-on-surface-variant">{copy.noUpcomingBody}</p>
-            <Link
-              href={`${EVENTS_PATH}/new`}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-navy px-5 text-label-md text-on-primary hover:bg-[#1e293b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
-            >
-              <Icon name="add" className="size-5" />
-              {copy.addEvent}
-            </Link>
-          </div>
-        ) : (
-          <ul className="divide-y divide-hairline">
-            {upcomingEvents.map((event) => (
-              <li key={event.id} className="flex gap-3 py-3 first:pt-0 last:pb-0">
-                <span
-                  aria-hidden="true"
-                  className="mt-2 size-1.5 shrink-0 rounded-full bg-champagne"
-                />
-                <div className="min-w-0">
-                  <p className="font-medium break-words text-navy">{event.name}</p>
-                  <p className="text-body-sm break-words text-on-surface-variant">
-                    {eventLine(event)}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Card>
-
-      <TasksCard counts={taskCounts} upcoming={upcomingTasks} hasTasks={hasTasks} />
-
-      <Card icon="group" title={copy.guestsTitle}>
-        <p className="font-serif text-navy">
-          <span className="text-[3rem] leading-none">
-            {guestTotals.guests.toLocaleString('en-IN')}
-          </span>{' '}
-          <span className="text-title-lg font-normal text-on-surface-variant">
-            {guestTotals.guests === 1 ? copy.guestsUnit.one : copy.guestsUnit.other}
-          </span>
-        </p>
-        <p className="mt-2 text-body-sm text-on-surface-variant">{copy.guestsNote}</p>
-      </Card>
-
-      <Card icon="mark_email_read" title={copy.rsvpTitle}>
-        <p className="mb-3 text-body-sm font-medium text-navy">{copy.rsvpSubtitle}</p>
-        <dl className="grid grid-cols-2 gap-3">
-          <Count
-            icon="check_circle"
-            label={rsvpLabels.ATTENDING}
-            value={rsvpBreakdown.attending}
-            tone="sage"
-          />
-          <Count
-            icon="pending"
-            label={rsvpLabels.PENDING}
-            value={rsvpBreakdown.pending}
-            tone="champagne"
-          />
-          <Count icon="help" label={rsvpLabels.MAYBE} value={rsvpBreakdown.maybe} tone="neutral" />
-          <Count
-            icon="cancel"
-            label={rsvpLabels.DECLINED}
-            value={rsvpBreakdown.declined}
-            tone="rose"
-          />
-        </dl>
-        <p className="mt-4 border-t border-hairline pt-3 text-body-sm text-on-surface-variant">
-          {copy.rsvpNote}
-        </p>
-      </Card>
-
-      <Card icon="person_pin_circle" title={copy.attendeesTitle}>
-        {upcomingEvents.length === 0 ? (
-          <p className="text-body-sm text-on-surface-variant">{copy.noAttendees}</p>
-        ) : (
-          <ul className="space-y-2">
-            {upcomingEvents.map((event) => (
-              <li
-                key={event.id}
-                className="flex items-center justify-between gap-3 rounded-lg bg-surface-container-low px-3 py-2.5"
+      {upcomingEvents && (
+        <Card icon="festival" title={copy.upcomingTitle}>
+          {upcomingEvents.length === 0 ? (
+            <div className="py-4 text-center">
+              <p className="font-medium text-navy">{copy.noUpcomingTitle}</p>
+              <p className="mb-4 text-body-sm text-on-surface-variant">{copy.noUpcomingBody}</p>
+              <Link
+                href={`${EVENTS_PATH}/new`}
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-navy px-5 text-label-md text-on-primary hover:bg-[#1e293b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
               >
-                <span className="min-w-0 text-body-sm break-words text-navy">{event.name}</span>
-                <span className="text-label-md text-navy">
-                  {event.expectedAttendees.toLocaleString('en-IN')}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-        <p className="mt-4 border-t border-hairline pt-3 text-body-sm text-on-surface-variant">
-          {copy.attendeesNote}
-        </p>
-      </Card>
-
-      <ExpensesCard summary={expenseSummary} />
-      <Card icon="group" title={dashboardVendors.title}>
-        {vendorSummary.activeVendors === 0 ? (
-          <div className="py-4 text-center">
-            <p className="font-medium text-navy">{dashboardVendors.noVendors}</p>
-            <Link
-              href={`${VENDORS_PATH}/new`}
-              className="mt-3 inline-flex min-h-11 items-center gap-2 text-label-md text-navy underline"
-            >
-              <Icon name="add" className="size-5" />
-              {dashboardVendors.add}
-            </Link>
-          </div>
-        ) : (
-          <>
-            <dl className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-              {[
-                [dashboardVendors.active, vendorSummary.activeVendors],
-                [dashboardVendors.booked, vendorSummary.bookedVendors],
-                [dashboardVendors.followUp, vendorSummary.bookingsNeedingFollowUp],
-              ].map(([label, value]) => (
-                <div key={label} className="min-w-0 rounded-lg bg-surface-container-low p-3">
-                  <dt className="text-body-sm text-on-surface-variant">{label}</dt>
-                  <dd className="mt-1 text-title-lg font-semibold text-navy">{value}</dd>
-                </div>
-              ))}
-            </dl>
-            <h3 className="mt-5 mb-2 text-label-md font-semibold text-navy">
-              {dashboardVendors.upcoming}
-            </h3>
-            {vendorSummary.upcomingServices.length === 0 ? (
-              <p className="text-body-sm text-on-surface-variant">{dashboardVendors.none}</p>
-            ) : (
-              <ul className="divide-y divide-hairline">
-                {vendorSummary.upcomingServices.map((service) => (
-                  <li key={service.bookingId} className="py-2">
-                    <p className="font-medium text-navy">{service.title}</p>
-                    <p className="text-body-sm text-on-surface-variant">
-                      {service.vendorName} · {formatVendorDate(service.serviceDate)}
-                      {` · ${service.eventName ?? dashboardVendors.wholeWedding}`}
+                <Icon name="add" className="size-5" />
+                {copy.addEvent}
+              </Link>
+            </div>
+          ) : (
+            <ul className="divide-y divide-hairline">
+              {upcomingEvents.map((event) => (
+                <li key={event.id} className="flex gap-3 py-3 first:pt-0 last:pb-0">
+                  <span
+                    aria-hidden="true"
+                    className="mt-2 size-1.5 shrink-0 rounded-full bg-champagne"
+                  />
+                  <div className="min-w-0">
+                    <p className="font-medium break-words text-navy">{event.name}</p>
+                    <p className="text-body-sm break-words text-on-surface-variant">
+                      {eventLine(event)}
                     </p>
-                  </li>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+      )}
+
+      {taskCounts && upcomingTasks && hasTasks !== undefined && (
+        <TasksCard counts={taskCounts} upcoming={upcomingTasks} hasTasks={hasTasks} />
+      )}
+
+      {guestTotals && (
+        <Card icon="group" title={copy.guestsTitle}>
+          <p className="font-serif text-navy">
+            <span className="text-[3rem] leading-none">
+              {guestTotals.guests.toLocaleString('en-IN')}
+            </span>{' '}
+            <span className="text-title-lg font-normal text-on-surface-variant">
+              {guestTotals.guests === 1 ? copy.guestsUnit.one : copy.guestsUnit.other}
+            </span>
+          </p>
+          <p className="mt-2 text-body-sm text-on-surface-variant">{copy.guestsNote}</p>
+        </Card>
+      )}
+
+      {rsvpBreakdown && (
+        <Card icon="mark_email_read" title={copy.rsvpTitle}>
+          <p className="mb-3 text-body-sm font-medium text-navy">{copy.rsvpSubtitle}</p>
+          <dl className="grid grid-cols-2 gap-3">
+            <Count
+              icon="check_circle"
+              label={rsvpLabels.ATTENDING}
+              value={rsvpBreakdown.attending}
+              tone="sage"
+            />
+            <Count
+              icon="pending"
+              label={rsvpLabels.PENDING}
+              value={rsvpBreakdown.pending}
+              tone="champagne"
+            />
+            <Count
+              icon="help"
+              label={rsvpLabels.MAYBE}
+              value={rsvpBreakdown.maybe}
+              tone="neutral"
+            />
+            <Count
+              icon="cancel"
+              label={rsvpLabels.DECLINED}
+              value={rsvpBreakdown.declined}
+              tone="rose"
+            />
+          </dl>
+          <p className="mt-4 border-t border-hairline pt-3 text-body-sm text-on-surface-variant">
+            {copy.rsvpNote}
+          </p>
+        </Card>
+      )}
+
+      {upcomingEvents && rsvpBreakdown && (
+        <Card icon="person_pin_circle" title={copy.attendeesTitle}>
+          {upcomingEvents.length === 0 ? (
+            <p className="text-body-sm text-on-surface-variant">{copy.noAttendees}</p>
+          ) : (
+            <ul className="space-y-2">
+              {upcomingEvents.map((event) => (
+                <li
+                  key={event.id}
+                  className="flex items-center justify-between gap-3 rounded-lg bg-surface-container-low px-3 py-2.5"
+                >
+                  <span className="min-w-0 text-body-sm break-words text-navy">{event.name}</span>
+                  <span className="text-label-md text-navy">
+                    {(event.expectedAttendees ?? 0).toLocaleString('en-IN')}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="mt-4 border-t border-hairline pt-3 text-body-sm text-on-surface-variant">
+            {copy.attendeesNote}
+          </p>
+        </Card>
+      )}
+
+      {expenseSummary && <ExpensesCard summary={expenseSummary} />}
+      {vendorSummary && (
+        <Card icon="group" title={dashboardVendors.title}>
+          {vendorSummary.activeVendors === 0 ? (
+            <div className="py-4 text-center">
+              <p className="font-medium text-navy">{dashboardVendors.noVendors}</p>
+              <Link
+                href={`${VENDORS_PATH}/new`}
+                className="mt-3 inline-flex min-h-11 items-center gap-2 text-label-md text-navy underline"
+              >
+                <Icon name="add" className="size-5" />
+                {dashboardVendors.add}
+              </Link>
+            </div>
+          ) : (
+            <>
+              <dl className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                {[
+                  [dashboardVendors.active, vendorSummary.activeVendors],
+                  [dashboardVendors.booked, vendorSummary.bookedVendors],
+                  [dashboardVendors.followUp, vendorSummary.bookingsNeedingFollowUp],
+                ].map(([label, value]) => (
+                  <div key={label} className="min-w-0 rounded-lg bg-surface-container-low p-3">
+                    <dt className="text-body-sm text-on-surface-variant">{label}</dt>
+                    <dd className="mt-1 text-title-lg font-semibold text-navy">{value}</dd>
+                  </div>
                 ))}
-              </ul>
-            )}
-            <Link
-              href={VENDORS_PATH}
-              className="mt-3 inline-flex min-h-11 items-center gap-1 text-label-md text-navy hover:underline"
-            >
-              {dashboardVendors.viewAll}
-              <Icon name="arrow_forward" className="size-4" />
-            </Link>
-          </>
-        )}
-      </Card>
+              </dl>
+              <h3 className="mt-5 mb-2 text-label-md font-semibold text-navy">
+                {dashboardVendors.upcoming}
+              </h3>
+              {vendorSummary.upcomingServices.length === 0 ? (
+                <p className="text-body-sm text-on-surface-variant">{dashboardVendors.none}</p>
+              ) : (
+                <ul className="divide-y divide-hairline">
+                  {vendorSummary.upcomingServices.map((service) => (
+                    <li key={service.bookingId} className="py-2">
+                      <p className="font-medium text-navy">{service.title}</p>
+                      <p className="text-body-sm text-on-surface-variant">
+                        {service.vendorName} · {formatVendorDate(service.serviceDate)}
+                        {` · ${service.eventName ?? dashboardVendors.wholeWedding}`}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <Link
+                href={VENDORS_PATH}
+                className="mt-3 inline-flex min-h-11 items-center gap-1 text-label-md text-navy hover:underline"
+              >
+                {dashboardVendors.viewAll}
+                <Icon name="arrow_forward" className="size-4" />
+              </Link>
+            </>
+          )}
+        </Card>
+      )}
     </div>
   );
 }
@@ -268,7 +287,7 @@ export function DashboardSummaries({ wedding }: { wedding: ApiWedding }) {
  * The Expenses card (Stitch "P8 · E7", decision 0029): Total, Paid and Pending, then spending
  * by category and by event, largest first, as plain amounts — no charts.
  */
-function ExpensesCard({ summary }: { summary: ApiDashboard['expenseSummary'] }) {
+function ExpensesCard({ summary }: { summary: NonNullable<ApiDashboard['expenseSummary']> }) {
   const none = summary.byCategory.length === 0;
   const rows = (items: { key: string; label: string; minor: number }[]) => (
     <ul className="divide-y divide-hairline">
@@ -357,7 +376,7 @@ function TasksCard({
   upcoming,
   hasTasks,
 }: {
-  counts: ApiDashboard['taskCounts'];
+  counts: NonNullable<ApiDashboard['taskCounts']>;
   upcoming: UpcomingTask[];
   hasTasks: boolean;
 }) {

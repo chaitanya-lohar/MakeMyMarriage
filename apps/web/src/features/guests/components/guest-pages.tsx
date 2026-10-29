@@ -7,18 +7,26 @@ import { GuestsList } from './guests-list';
 
 /** `/guests` */
 export function GuestsPageContent() {
-  return <RequireWedding>{(wedding) => <GuestsList wedding={wedding} />}</RequireWedding>;
+  return (
+    <RequireWedding permission={['GUESTS', 'VIEW']}>
+      {(wedding) => <GuestsList wedding={wedding} />}
+    </RequireWedding>
+  );
 }
 
 /** `/guests/new` */
 export function NewGuestPageContent() {
-  return <RequireWedding>{(wedding) => <AddGuestPage wedding={wedding} />}</RequireWedding>;
+  return (
+    <RequireWedding permission={['GUESTS', 'CREATE']}>
+      {(wedding) => <AddGuestPage wedding={wedding} />}
+    </RequireWedding>
+  );
 }
 
 /** `/guests/[guestId]` */
 export function GuestDetailPageContent({ guestId }: { guestId: string }) {
   return (
-    <RequireWedding>
+    <RequireWedding permission={['GUESTS', 'VIEW']}>
       {(wedding) => <GuestDetail key={guestId} wedding={wedding} guestId={guestId} />}
     </RequireWedding>
   );
@@ -27,7 +35,7 @@ export function GuestDetailPageContent({ guestId }: { guestId: string }) {
 /** `/guests/[guestId]/edit` */
 export function EditGuestPageContent({ guestId }: { guestId: string }) {
   return (
-    <RequireWedding>
+    <RequireWedding permission={['GUESTS', 'EDIT']}>
       {(wedding) => <EditGuestPage key={guestId} wedding={wedding} guestId={guestId} />}
     </RequireWedding>
   );

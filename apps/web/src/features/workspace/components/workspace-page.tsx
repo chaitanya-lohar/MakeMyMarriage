@@ -5,20 +5,64 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Icon } from '@/components/ui/icon';
 import type { ApiWedding } from '@/features/weddings/wedding-form-model';
-import { useReadyWorkspace, type WorkspaceNotice } from '../workspace-context';
+import { accessStates } from '../content';
+import { usePermissions, useReadyWorkspace, type WorkspaceNotice } from '../workspace-context';
 import { DASHBOARD_PATH } from './shell-parts';
 
 /**
  * Renders a page that needs the user's wedding; without one it returns to the dashboard,
- * which offers to create it (decision 0016).
+ * which offers to create it (decision 0016). With `permission`, a member who lacks it sees
+ * the no-access page instead (Stitch "P10 · M8"); the server refuses the requests anyway.
  */
-export function RequireWedding({ children }: { children: (wedding: ApiWedding) => ReactNode }) {
+export function RequireWedding({
+  children,
+  permission,
+}: {
+  children: (wedding: ApiWedding) => ReactNode;
+  permission?: [module: string, action: string];
+}) {
   const router = useRouter();
   const { wedding } = useReadyWorkspace();
+  const { can } = usePermissions();
   useEffect(() => {
     if (!wedding) router.replace(DASHBOARD_PATH);
   }, [wedding, router]);
-  return wedding ? children(wedding) : null;
+  if (!wedding) return null;
+  if (permission && !can(...permission)) return <NoAccess />;
+  return children(wedding);
+}
+
+/** Shows `children` only when the member holds the permission (Stitch "P10 · M8"). */
+export function Can({
+  module,
+  action,
+  children,
+}: {
+  module: string;
+  action: string;
+  children: ReactNode;
+}) {
+  const { can } = usePermissions();
+  return can(module, action) ? children : null;
+}
+
+/** "You don't have access to this section" inside the workspace (Stitch "P10 · M8"). */
+export function NoAccess() {
+  return (
+    <section
+      role="alert"
+      className="mx-auto mt-6 max-w-[480px] rounded-xl border border-hairline bg-white p-8 text-center shadow-sm"
+    >
+      <h1 className="mb-2 font-serif text-headline-sm text-navy">{accessStates.noAccessTitle}</h1>
+      <p className="mb-6 text-body-sm text-on-surface-variant">{accessStates.noAccessBody}</p>
+      <Link
+        href={DASHBOARD_PATH}
+        className="inline-flex min-h-11 items-center justify-center rounded-lg bg-navy px-6 text-label-md text-on-primary"
+      >
+        {accessStates.goToDashboard}
+      </Link>
+    </section>
+  );
 }
 
 /** A workspace page heading with an optional back link and actions. */

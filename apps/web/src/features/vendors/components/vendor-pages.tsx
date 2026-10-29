@@ -8,6 +8,7 @@ import {
   PageHeader,
   PrimaryLink,
   SkeletonCard,
+  Can,
 } from '@/features/workspace/components/workspace-page';
 import { VENDORS_PATH } from '@/features/workspace/components/shell-parts';
 import type { ApiWedding } from '@/features/weddings/wedding-form-model';
@@ -31,16 +32,32 @@ import {
 } from '../vendor-model';
 
 export function VendorsPageContent() {
-  return <RequireWedding>{(w) => <VendorsList wedding={w} />}</RequireWedding>;
+  return (
+    <RequireWedding permission={['VENDORS', 'VIEW']}>
+      {(w) => <VendorsList wedding={w} />}
+    </RequireWedding>
+  );
 }
 export function NewVendorPageContent() {
-  return <RequireWedding>{(w) => <VendorForm wedding={w} />}</RequireWedding>;
+  return (
+    <RequireWedding permission={['VENDORS', 'CREATE']}>
+      {(w) => <VendorForm wedding={w} />}
+    </RequireWedding>
+  );
 }
 export function VendorPageContent({ vendorId }: { vendorId: string }) {
-  return <RequireWedding>{(w) => <VendorDetail wedding={w} vendorId={vendorId} />}</RequireWedding>;
+  return (
+    <RequireWedding permission={['VENDORS', 'VIEW']}>
+      {(w) => <VendorDetail wedding={w} vendorId={vendorId} />}
+    </RequireWedding>
+  );
 }
 export function EditVendorPageContent({ vendorId }: { vendorId: string }) {
-  return <RequireWedding>{(w) => <VendorForm wedding={w} vendorId={vendorId} />}</RequireWedding>;
+  return (
+    <RequireWedding permission={['VENDORS', 'EDIT']}>
+      {(w) => <VendorForm wedding={w} vendorId={vendorId} />}
+    </RequireWedding>
+  );
 }
 function VendorsList({ wedding }: { wedding: ApiWedding }) {
   const [rows, setRows] = useState<ApiVendorView[]>([]),
@@ -100,7 +117,11 @@ function VendorsList({ wedding }: { wedding: ApiWedding }) {
     <>
       <PageHeader
         title={copy.listTitle}
-        actions={<PrimaryLink href={`${VENDORS_PATH}/new`}>{copy.add}</PrimaryLink>}
+        actions={
+          <Can module="VENDORS" action="CREATE">
+            <PrimaryLink href={`${VENDORS_PATH}/new`}>{copy.add}</PrimaryLink>
+          </Can>
+        }
       />
       <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <input
@@ -174,7 +195,9 @@ function VendorsList({ wedding }: { wedding: ApiWedding }) {
             <>
               <p className="mt-2 text-on-surface-variant">{copy.emptyBody}</p>
               <div className="mt-5">
-                <PrimaryLink href={`${VENDORS_PATH}/new`}>{copy.add}</PrimaryLink>
+                <Can module="VENDORS" action="CREATE">
+                  <PrimaryLink href={`${VENDORS_PATH}/new`}>{copy.add}</PrimaryLink>
+                </Can>
               </div>
             </>
           )}
@@ -496,18 +519,24 @@ function VendorDetail({ wedding, vendorId }: { wedding: ApiWedding; vendorId: st
         back={{ href: VENDORS_PATH, label: copy.listTitle }}
         actions={
           <>
-            <SecondaryButton onClick={() => router.push(`${VENDORS_PATH}/${vendorId}/edit`)}>
-              {copy.edit}
-            </SecondaryButton>
-            <SecondaryButton onClick={() => setDeleteDialog(true)}>{copy.delete}</SecondaryButton>
-            <PrimaryButton
-              onClick={() => {
-                setEditingBooking(null);
-                setDialog(true);
-              }}
-            >
-              {copy.addBooking}
-            </PrimaryButton>
+            <Can module="VENDORS" action="EDIT">
+              <SecondaryButton onClick={() => router.push(`${VENDORS_PATH}/${vendorId}/edit`)}>
+                {copy.edit}
+              </SecondaryButton>
+            </Can>
+            <Can module="VENDORS" action="DELETE">
+              <SecondaryButton onClick={() => setDeleteDialog(true)}>{copy.delete}</SecondaryButton>
+            </Can>
+            <Can module="VENDORS" action="CREATE">
+              <PrimaryButton
+                onClick={() => {
+                  setEditingBooking(null);
+                  setDialog(true);
+                }}
+              >
+                {copy.addBooking}
+              </PrimaryButton>
+            </Can>
           </>
         }
       />
@@ -538,35 +567,37 @@ function VendorDetail({ wedding, vendorId }: { wedding: ApiWedding; vendorId: st
                       <p className="font-semibold text-navy">
                         {rupeesFromMinor(b.agreedPriceMinor)}
                       </p>
-                      {b.status === 'CANCELLED' ? (
-                        <button
-                          className="mt-2 text-label-md text-secondary underline"
-                          onClick={() => {
-                            setEditingBooking(b);
-                            setDialog(true);
-                          }}
-                        >
-                          {copy.reopen}
-                        </button>
-                      ) : (
-                        <>
+                      <Can module="VENDORS" action="EDIT">
+                        {b.status === 'CANCELLED' ? (
                           <button
-                            className="mt-2 text-label-md text-navy underline"
+                            className="mt-2 text-label-md text-secondary underline"
                             onClick={() => {
                               setEditingBooking(b);
                               setDialog(true);
                             }}
                           >
-                            {copy.editBooking}
+                            {copy.reopen}
                           </button>
-                          <button
-                            className="mt-2 block text-label-md text-on-surface-variant underline"
-                            onClick={() => void cancel(b)}
-                          >
-                            {copy.cancel}
-                          </button>
-                        </>
-                      )}
+                        ) : (
+                          <>
+                            <button
+                              className="mt-2 text-label-md text-navy underline"
+                              onClick={() => {
+                                setEditingBooking(b);
+                                setDialog(true);
+                              }}
+                            >
+                              {copy.editBooking}
+                            </button>
+                            <button
+                              className="mt-2 block text-label-md text-on-surface-variant underline"
+                              onClick={() => void cancel(b)}
+                            >
+                              {copy.cancel}
+                            </button>
+                          </>
+                        )}
+                      </Can>
                     </div>
                   </div>
                 </article>

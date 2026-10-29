@@ -10,18 +10,18 @@ import { api, call } from '@/lib/api';
  * The session cookies are HttpOnly, so the check asks the API; the form stays usable
  * meanwhile.
  */
-export function SignedInRedirect() {
+export function SignedInRedirect({ next = '/dashboard' }: { next?: string }) {
   const router = useRouter();
 
   useEffect(() => {
     let active = true;
     void call(() => api.GET('/api/v1/me')).then((result) => {
-      if (active && result.data) router.replace('/dashboard');
+      if (active && result.data) router.replace(next);
     });
     return () => {
       active = false;
     };
-  }, [router]);
+  }, [router, next]);
 
   return null;
 }

@@ -8,6 +8,7 @@
     "build": "node scripts/clean.mjs dist && tsc -p tsconfig.build.json",
     "dev": "node scripts/dev.mjs",
     "start": "node --enable-source-maps dist/main.js",
+    "db:migrate": "node --enable-source-maps --env-file-if-exists=.env dist/db-migrate.js",
     "db:indexes": "node --enable-source-maps --env-file-if-exists=.env dist/db-indexes.js",
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.json --noEmit",

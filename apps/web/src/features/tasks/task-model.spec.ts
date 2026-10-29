@@ -50,15 +50,14 @@ describe('task form', () => {
     expect(emptyTaskForm('e1').eventId).toBe('e1');
   });
 
-  it('fills from a task, with "assign to me" for the signed-in member', () => {
-    expect(formFromTask(task, 'me')).toMatchObject({
+  it('fills from a task, with its assignees', () => {
+    expect(formFromTask(task)).toMatchObject({
       title: 'Book mehendi artist',
       dueDate: '2027-02-05',
       eventId: 'e1',
       notes: '',
-      assignToMe: true,
+      assigneeIds: ['me'],
     });
-    expect(formFromTask(task, 'someone-else').assignToMe).toBe(false);
   });
 
   it('validates like the API: title required and ≤150, texts ≤1,000, real dates', () => {
@@ -80,8 +79,8 @@ describe('task form', () => {
   });
 
   it('sends a new task in full, with nulls for empty fields', () => {
-    const values = { ...emptyTaskForm(), title: '  Gifts  ', assignToMe: true };
-    expect(toNewTaskPayload(values, 'me')).toEqual({
+    const values = { ...emptyTaskForm(), title: '  Gifts  ', assigneeIds: ['me', 'p2'] };
+    expect(toNewTaskPayload(values)).toEqual({
       title: 'Gifts',
       description: null,
       notes: null,
@@ -89,42 +88,43 @@ describe('task form', () => {
       priority: 'MEDIUM',
       dueDate: null,
       eventId: null,
-      assigneeIds: ['me'],
+      assigneeIds: ['me', 'p2'],
     });
-    expect(toNewTaskPayload(emptyTaskForm(), 'me').assigneeIds).toEqual([]);
+    expect(toNewTaskPayload(emptyTaskForm()).assigneeIds).toEqual([]);
   });
 
   it('sends only the changed fields of an edit (review P7-M2)', () => {
-    const loaded = formFromTask(task, 'me');
-    expect(toTaskChanges(loaded, 'me', task)).toEqual({});
-    expect(toTaskChanges({ ...loaded, title: ' Book henna artist ' }, 'me', task)).toEqual({
+    const loaded = formFromTask(task);
+    expect(toTaskChanges(loaded, task)).toEqual({});
+    expect(toTaskChanges({ ...loaded, title: ' Book henna artist ' }, task)).toEqual({
       title: 'Book henna artist',
     });
     expect(
-      toTaskChanges({ ...loaded, notes: 'Two quotes in', dueDate: '', eventId: '' }, 'me', task),
+      toTaskChanges({ ...loaded, notes: 'Two quotes in', dueDate: '', eventId: '' }, task),
     ).toEqual({ notes: 'Two quotes in', dueDate: null, eventId: null });
     // Status and assignees are left alone unless changed, so another tab's change survives.
-    expect(toTaskChanges({ ...loaded, priority: 'URGENT' }, 'me', task)).not.toHaveProperty(
-      'status',
-    );
-    expect(toTaskChanges({ ...loaded, priority: 'URGENT' }, 'me', task)).not.toHaveProperty(
+    expect(toTaskChanges({ ...loaded, priority: 'URGENT' }, task)).not.toHaveProperty('status');
+    expect(toTaskChanges({ ...loaded, priority: 'URGENT' }, task)).not.toHaveProperty(
       'assigneeIds',
     );
   });
 
-  it('sends assignees only when "assign to me" changed, keeping everyone else', () => {
+  it('sends assignees only when the chosen members changed', () => {
     const shared = {
       ...task,
       assignees: [...task.assignees, { userId: 'p2', displayName: 'Arjun' }],
     };
-    const loaded = formFromTask(shared, 'me');
-    expect(toTaskChanges({ ...loaded, assignToMe: false }, 'me', shared)).toEqual({
+    const loaded = formFromTask(shared);
+    expect(toTaskChanges({ ...loaded, assigneeIds: ['p2', 'me'] }, shared)).toEqual({});
+    expect(toTaskChanges({ ...loaded, assigneeIds: ['p2'] }, shared)).toEqual({
       assigneeIds: ['p2'],
     });
     const unassigned = { ...task, assignees: [] };
-    expect(
-      toTaskChanges({ ...formFromTask(unassigned, 'me'), assignToMe: true }, 'me', unassigned),
-    ).toEqual({ assigneeIds: ['me'] });
+    expect(toTaskChanges({ ...formFromTask(unassigned), assigneeIds: ['me'] }, unassigned)).toEqual(
+      {
+        assigneeIds: ['me'],
+      },
+    );
   });
 
   it('rejects a title of only spaces, and maps API field errors', () => {

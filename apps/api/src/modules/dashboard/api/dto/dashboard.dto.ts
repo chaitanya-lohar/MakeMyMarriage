@@ -44,10 +44,13 @@ class DashboardEventDto {
   venueName!: string | null;
 
   @ApiProperty({
+    required: false,
     example: 38,
-    description: 'Sum of attendeeCount over counted ATTENDING assignments for this event.',
+    description:
+      'Sum of attendeeCount over counted ATTENDING assignments for this event. Only with ' +
+      'INVITATIONS:VIEW.',
   })
-  expectedAttendees!: number;
+  expectedAttendees?: number;
 }
 
 class GuestTotalsDto {
@@ -113,76 +116,102 @@ class DashboardTaskDto {
 export class DashboardDto {
   @ApiProperty({
     type: [DashboardEventDto],
+    required: false,
     description:
       'At most five events dated today or later (wedding timezone), by date then start time, ' +
-      'untimed first. A dashboard limit only.',
+      'untimed first. A dashboard limit only. Only with EVENTS:VIEW.',
   })
-  upcomingEvents!: DashboardEventDto[];
+  upcomingEvents?: DashboardEventDto[];
 
-  @ApiProperty({ type: GuestTotalsDto })
-  guestTotals!: GuestTotalsDto;
+  @ApiProperty({ type: GuestTotalsDto, required: false, description: 'Only with GUESTS:VIEW.' })
+  guestTotals?: GuestTotalsDto;
 
   @ApiProperty({
     type: RsvpBreakdownDto,
-    description: 'Counted assignments per status across all counted events, past and future.',
+    required: false,
+    description:
+      'Counted assignments per status across all counted events, past and future. Only with ' +
+      'INVITATIONS:VIEW.',
   })
-  rsvpBreakdown!: RsvpBreakdownDto;
-
-  @ApiProperty({ type: TaskCountsDto, description: 'Over tasks that are not deleted (0026 #20).' })
-  taskCounts!: TaskCountsDto;
+  rsvpBreakdown?: RsvpBreakdownDto;
 
   @ApiProperty({
+    type: TaskCountsDto,
+    required: false,
+    description: 'Over tasks that are not deleted (0026 #20). Only with TASKS:VIEW.',
+  })
+  taskCounts?: TaskCountsDto;
+
+  @ApiProperty({
+    required: false,
     description:
       'Whether the wedding has any task that is not deleted, Cancelled included, so a wedding ' +
-      'whose tasks are all cancelled is told apart from one with none (0026 #20).',
+      'whose tasks are all cancelled is told apart from one with none (0026 #20). Only with ' +
+      'TASKS:VIEW.',
   })
-  hasTasks!: boolean;
+  hasTasks?: boolean;
 
   @ApiProperty({
     type: [DashboardTaskDto],
+    required: false,
     description:
       'Open tasks due up to seven days after today, every overdue task included; by due date ' +
-      '(overdue first), then priority. At most five; never undated tasks.',
+      '(overdue first), then priority. At most five; never undated tasks. Only with TASKS:VIEW.',
   })
-  upcomingTasks!: DashboardTaskDto[];
+  upcomingTasks?: DashboardTaskDto[];
 
   @ApiProperty({
     type: ExpenseSummaryDto,
+    required: false,
     description:
       'Over expenses that are not deleted: Total, Paid, Pending; by category and by event, ' +
-      'largest first (0028 #23).',
+      'largest first (0028 #23). Only with EXPENSES:VIEW.',
   })
-  expenseSummary!: ExpenseSummaryDto;
-  @ApiProperty({ type: VendorSummaryDto }) vendorSummary!: VendorSummaryDto;
+  expenseSummary?: ExpenseSummaryDto;
 
+  @ApiProperty({ type: VendorSummaryDto, required: false, description: 'Only with VENDORS:VIEW.' })
+  vendorSummary?: VendorSummaryDto;
+
+  /** Copies only the sections the dashboard computed (API Design §6, P10-8). */
   static from(dashboard: Dashboard): DashboardDto {
-    const { PENDING, ATTENDING, DECLINED, MAYBE } = dashboard.rsvpBreakdown;
+    const { upcomingEvents, guests, rsvpBreakdown, tasks, expenses, vendorSummary } = dashboard;
     return {
-      upcomingEvents: dashboard.upcomingEvents.map(({ event, expectedAttendees }) => ({
-        id: event.id,
-        name: event.name,
-        type: event.type,
-        date: event.date,
-        startTime: event.startTime,
-        endTime: event.endTime,
-        venueName: event.venue.name,
-        expectedAttendees,
-      })),
-      guestTotals: { guests: dashboard.guests },
-      rsvpBreakdown: { pending: PENDING, attending: ATTENDING, declined: DECLINED, maybe: MAYBE },
-      taskCounts: { ...dashboard.tasks.counts },
-      hasTasks: dashboard.tasks.hasTasks,
-      upcomingTasks: dashboard.tasks.upcoming.map((task) => ({
-        id: task.id,
-        title: task.title,
-        status: task.status,
-        priority: task.priority,
-        dueDate: task.dueDate as string,
-        isOverdue: isOverdue(task.dueDate, task.status, dashboard.tasks.today),
-        isDueToday: isDueToday(task.dueDate, task.status, dashboard.tasks.today),
-      })),
-      expenseSummary: ExpenseSummaryDto.from(dashboard.expenses),
-      vendorSummary: dashboard.vendorSummary,
+      ...(upcomingEvents && {
+        upcomingEvents: upcomingEvents.map(({ event, expectedAttendees }) => ({
+          id: event.id,
+          name: event.name,
+          type: event.type,
+          date: event.date,
+          startTime: event.startTime,
+          endTime: event.endTime,
+          venueName: event.venue.name,
+          ...(expectedAttendees !== undefined && { expectedAttendees }),
+        })),
+      }),
+      ...(guests !== undefined && { guestTotals: { guests } }),
+      ...(rsvpBreakdown && {
+        rsvpBreakdown: {
+          pending: rsvpBreakdown.PENDING,
+          attending: rsvpBreakdown.ATTENDING,
+          declined: rsvpBreakdown.DECLINED,
+          maybe: rsvpBreakdown.MAYBE,
+        },
+      }),
+      ...(tasks && {
+        taskCounts: { ...tasks.counts },
+        hasTasks: tasks.hasTasks,
+        upcomingTasks: tasks.upcoming.map((task) => ({
+          id: task.id,
+          title: task.title,
+          status: task.status,
+          priority: task.priority,
+          dueDate: task.dueDate as string,
+          isOverdue: isOverdue(task.dueDate, task.status, tasks.today),
+          isDueToday: isDueToday(task.dueDate, task.status, tasks.today),
+        })),
+      }),
+      ...(expenses && { expenseSummary: ExpenseSummaryDto.from(expenses) }),
+      ...(vendorSummary && { vendorSummary }),
     };
   }
 }

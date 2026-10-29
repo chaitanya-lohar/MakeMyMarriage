@@ -658,10 +658,268 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Upcoming events (at most five), guest totals and RSVP breakdown */
+        /** Upcoming events, guests, RSVPs, tasks, expenses and vendors; each section only with VIEW on its module */
         get: operations["DashboardController_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Members, owners first; directory fields for all, details with MEMBERS:VIEW */
+        get: operations["MembersController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/members/me/permissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The caller's effective permissions in this wedding */
+        get: operations["MembersController_me"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/members/{membershipId}/permissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A member's effective permissions */
+        get: operations["MembersController_permissions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/members/{membershipId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove a member; their records stay */
+        delete: operations["MembersController_remove"];
+        options?: never;
+        head?: never;
+        /** Change a member's role and/or custom permissions */
+        patch: operations["MembersController_update"];
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/audit-logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The wedding's audit history, newest first */
+        get: operations["MembersController_auditLogs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/members/invitations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Invitations by status (default PENDING), newest first */
+        get: operations["MemberInvitationsController_list"];
+        put?: never;
+        /** Invite an organizer by email; expires in 7 days */
+        post: operations["MemberInvitationsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/members/invitations/{invitationId}/resend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send a new link; the old one stops working; expires in 7 days */
+        post: operations["MemberInvitationsController_resend"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/members/invitations/{invitationId}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revoke a pending invitation; the link stops working */
+        post: operations["MemberInvitationsController_revoke"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member-invitations/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The invitation behind a token, with its status */
+        get: operations["MemberInvitationResponseController_details"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member-invitations/{token}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Accept as the signed-in user; no email verification needed */
+        post: operations["MemberInvitationResponseController_accept"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member-invitations/{token}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Decline with the token alone */
+        post: operations["MemberInvitationResponseController_decline"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/ownership-transfers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Offers: all for owners, those made to the caller for others */
+        get: operations["OwnershipTransfersController_list"];
+        put?: never;
+        /** Offer the caller's own owner seat to a member */
+        post: operations["OwnershipTransfersController_offer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/ownership-transfers/{transferId}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** The recipient accepts; the giver becomes an Admin */
+        post: operations["OwnershipTransfersController_accept"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/ownership-transfers/{transferId}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** The recipient declines */
+        post: operations["OwnershipTransfersController_decline"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/ownership-transfers/{transferId}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** The giving owner cancels the offer */
+        post: operations["OwnershipTransfersController_cancel"];
         delete?: never;
         options?: never;
         head?: never;
@@ -732,6 +990,12 @@ export interface components {
             /** @description Must be 8–128 characters. */
             password: string;
         };
+        WeddingMembershipDto: {
+            membershipId: string;
+            /** @enum {string} */
+            role: "OWNER" | "ADMIN" | "ORGANIZER" | "EDITOR" | "VIEWER";
+            isOwner: boolean;
+        };
         WeddingDto: {
             /** @example 6650f0c2a1b2c3d4e5f60718 */
             id: string;
@@ -757,6 +1021,8 @@ export interface components {
             description: string | null;
             /** @example Asia/Kolkata */
             timezone: string;
+            /** @description The caller's role in this wedding (GET /weddings and GET /weddings/{id}). */
+            membership?: components["schemas"]["WeddingMembershipDto"];
         };
         CreateWeddingDto: {
             /** @example Meera Sharma */
@@ -1549,10 +1815,10 @@ export interface components {
             /** @example Garden Palace */
             venueName: string | null;
             /**
-             * @description Sum of attendeeCount over counted ATTENDING assignments for this event.
+             * @description Sum of attendeeCount over counted ATTENDING assignments for this event. Only with INVITATIONS:VIEW.
              * @example 38
              */
-            expectedAttendees: number;
+            expectedAttendees?: number;
         };
         GuestTotalsDto: {
             /**
@@ -1649,20 +1915,207 @@ export interface components {
             upcomingServices: components["schemas"]["VendorServiceDto"][];
         };
         DashboardDto: {
-            /** @description At most five events dated today or later (wedding timezone), by date then start time, untimed first. A dashboard limit only. */
-            upcomingEvents: components["schemas"]["DashboardEventDto"][];
-            guestTotals: components["schemas"]["GuestTotalsDto"];
-            /** @description Counted assignments per status across all counted events, past and future. */
-            rsvpBreakdown: components["schemas"]["RsvpBreakdownDto"];
-            /** @description Over tasks that are not deleted (0026 #20). */
-            taskCounts: components["schemas"]["TaskCountsDto"];
-            /** @description Whether the wedding has any task that is not deleted, Cancelled included, so a wedding whose tasks are all cancelled is told apart from one with none (0026 #20). */
-            hasTasks: boolean;
-            /** @description Open tasks due up to seven days after today, every overdue task included; by due date (overdue first), then priority. At most five; never undated tasks. */
-            upcomingTasks: components["schemas"]["DashboardTaskDto"][];
-            /** @description Over expenses that are not deleted: Total, Paid, Pending; by category and by event, largest first (0028 #23). */
-            expenseSummary: components["schemas"]["ExpenseSummaryDto"];
-            vendorSummary: components["schemas"]["VendorSummaryDto"];
+            /** @description At most five events dated today or later (wedding timezone), by date then start time, untimed first. A dashboard limit only. Only with EVENTS:VIEW. */
+            upcomingEvents?: components["schemas"]["DashboardEventDto"][];
+            /** @description Only with GUESTS:VIEW. */
+            guestTotals?: components["schemas"]["GuestTotalsDto"];
+            /** @description Counted assignments per status across all counted events, past and future. Only with INVITATIONS:VIEW. */
+            rsvpBreakdown?: components["schemas"]["RsvpBreakdownDto"];
+            /** @description Over tasks that are not deleted (0026 #20). Only with TASKS:VIEW. */
+            taskCounts?: components["schemas"]["TaskCountsDto"];
+            /** @description Whether the wedding has any task that is not deleted, Cancelled included, so a wedding whose tasks are all cancelled is told apart from one with none (0026 #20). Only with TASKS:VIEW. */
+            hasTasks?: boolean;
+            /** @description Open tasks due up to seven days after today, every overdue task included; by due date (overdue first), then priority. At most five; never undated tasks. Only with TASKS:VIEW. */
+            upcomingTasks?: components["schemas"]["DashboardTaskDto"][];
+            /** @description Over expenses that are not deleted: Total, Paid, Pending; by category and by event, largest first (0028 #23). Only with EXPENSES:VIEW. */
+            expenseSummary?: components["schemas"]["ExpenseSummaryDto"];
+            /** @description Only with VENDORS:VIEW. */
+            vendorSummary?: components["schemas"]["VendorSummaryDto"];
+        };
+        MemberDto: {
+            membershipId: string;
+            userId: string;
+            displayName: string;
+            isOwner: boolean;
+            email?: string;
+            /** @enum {string} */
+            role?: "OWNER" | "ADMIN" | "ORGANIZER" | "EDITOR" | "VIEWER";
+            /** @enum {string} */
+            status?: "INVITED" | "ACTIVE" | "REVOKED";
+            hasOverrides?: boolean;
+            invitedBy?: string | null;
+            /** Format: date-time */
+            invitedAt?: string | null;
+            /** Format: date-time */
+            acceptedAt?: string | null;
+            /** Format: date-time */
+            revokedAt?: string | null;
+        };
+        PermissionOverrideDto: {
+            /** @enum {string} */
+            module: "WEDDING_SETTINGS" | "EVENTS" | "GUESTS" | "INVITATIONS" | "TASKS" | "EXPENSES" | "VENDORS" | "WEBSITE" | "GALLERY" | "MEMORY_QR" | "LIVE_STREAM" | "REPORTS" | "MEMBERS" | "AUDIT" | "PARTNER_SHARING";
+            /** @enum {string} */
+            action: "VIEW" | "CREATE" | "EDIT" | "DELETE" | "SEND" | "MANAGE" | "CONFIGURE" | "PUBLISH" | "REGENERATE" | "EXPORT" | "INVITE" | "CHANGE_ROLE" | "EDIT_PERMISSIONS" | "REMOVE";
+            /** @enum {string} */
+            effect: "ALLOW" | "DENY";
+        };
+        MemberPermissionsDto: {
+            role: string;
+            isOwner: boolean;
+            /**
+             * @description { [module]: action[] } — only modules that grant something.
+             * @example {
+             *       "EVENTS": [
+             *         "VIEW",
+             *         "CREATE",
+             *         "EDIT",
+             *         "DELETE"
+             *       ],
+             *       "EXPENSES": [
+             *         "VIEW"
+             *       ]
+             *     }
+             */
+            permissions: Record<string, never>;
+            overrides: components["schemas"]["PermissionOverrideDto"][];
+        };
+        UpdateMemberDto: {
+            /** @enum {string} */
+            role?: "ADMIN" | "ORGANIZER" | "EDITOR" | "VIEWER";
+            permissionOverrides?: components["schemas"]["PermissionOverrideDto"][];
+        };
+        AuditLogDto: {
+            id: string;
+            /** @enum {string} */
+            action: "RSVP_RESET_TO_PENDING" | "INVITATION_TOKEN_REGENERATED" | "INVITATION_TOKEN_REVOKED" | "INVITATION_LINK_RETRIEVED" | "TASK_DELETED" | "EXPENSE_CREATED" | "EXPENSE_UPDATED" | "EXPENSE_DELETED" | "EXPENSE_EVENT_UNLINKED" | "EXPENSE_PAYMENT_ADDED" | "EXPENSE_PAYMENT_UPDATED" | "EXPENSE_PAYMENT_REMOVED" | "VENDOR_CREATED" | "VENDOR_UPDATED" | "VENDOR_DELETED" | "VENDOR_BOOKING_CREATED" | "VENDOR_BOOKING_UPDATED" | "VENDOR_BOOKING_STATUS_CHANGED" | "VENDOR_BOOKING_EVENT_UNLINKED" | "MEMBER_INVITATION_CREATED" | "MEMBER_INVITATION_RESENT" | "MEMBER_INVITATION_ACCEPTED" | "MEMBER_INVITATION_DECLINED" | "MEMBER_INVITATION_EXPIRED" | "MEMBER_INVITATION_REVOKED" | "MEMBER_ROLE_CHANGED" | "MEMBER_PERMISSIONS_CHANGED" | "MEMBER_REMOVED" | "MEMBER_REACTIVATED" | "OWNERSHIP_TRANSFER_OFFERED" | "OWNERSHIP_TRANSFER_DECLINED" | "OWNERSHIP_TRANSFER_CANCELLED" | "OWNERSHIP_TRANSFERRED" | "PERMISSION_DENIED";
+            resourceType: string;
+            resourceId: string;
+            actorUserId: string | null;
+            actorName: string | null;
+            metadata: Record<string, never>;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        SentMemberInvitationDto: {
+            id: string;
+            email: string;
+            /** @enum {string} */
+            role: "ADMIN" | "ORGANIZER" | "EDITOR" | "VIEWER";
+            /** @enum {string} */
+            status: "PENDING" | "ACCEPTED" | "DECLINED" | "EXPIRED" | "REVOKED";
+            /** Format: date-time */
+            expiresAt: string;
+            invitedBy: string;
+            message: string | null;
+            permissionOverrides: components["schemas"]["PermissionOverrideDto"][];
+            /** Format: date-time */
+            respondedAt: string | null;
+            /** Format: date-time */
+            lastSentAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** @description False when the email could not be sent; resend is available. */
+            emailSent: boolean;
+            /**
+             * @description REVOKED when re-inviting a removed member (P10-3).
+             * @enum {string|null}
+             */
+            existingMembershipStatus: "REVOKED" | null;
+        };
+        CreateMemberInvitationDto: {
+            /** @example kavita@example.com */
+            email: string;
+            /** @enum {string} */
+            role: "ADMIN" | "ORGANIZER" | "EDITOR" | "VIEWER";
+            permissionOverrides?: components["schemas"]["PermissionOverrideDto"][];
+            message?: string;
+        };
+        MemberInvitationDto: {
+            id: string;
+            email: string;
+            /** @enum {string} */
+            role: "ADMIN" | "ORGANIZER" | "EDITOR" | "VIEWER";
+            /** @enum {string} */
+            status: "PENDING" | "ACCEPTED" | "DECLINED" | "EXPIRED" | "REVOKED";
+            /** Format: date-time */
+            expiresAt: string;
+            invitedBy: string;
+            message: string | null;
+            permissionOverrides: components["schemas"]["PermissionOverrideDto"][];
+            /** Format: date-time */
+            respondedAt: string | null;
+            /** Format: date-time */
+            lastSentAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        ResentMemberInvitationDto: {
+            id: string;
+            email: string;
+            /** @enum {string} */
+            role: "ADMIN" | "ORGANIZER" | "EDITOR" | "VIEWER";
+            /** @enum {string} */
+            status: "PENDING" | "ACCEPTED" | "DECLINED" | "EXPIRED" | "REVOKED";
+            /** Format: date-time */
+            expiresAt: string;
+            invitedBy: string;
+            message: string | null;
+            permissionOverrides: components["schemas"]["PermissionOverrideDto"][];
+            /** Format: date-time */
+            respondedAt: string | null;
+            /** Format: date-time */
+            lastSentAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            emailSent: boolean;
+        };
+        MemberInvitationDetailsDto: {
+            weddingDisplayName: string;
+            invitedByName: string;
+            /** @enum {string} */
+            role: "ADMIN" | "ORGANIZER" | "EDITOR" | "VIEWER";
+            message: string | null;
+            /** @enum {string} */
+            status: "PENDING" | "ACCEPTED" | "DECLINED" | "EXPIRED" | "REVOKED";
+            /** Format: date-time */
+            expiresAt: string;
+            /** @example me***@gmail.com */
+            emailHint: string;
+        };
+        AcceptedMemberInvitationDto: {
+            weddingId: string;
+            membershipId: string;
+            /** @enum {string} */
+            role: "ADMIN" | "ORGANIZER" | "EDITOR" | "VIEWER";
+        };
+        OwnershipTransferDto: {
+            id: string;
+            fromMembershipId: string;
+            fromName: string;
+            toMembershipId: string;
+            toName: string;
+            /** @enum {number} */
+            ownerSeat: 1 | 2;
+            /** @enum {string} */
+            status: "PENDING" | "ACCEPTED" | "DECLINED" | "CANCELLED";
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            respondedAt: string | null;
+        };
+        CreateOwnershipTransferDto: {
+            /** @description An ACTIVE non-owner member of this wedding. */
+            toMembershipId: string;
+        };
+        TransferredMembershipDto: {
+            membershipId: string;
+            userId: string;
+            role: string;
+            isOwner: boolean;
+        };
+        CompletedOwnershipTransferDto: {
+            giver: components["schemas"]["TransferredMembershipDto"];
+            recipient: components["schemas"]["TransferredMembershipDto"];
         };
     };
     responses: never;
@@ -4513,6 +4966,1111 @@ export interface operations {
             };
             /** @description WEDDING_NOT_FOUND — missing, or not a member */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    MembersController_list: {
+        parameters: {
+            query?: {
+                status?: "ACTIVE" | "REVOKED";
+                limit?: number;
+                /** @description `meta.pagination.nextCursor` of the previous page. */
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                weddingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MemberDto"][];
+                        meta: components["schemas"]["PaginatedMetaDto"];
+                    };
+                };
+            };
+            /** @description VALIDATION_FAILED — invalid query or cursor */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description PERMISSION_DENIED — removed members need MEMBERS:VIEW */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND, or MEMBER_NOT_FOUND — missing, removed or another wedding */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    MembersController_me: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MemberPermissionsDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND, or MEMBER_NOT_FOUND — missing, removed or another wedding */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    MembersController_permissions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                membershipId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MemberPermissionsDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description PERMISSION_DENIED, with details.reason for a protected membership (P10-4) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND, or MEMBER_NOT_FOUND — missing, removed or another wedding */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    MembersController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                membershipId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @description Always null.
+                         * @example null
+                         */
+                        data: unknown;
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description PERMISSION_DENIED, with details.reason for a protected membership (P10-4) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND, or MEMBER_NOT_FOUND — missing, removed or another wedding */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    MembersController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                membershipId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateMemberDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MemberDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description VALIDATION_FAILED */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description PERMISSION_DENIED, with details.reason for a protected membership (P10-4) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND, or MEMBER_NOT_FOUND — missing, removed or another wedding */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    MembersController_auditLogs: {
+        parameters: {
+            query?: {
+                action?: "RSVP_RESET_TO_PENDING" | "INVITATION_TOKEN_REGENERATED" | "INVITATION_TOKEN_REVOKED" | "INVITATION_LINK_RETRIEVED" | "TASK_DELETED" | "EXPENSE_CREATED" | "EXPENSE_UPDATED" | "EXPENSE_DELETED" | "EXPENSE_EVENT_UNLINKED" | "EXPENSE_PAYMENT_ADDED" | "EXPENSE_PAYMENT_UPDATED" | "EXPENSE_PAYMENT_REMOVED" | "VENDOR_CREATED" | "VENDOR_UPDATED" | "VENDOR_DELETED" | "VENDOR_BOOKING_CREATED" | "VENDOR_BOOKING_UPDATED" | "VENDOR_BOOKING_STATUS_CHANGED" | "VENDOR_BOOKING_EVENT_UNLINKED" | "MEMBER_INVITATION_CREATED" | "MEMBER_INVITATION_RESENT" | "MEMBER_INVITATION_ACCEPTED" | "MEMBER_INVITATION_DECLINED" | "MEMBER_INVITATION_EXPIRED" | "MEMBER_INVITATION_REVOKED" | "MEMBER_ROLE_CHANGED" | "MEMBER_PERMISSIONS_CHANGED" | "MEMBER_REMOVED" | "MEMBER_REACTIVATED" | "OWNERSHIP_TRANSFER_OFFERED" | "OWNERSHIP_TRANSFER_DECLINED" | "OWNERSHIP_TRANSFER_CANCELLED" | "OWNERSHIP_TRANSFERRED" | "PERMISSION_DENIED";
+                resourceType?: string;
+                actorUserId?: string;
+                /** @description Inclusive, in the wedding timezone. */
+                from?: string;
+                /** @description Inclusive, in the wedding timezone. */
+                to?: string;
+                limit?: number;
+                /** @description `meta.pagination.nextCursor` of the previous page. */
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                weddingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AuditLogDto"][];
+                        meta: components["schemas"]["PaginatedMetaDto"];
+                    };
+                };
+            };
+            /** @description VALIDATION_FAILED — invalid query or cursor */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description PERMISSION_DENIED */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND, or MEMBER_NOT_FOUND — missing, removed or another wedding */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    MemberInvitationsController_list: {
+        parameters: {
+            query?: {
+                status?: "PENDING" | "ACCEPTED" | "DECLINED" | "EXPIRED" | "REVOKED";
+                limit?: number;
+                /** @description `meta.pagination.nextCursor` of the previous page. */
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                weddingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MemberInvitationDto"][];
+                        meta: components["schemas"]["PaginatedMetaDto"];
+                    };
+                };
+            };
+            /** @description VALIDATION_FAILED — invalid query or cursor */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description PERMISSION_DENIED */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND or MEMBER_INVITATION_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    MemberInvitationsController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateMemberInvitationDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["SentMemberInvitationDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description VALIDATION_FAILED */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description PERMISSION_DENIED (ADMIN_ROLE_OWNER_ONLY, GRANT_EXCEEDS_CALLER) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND or MEMBER_INVITATION_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description MEMBER_ALREADY_ACTIVE or MEMBER_INVITATION_ALREADY_PENDING */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description RATE_LIMITED (details.retryAfterSeconds) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    MemberInvitationsController_resend: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                invitationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ResentMemberInvitationDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description PERMISSION_DENIED (ADMIN_ROLE_OWNER_ONLY) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND or MEMBER_INVITATION_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description MEMBER_INVITATION_NOT_PENDING (details.status) or MEMBER_INVITATION_EXPIRED */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description RATE_LIMITED (details.retryAfterSeconds) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    MemberInvitationsController_revoke: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                invitationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @description Always null.
+                         * @example null
+                         */
+                        data: unknown;
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description PERMISSION_DENIED (ADMIN_ROLE_OWNER_ONLY) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND or MEMBER_INVITATION_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description MEMBER_INVITATION_NOT_PENDING (details.status) or MEMBER_INVITATION_EXPIRED */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    MemberInvitationResponseController_details: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MemberInvitationDetailsDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description MEMBER_INVITATION_NOT_FOUND — unknown token */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description RATE_LIMITED (details.retryAfterSeconds) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    MemberInvitationResponseController_accept: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AcceptedMemberInvitationDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description MEMBER_INVITATION_EMAIL_MISMATCH */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description MEMBER_INVITATION_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description MEMBER_INVITATION_EXPIRED, MEMBER_INVITATION_NOT_PENDING or MEMBER_ALREADY_ACTIVE */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description RATE_LIMITED (details.retryAfterSeconds) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    MemberInvitationResponseController_decline: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @description Always null.
+                         * @example null
+                         */
+                        data: unknown;
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description MEMBER_INVITATION_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description MEMBER_INVITATION_EXPIRED or MEMBER_INVITATION_NOT_PENDING */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description RATE_LIMITED (details.retryAfterSeconds) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    OwnershipTransfersController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["OwnershipTransferDto"][];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND, MEMBER_NOT_FOUND or OWNERSHIP_TRANSFER_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    OwnershipTransfersController_offer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateOwnershipTransferDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["OwnershipTransferDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description VALIDATION_FAILED — the target is already an owner */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description PERMISSION_DENIED (OWNER_ONLY) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND, MEMBER_NOT_FOUND or OWNERSHIP_TRANSFER_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description OWNERSHIP_TRANSFER_ALREADY_PENDING or WEDDING_ALREADY_OWNED */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    OwnershipTransfersController_accept: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                transferId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["CompletedOwnershipTransferDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description PERMISSION_DENIED — not the recipient */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND, MEMBER_NOT_FOUND or OWNERSHIP_TRANSFER_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description OWNERSHIP_TRANSFER_NOT_PENDING or WEDDING_ALREADY_OWNED */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    OwnershipTransfersController_decline: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                transferId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @description Always null.
+                         * @example null
+                         */
+                        data: unknown;
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description PERMISSION_DENIED — not the recipient */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND, MEMBER_NOT_FOUND or OWNERSHIP_TRANSFER_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description OWNERSHIP_TRANSFER_NOT_PENDING */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    OwnershipTransfersController_cancel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                transferId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @description Always null.
+                         * @example null
+                         */
+                        data: unknown;
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description PERMISSION_DENIED — not the giving owner */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND, MEMBER_NOT_FOUND or OWNERSHIP_TRANSFER_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description OWNERSHIP_TRANSFER_NOT_PENDING */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

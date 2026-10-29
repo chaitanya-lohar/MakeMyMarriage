@@ -4,8 +4,10 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Icon } from '@/components/ui/icon';
 import { DashboardSummaries } from '@/features/dashboard/components/dashboard-summaries';
+import { OwnershipOfferBanner } from '@/features/members/components/ownership';
 import { WEDDING_DETAILS_PATH } from '@/features/workspace/components/shell-parts';
-import { useWorkspace } from '@/features/workspace/workspace-context';
+import { weddingSelector } from '@/features/workspace/content';
+import { usePermissions, useWorkspace } from '@/features/workspace/workspace-context';
 import { dashboard, weddingDetailsPage } from '../content';
 import { daysBetween, formatDate, formatLongDate, todayIn } from '../dates';
 import type { ApiWedding } from '../wedding-form-model';
@@ -16,11 +18,15 @@ import type { ApiWedding } from '../wedding-form-model';
  */
 export function DashboardView({ wedding }: { wedding: ApiWedding }) {
   const { notice, setNotice } = useWorkspace();
+  const { can } = usePermissions();
   // The "created" and "saved" toasts belong to this visit only: keep them here and clear the
   // shared flag, so returning to the dashboard later does not show them again. Saving the
   // wedding or an event both confirm with "Your changes have been saved."
   const [shownNotice, setShownNotice] = useState(() =>
-    notice === 'wedding-created' || notice === 'wedding-saved' || notice === 'event-saved'
+    notice === 'wedding-created' ||
+    notice === 'wedding-saved' ||
+    notice === 'event-saved' ||
+    notice === 'wedding-switched'
       ? notice
       : null,
   );
@@ -36,7 +42,11 @@ export function DashboardView({ wedding }: { wedding: ApiWedding }) {
         >
           <p className="flex items-center gap-2.5 text-body-sm font-semibold text-[#2d5a3f]">
             <Icon name="check_circle" className="size-5" />
-            {shownNotice === 'wedding-created' ? dashboard.created : weddingDetailsPage.saved}
+            {shownNotice === 'wedding-created'
+              ? dashboard.created
+              : shownNotice === 'wedding-switched'
+                ? weddingSelector.switched(wedding.displayName)
+                : weddingDetailsPage.saved}
           </p>
           <button
             type="button"
@@ -75,14 +85,17 @@ export function DashboardView({ wedding }: { wedding: ApiWedding }) {
             )}
           </div>
         </div>
-        <Link
-          href={WEDDING_DETAILS_PATH}
-          className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg bg-navy px-5 text-label-md text-on-primary shadow-sm transition-colors hover:bg-[#1e293b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
-        >
-          {dashboard.edit}
-        </Link>
+        {can('WEDDING_SETTINGS', 'EDIT') && (
+          <Link
+            href={WEDDING_DETAILS_PATH}
+            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg bg-navy px-5 text-label-md text-on-primary shadow-sm transition-colors hover:bg-[#1e293b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+          >
+            {dashboard.edit}
+          </Link>
+        )}
       </header>
 
+      <OwnershipOfferBanner />
       <CountdownCard startDate={wedding.startDate} timezone={wedding.timezone} />
       <DetailsCard wedding={wedding} />
       <DashboardSummaries wedding={wedding} />

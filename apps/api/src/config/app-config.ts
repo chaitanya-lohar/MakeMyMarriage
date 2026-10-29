@@ -31,8 +31,8 @@ export class AppConfig {
     this.nodeEnv = env.NODE_ENV;
     this.appEnv = env.APP_ENV;
     this.http = { port: env.PORT };
-    // Index builds are deployment operations in staging/production (Database Design §30);
-    // Mongoose only auto-builds indexes for local development and tests.
+    // Migrations and index builds are deployment operations in staging/production (Database
+    // Design §30); only local development and tests run them automatically at start-up.
     this.mongo = {
       uri: env.MONGODB_URI,
       autoIndex: env.APP_ENV === 'local' || env.APP_ENV === 'test',

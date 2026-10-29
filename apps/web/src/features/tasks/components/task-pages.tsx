@@ -7,13 +7,17 @@ import { TasksList } from './tasks-list';
 
 /** `/tasks` */
 export function TasksPageContent() {
-  return <RequireWedding>{(wedding) => <TasksList wedding={wedding} />}</RequireWedding>;
+  return (
+    <RequireWedding permission={['TASKS', 'VIEW']}>
+      {(wedding) => <TasksList wedding={wedding} />}
+    </RequireWedding>
+  );
 }
 
 /** `/tasks/new`, optionally `?eventId=` from an event's shortcut (Stitch "P7 · T7"). */
 export function NewTaskPageContent({ eventId }: { eventId?: string }) {
   return (
-    <RequireWedding>
+    <RequireWedding permission={['TASKS', 'CREATE']}>
       {(wedding) => <AddTaskPage wedding={wedding} eventId={eventId} />}
     </RequireWedding>
   );
@@ -22,7 +26,7 @@ export function NewTaskPageContent({ eventId }: { eventId?: string }) {
 /** `/tasks/[taskId]` */
 export function TaskDetailPageContent({ taskId }: { taskId: string }) {
   return (
-    <RequireWedding>
+    <RequireWedding permission={['TASKS', 'VIEW']}>
       {(wedding) => <TaskDetail key={taskId} wedding={wedding} taskId={taskId} />}
     </RequireWedding>
   );
@@ -31,7 +35,7 @@ export function TaskDetailPageContent({ taskId }: { taskId: string }) {
 /** `/tasks/[taskId]/edit` */
 export function EditTaskPageContent({ taskId }: { taskId: string }) {
   return (
-    <RequireWedding>
+    <RequireWedding permission={['TASKS', 'EDIT']}>
       {(wedding) => <EditTaskPage key={taskId} wedding={wedding} taskId={taskId} />}
     </RequireWedding>
   );

@@ -1,10 +1,14 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuditService } from './application/services/audit.service.js';
 import { AuditLogsRepository } from './infrastructure/repositories/audit-logs.repository.js';
 import { AuditLogRecord, AuditLogSchema } from './infrastructure/schemas/audit-log.schema.js';
 
-/** Meaningful and security-sensitive history (System Design §6, Database Design §22). */
+/**
+ * Meaningful and security-sensitive history (System Design §6, Database Design §22). Global:
+ * PermissionGuard, which every wedding route's module instantiates, audits refusals.
+ */
+@Global()
 @Module({
   imports: [MongooseModule.forFeature([{ name: AuditLogRecord.name, schema: AuditLogSchema }])],
   providers: [AuditLogsRepository, AuditService],
