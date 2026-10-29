@@ -14,6 +14,7 @@ import {
   overridesAdded,
   refuseMemberChange,
   storedOverrides,
+  withinGrantCeiling,
 } from './member-authority.js';
 
 let counter = 0;
@@ -126,5 +127,38 @@ describe('overridesAdded', () => {
         [allow('EVENTS', 'DELETE'), deny('TASKS', 'EDIT')],
       ),
     ).toEqual([deny('TASKS', 'EDIT')]);
+  });
+});
+
+describe('withinGrantCeiling (P10-4)', () => {
+  const editor = caller(
+    membership(MembershipRole.Editor, [{ module: 'MEMBERS', action: 'VIEW', effect: 'ALLOW' }]),
+  );
+  const ownerSet = [deny('EXPENSES', 'DELETE'), allow('INVITATIONS', 'SEND')];
+
+  it('keeps entries on actions the caller does not hold, even when left out', () => {
+    expect(withinGrantCeiling(editor, ownerSet, [])).toEqual({
+      overrides: ownerSet,
+      authored: [],
+      exceeds: false,
+    });
+  });
+
+  it('accepts those entries resubmitted unchanged, and changes to held actions', () => {
+    const result = withinGrantCeiling(editor, ownerSet, [...ownerSet, deny('EVENTS', 'EDIT')]);
+    expect(result.exceeds).toBe(false);
+    expect(result.overrides).toEqual([deny('EVENTS', 'EDIT'), ...ownerSet]);
+  });
+
+  it('refuses changing an entry on an action the caller does not hold', () => {
+    expect(withinGrantCeiling(editor, ownerSet, [allow('EXPENSES', 'DELETE')]).exceeds).toBe(true);
+  });
+
+  it('does not limit owners', () => {
+    expect(withinGrantCeiling(caller(membership(MembershipRole.Owner)), ownerSet, [])).toEqual({
+      overrides: [],
+      authored: [],
+      exceeds: false,
+    });
   });
 });

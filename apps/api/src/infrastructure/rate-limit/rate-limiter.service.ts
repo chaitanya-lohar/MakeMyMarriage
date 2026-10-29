@@ -58,8 +58,9 @@ export class RateLimiter {
     rule: RateLimitRule,
     subject: string,
     now: Date = new Date(),
-  ): Promise<{ allowed: true } | { allowed: false; retryAfterSeconds: number }> {
+  ): Promise<{ allowed: true; ticket: string } | { allowed: false; retryAfterSeconds: number }> {
     const nowMs = now.getTime();
+    const ticket = `${nowMs}:${randomUUID()}`;
     const [allowed, retryAfterMs] = (await this.redis.eval(
       SLIDING_WINDOW_SCRIPT,
       1,
@@ -67,11 +68,16 @@ export class RateLimiter {
       String(nowMs),
       String(rule.windowSeconds * 1000),
       String(rule.limit),
-      `${nowMs}:${randomUUID()}`,
+      ticket,
     )) as [number, number];
     return allowed === 1
-      ? { allowed: true }
+      ? { allowed: true, ticket }
       : { allowed: false, retryAfterSeconds: Math.max(1, Math.ceil(retryAfterMs / 1000)) };
+  }
+
+  /** Gives back a use `take` recorded, e.g. when the request it allowed was refused after. */
+  async release(rule: RateLimitRule, subject: string, ticket: string): Promise<void> {
+    await this.redis.zrem(this.key(rule, subject), ticket);
   }
 
   async reset(rule: RateLimitRule, subject: string): Promise<void> {

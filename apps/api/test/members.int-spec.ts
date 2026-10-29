@@ -210,6 +210,28 @@ describe('Members', () => {
     expect(denied.every((entry) => entry.metadata.outcome === 'DENIED')).toBe(true);
   });
 
+  it('keeps an owner-set override a non-owner does not hold, whatever list they send', async () => {
+    const { weddingId, base } = await wedding();
+    const admin = await member(weddingId, 'ADMIN', MANAGING_ADMIN);
+    const organizer = await member(weddingId, 'ORGANIZER', [
+      { module: 'INVITATIONS', action: 'SEND', effect: 'ALLOW' },
+    ]);
+    const url = `${base}/members/${organizer.membershipId}`;
+
+    // The admin cannot send guest links, so the owner's ALLOW is not theirs to drop.
+    await admin.agent.patch(url).send({ permissionOverrides: [] }).expect(200);
+    const kept = await memberships().findOne({ _id: new Types.ObjectId(organizer.membershipId) });
+    expect(kept?.permissionOverrides).toEqual([
+      { module: 'INVITATIONS', action: 'SEND', effect: 'ALLOW' },
+    ]);
+    // Nor to change.
+    const refused = await admin.agent
+      .patch(url)
+      .send({ permissionOverrides: [{ module: 'INVITATIONS', action: 'SEND', effect: 'DENY' }] })
+      .expect(403);
+    expect(reason(refused.body)).toBe('GRANT_EXCEEDS_CALLER');
+  });
+
   it('refuses a change without the specific MEMBERS action', async () => {
     const { weddingId, base } = await wedding();
     const admin = await member(weddingId, 'ADMIN', [

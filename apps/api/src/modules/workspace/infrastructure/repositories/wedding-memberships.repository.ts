@@ -106,6 +106,16 @@ export class WeddingMembershipsRepository {
     return documents.map(toMembership);
   }
 
+  /** The user's membership of the wedding, whatever its status, or null. */
+  async findForUser(weddingId: string, userId: string): Promise<Membership | null> {
+    if (!isValidObjectId(weddingId) || !isValidObjectId(userId)) return null;
+    const document = await this.memberships.findOne({
+      weddingId: new Types.ObjectId(weddingId),
+      userId: new Types.ObjectId(userId),
+    });
+    return document ? toMembership(document) : null;
+  }
+
   /** One membership of the wedding, whatever its status, or null. */
   async findInWedding(weddingId: string, membershipId: string): Promise<Membership | null> {
     if (!isValidObjectId(weddingId) || !isValidObjectId(membershipId)) return null;

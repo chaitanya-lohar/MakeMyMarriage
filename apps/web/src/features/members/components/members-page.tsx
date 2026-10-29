@@ -98,7 +98,6 @@ function MembersPage({ wedding }: { wedding: ApiWedding }) {
   const pendingOffer = transfers.find((transfer) => transfer.status === 'PENDING');
   const offerForMe =
     pendingOffer && pendingOffer.toMembershipId === me?.membershipId ? pendingOffer : undefined;
-  const pendingInvitations = invitationsVersion; // re-read by the Invitations tab
 
   const canManage = (member: ApiMember) =>
     !member.isOwner &&
@@ -191,7 +190,7 @@ function MembersPage({ wedding }: { wedding: ApiWedding }) {
 
       {tab === 'invitations' && canViewDetails ? (
         <InvitationsTab
-          key={pendingInvitations}
+          key={invitationsVersion}
           weddingId={wedding.id}
           onToast={setToast}
           onInviteAgain={(email) => setInviting({ email })}

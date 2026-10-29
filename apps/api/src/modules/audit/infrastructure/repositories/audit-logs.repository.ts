@@ -2,6 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { isValidObjectId, Model, trusted, Types } from 'mongoose';
 import { sessionOf, type Transaction } from '../../../../infrastructure/database/transaction.js';
+import {
+  afterTimeCursor,
+  decodeTimeCursor,
+  encodeTimeCursor,
+} from '../../../../infrastructure/database/time-cursor.js';
 import type {
   AuditEntry,
   AuditListQuery,
@@ -16,37 +21,6 @@ export class InvalidAuditCursorError extends Error {
     super('Invalid audit cursor');
     this.name = 'InvalidAuditCursorError';
   }
-}
-
-interface AuditCursor {
-  createdAt: Date;
-  id: string;
-}
-
-function encodeAuditCursor(cursor: AuditCursor): string {
-  return Buffer.from(JSON.stringify([cursor.createdAt.toISOString(), cursor.id])).toString(
-    'base64url',
-  );
-}
-
-/** The cursor's position, or null when it is not one this API issued. */
-function decodeAuditCursor(value: string): AuditCursor | null {
-  try {
-    const parsed: unknown = JSON.parse(Buffer.from(value, 'base64url').toString('utf8'));
-    if (
-      Array.isArray(parsed) &&
-      parsed.length === 2 &&
-      typeof parsed[0] === 'string' &&
-      typeof parsed[1] === 'string' &&
-      isValidObjectId(parsed[1])
-    ) {
-      const createdAt = new Date(parsed[0]);
-      if (!Number.isNaN(createdAt.getTime())) return { createdAt, id: parsed[1] };
-    }
-  } catch {
-    // Falls through: malformed cursor.
-  }
-  return null;
 }
 
 function toRecord(document: AuditLogDocument): AuditRecord {
@@ -102,17 +76,9 @@ export class AuditLogsRepository {
     // Operators are wrapped in trusted(): the connection sanitizes filters (database.module).
     if (query.from || query.to) conditions.push({ createdAt: trusted(createdAt) });
     if (query.cursor) {
-      const position = decodeAuditCursor(query.cursor);
+      const position = decodeTimeCursor(query.cursor);
       if (!position) throw new InvalidAuditCursorError();
-      conditions.push({
-        $or: [
-          { createdAt: trusted({ $lt: position.createdAt }) },
-          {
-            createdAt: position.createdAt,
-            _id: trusted({ $lt: new Types.ObjectId(position.id) }),
-          },
-        ],
-      });
+      conditions.push(afterTimeCursor(position));
     }
     const documents = await this.logs
       .find({ $and: conditions })
@@ -124,7 +90,7 @@ export class AuditLogsRepository {
       records,
       nextCursor:
         documents.length > query.limit && last
-          ? encodeAuditCursor({ createdAt: last.createdAt, id: last.id })
+          ? encodeTimeCursor({ createdAt: last.createdAt, id: last.id })
           : null,
     };
   }

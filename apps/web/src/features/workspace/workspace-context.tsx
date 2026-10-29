@@ -48,8 +48,10 @@ export type WorkspaceNotice =
 interface WorkspaceContextValue {
   state: WorkspaceState;
   reload: () => void;
-  /** Replaces the wedding after it is created or saved. */
+  /** Replaces the selected wedding's details after they are saved. */
   setWedding: (wedding: ApiWedding) => void;
+  /** Selects a wedding the user just created and reloads, with its permissions. */
+  weddingCreated: (wedding: ApiWedding) => void;
   /** Switches the whole workspace to another of the user's weddings (System Design §7.12). */
   selectWedding: (weddingId: string) => void;
   notice: WorkspaceNotice;
@@ -146,20 +148,29 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const setWedding = useCallback((wedding: ApiWedding) => {
-    setState((current) => {
-      if (current.status !== 'ready') return current;
-      const known = current.weddings.some((candidate) => candidate.id === wedding.id);
-      return {
-        ...current,
-        wedding: { ...current.wedding, ...wedding },
-        weddings: known
-          ? current.weddings.map((candidate) =>
-              candidate.id === wedding.id ? { ...candidate, ...wedding } : candidate,
-            )
-          : [...current.weddings, wedding],
-      };
-    });
+    // A save returns the details only: the caller's membership of the wedding is kept.
+    const merge = (current: ApiWedding) =>
+      current.id === wedding.id
+        ? { ...current, ...wedding, membership: current.membership }
+        : current;
+    setState((current) =>
+      current.status === 'ready'
+        ? {
+            ...current,
+            wedding: current.wedding && merge(current.wedding),
+            weddings: current.weddings.map(merge),
+          }
+        : current,
+    );
   }, []);
+
+  const weddingCreated = useCallback(
+    (wedding: ApiWedding) => {
+      if (state.status === 'ready') rememberWedding(state.user.id, wedding.id);
+      reload();
+    },
+    [state, reload],
+  );
 
   const selectWedding = useCallback(
     (weddingId: string) => {
@@ -183,13 +194,14 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       state,
       reload,
       setWedding,
+      weddingCreated,
       selectWedding,
       notice,
       setNotice,
       signOut,
       signingOut,
     }),
-    [state, reload, setWedding, selectWedding, notice, signOut, signingOut],
+    [state, reload, setWedding, weddingCreated, selectWedding, notice, signOut, signingOut],
   );
   return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>;
 }

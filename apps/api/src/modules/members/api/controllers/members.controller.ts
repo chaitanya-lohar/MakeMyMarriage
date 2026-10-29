@@ -104,11 +104,8 @@ export class MembersController {
     @Param('weddingId') weddingId: string,
     @Param('membershipId') membershipId: string,
   ): Promise<MemberPermissionsDto> {
-    const { membership } = await this.members.activeMember(weddingId, membershipId);
-    return MemberPermissionsDto.from(
-      membership,
-      await this.members.permissionsOf(weddingId, membershipId),
-    );
+    const { membership, permissions } = await this.members.permissionsOf(weddingId, membershipId);
+    return MemberPermissionsDto.from(membership, permissions);
   }
 
   /**

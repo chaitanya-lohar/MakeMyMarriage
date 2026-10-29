@@ -3,6 +3,11 @@ import { InjectModel } from '@nestjs/mongoose';
 import { isValidObjectId, Model, trusted, Types } from 'mongoose';
 import { sessionOf, type Transaction } from '../../../../infrastructure/database/transaction.js';
 import {
+  afterTimeCursor,
+  decodeTimeCursor,
+  encodeTimeCursor,
+} from '../../../../infrastructure/database/time-cursor.js';
+import {
   MemberInvitationPendingError,
   MemberInvitationStatus,
   type MemberInvitation,
@@ -139,17 +144,9 @@ export class MemberInvitationsRepository {
       { weddingId: new Types.ObjectId(weddingId), status: query.status },
     ];
     if (query.cursor) {
-      const position = decodeCursor(query.cursor);
+      const position = decodeTimeCursor(query.cursor);
       if (!position) return null;
-      conditions.push({
-        $or: [
-          { createdAt: trusted({ $lt: position.createdAt }) },
-          {
-            createdAt: position.createdAt,
-            _id: trusted({ $lt: new Types.ObjectId(position.id) }),
-          },
-        ],
-      });
+      conditions.push(afterTimeCursor(position));
     }
     const documents = await this.invitations
       .find({ $and: conditions })
@@ -161,7 +158,7 @@ export class MemberInvitationsRepository {
       invitations,
       nextCursor:
         documents.length > query.limit && last
-          ? encodeCursor({ createdAt: last.createdAt, id: last.id })
+          ? encodeTimeCursor({ createdAt: last.createdAt, id: last.id })
           : null,
     };
   }
@@ -241,34 +238,4 @@ export class MemberInvitationsRepository {
     );
     return document ? toInvitation(document) : null;
   }
-}
-
-interface Cursor {
-  createdAt: Date;
-  id: string;
-}
-
-function encodeCursor(cursor: Cursor): string {
-  return Buffer.from(JSON.stringify([cursor.createdAt.toISOString(), cursor.id])).toString(
-    'base64url',
-  );
-}
-
-function decodeCursor(value: string): Cursor | null {
-  try {
-    const parsed: unknown = JSON.parse(Buffer.from(value, 'base64url').toString('utf8'));
-    if (
-      Array.isArray(parsed) &&
-      parsed.length === 2 &&
-      typeof parsed[0] === 'string' &&
-      typeof parsed[1] === 'string' &&
-      isValidObjectId(parsed[1])
-    ) {
-      const createdAt = new Date(parsed[0]);
-      if (!Number.isNaN(createdAt.getTime())) return { createdAt, id: parsed[1] };
-    }
-  } catch {
-    // Falls through: malformed cursor.
-  }
-  return null;
 }

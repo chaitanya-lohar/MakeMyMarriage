@@ -69,6 +69,30 @@ export function refuseMemberChange(
   return exceeds ? MemberRefusal.GrantExceedsCaller : null;
 }
 
+/**
+ * Applies a non-owner's new override list within their grant ceiling (P10-4): they change
+ * entries only for actions they hold. Entries on actions they do not hold stay exactly as
+ * stored, so they can neither drop an owner's DENY nor add or alter what they cannot grant;
+ * submitting such an entry unchanged is fine, changing one is `exceeds`. `authored` is the
+ * part the caller decides. Owners are not limited.
+ */
+export function withinGrantCeiling(
+  caller: MemberChangeCaller,
+  stored: readonly PermissionOverride[],
+  submitted: readonly PermissionOverride[],
+): { overrides: PermissionOverride[]; authored: PermissionOverride[]; exceeds: boolean } {
+  if (caller.permissions.isOwner) {
+    return { overrides: [...submitted], authored: [...submitted], exceeds: false };
+  }
+  const held = (o: PermissionOverride) => caller.permissions.has(o.module, o.action);
+  const kept = stored.filter((o) => !held(o));
+  const same = (a: PermissionOverride, b: PermissionOverride) =>
+    a.module === b.module && a.action === b.action && a.effect === b.effect;
+  const exceeds = submitted.filter((o) => !held(o)).some((o) => !kept.some((k) => same(k, o)));
+  const authored = submitted.filter(held);
+  return { overrides: [...authored, ...kept], authored, exceeds };
+}
+
 /** The field messages of an invalid override list, or null when it is valid (API Design §7.1). */
 export function overrideProblems(overrides: readonly PermissionOverride[]): string[] | null {
   const problems: string[] = [];

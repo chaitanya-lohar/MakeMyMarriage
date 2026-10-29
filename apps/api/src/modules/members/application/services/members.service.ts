@@ -23,11 +23,12 @@ import {
 import {
   overrideProblems,
   overridesAdded,
+  MemberRefusal,
   refuseMemberChange,
   storedOverrides,
+  withinGrantCeiling,
   type MemberChange,
   type MemberChangeCaller,
-  type MemberRefusal,
 } from '../../domain/rules/member-authority.js';
 import { startOfDayIn, nextDay } from '../../domain/rules/audit-dates.js';
 import type { MemberView, MemberPage } from '../../domain/types/member.js';
@@ -36,12 +37,43 @@ import { OwnershipTransfersService } from './ownership-transfers.service.js';
 
 const MEMBERSHIP = 'wedding_membership';
 
-function encodeCursor(membershipId: string): string {
-  return Buffer.from(membershipId).toString('base64url');
+/** A member's place in the list order: owners first, then name, then ID. */
+type ListKey = [owner: number, name: string, id: string];
+
+const keyOf = (member: MemberView): ListKey => [
+  member.membership.memberType === MemberType.Owner ? 0 : 1,
+  member.displayName,
+  member.membership.id,
+];
+
+function compareKeys(a: ListKey, b: ListKey): number {
+  return a[0] - b[0] || a[1].localeCompare(b[1], 'en-IN') || a[2].localeCompare(b[2]);
 }
 
-function decodeCursor(cursor: string): string {
-  return Buffer.from(cursor, 'base64url').toString('utf8');
+/**
+ * The cursor holds the last member's sort key, not just their ID, so the next page starts
+ * after that position even if the member was removed or renamed meanwhile.
+ */
+function encodeCursor(key: ListKey): string {
+  return Buffer.from(JSON.stringify(key)).toString('base64url');
+}
+
+function decodeCursor(cursor: string): ListKey | null {
+  try {
+    const parsed: unknown = JSON.parse(Buffer.from(cursor, 'base64url').toString('utf8'));
+    if (
+      Array.isArray(parsed) &&
+      parsed.length === 3 &&
+      (parsed[0] === 0 || parsed[0] === 1) &&
+      typeof parsed[1] === 'string' &&
+      typeof parsed[2] === 'string'
+    ) {
+      return parsed as ListKey;
+    }
+  } catch {
+    // Falls through: malformed cursor.
+  }
+  return null;
 }
 
 /** The audit history filters as the API receives them (API Design §7.1). */
@@ -84,26 +116,18 @@ export class MembersService {
     const members = await this.views(
       await this.memberships.listForWedding(weddingId, query.status),
     );
-    members.sort(
-      (a, b) =>
-        Number(b.membership.memberType === MemberType.Owner) -
-          Number(a.membership.memberType === MemberType.Owner) ||
-        a.displayName.localeCompare(b.displayName, 'en-IN') ||
-        a.membership.id.localeCompare(b.membership.id),
-    );
-    let start = 0;
+    members.sort((a, b) => compareKeys(keyOf(a), keyOf(b)));
+    let rest = members;
     if (query.cursor) {
       const after = decodeCursor(query.cursor);
-      const index = members.findIndex((member) => member.membership.id === after);
-      if (index < 0) throw MembersErrors.invalidCursor();
-      start = index + 1;
+      if (!after) throw MembersErrors.invalidCursor();
+      rest = members.filter((member) => compareKeys(keyOf(member), after) > 0);
     }
-    const page = members.slice(start, start + query.limit);
+    const page = rest.slice(0, query.limit);
     const last = page.at(-1);
     return {
       members: page,
-      nextCursor:
-        start + query.limit < members.length && last ? encodeCursor(last.membership.id) : null,
+      nextCursor: rest.length > query.limit && last ? encodeCursor(keyOf(last)) : null,
     };
   }
 
@@ -117,10 +141,13 @@ export class MembersService {
     return view!;
   }
 
-  /** The effective permissions of a member of the wedding (API Design §7.1). */
-  async permissionsOf(weddingId: string, membershipId: string): Promise<EffectivePermissions> {
+  /** A member of the wedding and their effective permissions (API Design §7.1). */
+  async permissionsOf(
+    weddingId: string,
+    membershipId: string,
+  ): Promise<{ membership: Membership; permissions: EffectivePermissions }> {
     const { membership } = await this.activeMember(weddingId, membershipId);
-    return evaluatePermissions(membership);
+    return { membership, permissions: evaluatePermissions(membership) };
   }
 
   /**
@@ -148,15 +175,22 @@ export class MembersService {
       const problems = overrideProblems(change.permissionOverrides);
       if (problems) throw MembersErrors.invalidOverrides(problems);
     }
-    const refusal = refuseMemberChange(caller, target, change);
+    const ceiling = change.permissionOverrides
+      ? withinGrantCeiling(caller, target.permissionOverrides, change.permissionOverrides)
+      : null;
+    const refusal =
+      refuseMemberChange(caller, target, {
+        ...(change.role !== undefined && { role: change.role }),
+        ...(ceiling && { permissionOverrides: ceiling.authored }),
+      }) ?? (ceiling?.exceeds ? MemberRefusal.GrantExceedsCaller : null);
     if (refusal) {
       await this.denied(weddingId, caller, target, 'UPDATE', refusal);
       throw permissionDenied(refusal);
     }
 
     const role = change.role ?? target.role;
-    const permissionOverrides = change.permissionOverrides
-      ? storedOverrides(role, change.permissionOverrides)
+    const permissionOverrides = ceiling
+      ? storedOverrides(role, ceiling.overrides)
       : target.permissionOverrides;
     const updated = await this.memberships.updateAccess(weddingId, target.id, {
       role,

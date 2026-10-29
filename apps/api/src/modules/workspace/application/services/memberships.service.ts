@@ -32,6 +32,11 @@ export class MembershipsService {
     return this.memberships.listForWedding(weddingId, status);
   }
 
+  /** The user's membership of the wedding, whatever its status, or null. */
+  findForUser(weddingId: string, userId: string): Promise<Membership | null> {
+    return this.memberships.findForUser(weddingId, userId);
+  }
+
   /** One membership of the wedding, whatever its status, or null. */
   findInWedding(weddingId: string, membershipId: string): Promise<Membership | null> {
     return this.memberships.findInWedding(weddingId, membershipId);

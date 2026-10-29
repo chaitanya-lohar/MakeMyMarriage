@@ -145,6 +145,8 @@ export class MemberInvitationsService {
         now,
       });
     } catch (error) {
+      // A concurrent request created it first: this refused one gives its slot back (R1).
+      await this.rateLimiter.release(InvitationLimits.createPerWedding, weddingId, slot.ticket);
       if (error instanceof MemberInvitationPendingError) throw InvitationsErrors.alreadyPending();
       throw error;
     }
@@ -425,11 +427,8 @@ export class MemberInvitationsService {
     }
   }
 
-  private async membershipOf(weddingId: string, userId: string): Promise<Membership | null> {
-    const active = await this.memberships.findActive(userId, weddingId);
-    if (active) return active;
-    const revoked = await this.memberships.listForWedding(weddingId, MembershipStatus.Revoked);
-    return revoked.find((membership) => membership.userId === userId) ?? null;
+  private membershipOf(weddingId: string, userId: string): Promise<Membership | null> {
+    return this.memberships.findForUser(weddingId, userId);
   }
 
   /** Sends during the request (0025); a failure leaves the invitation pending to resend. */

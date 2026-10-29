@@ -13,7 +13,14 @@ export function nextDay(date: string): string {
 export function startOfDayIn(date: string, timezone: string): Date {
   const [year, month, day] = date.split('-').map(Number) as [number, number, number];
   const utcMidnight = Date.UTC(year, month - 1, day);
-  // The zone's offset at that moment: what its wall clock reads at UTC midnight, minus UTC.
+  // Midnight local = UTC midnight minus the zone's offset at local midnight. That offset is
+  // read at a first guess and read again there, which is exact across a DST change.
+  const guess = utcMidnight - offsetAt(utcMidnight, timezone);
+  return new Date(utcMidnight - offsetAt(guess, timezone));
+}
+
+/** The zone's offset from UTC at `instant`, in milliseconds. */
+function offsetAt(instant: number, timezone: string): number {
   const parts = new Intl.DateTimeFormat('en-US', {
     timeZone: timezone,
     hourCycle: 'h23',
@@ -23,7 +30,7 @@ export function startOfDayIn(date: string, timezone: string): Date {
     hour: 'numeric',
     minute: 'numeric',
     second: 'numeric',
-  }).formatToParts(new Date(utcMidnight));
+  }).formatToParts(new Date(instant));
   const part = (type: Intl.DateTimeFormatPartTypes) =>
     Number(parts.find((candidate) => candidate.type === type)?.value);
   const wallClock = Date.UTC(
@@ -34,5 +41,5 @@ export function startOfDayIn(date: string, timezone: string): Date {
     part('minute'),
     part('second'),
   );
-  return new Date(utcMidnight - (wallClock - utcMidnight));
+  return wallClock - instant;
 }
