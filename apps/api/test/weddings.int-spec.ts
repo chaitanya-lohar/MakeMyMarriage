@@ -92,10 +92,15 @@ describe('Weddings', () => {
         timezone: 'Asia/Kolkata',
       });
 
+      // Reads add the caller's own membership (API Design §6, decision 0035).
+      const mine = {
+        ...created.body.data,
+        membership: { membershipId: expect.any(String), role: 'OWNER', isOwner: true },
+      };
       const list = await agent.get('/api/v1/weddings').expect(200);
-      expect(list.body.data).toEqual([created.body.data]);
+      expect(list.body.data).toEqual([mine]);
       const one = await agent.get(`/api/v1/weddings/${created.body.data.id}`).expect(200);
-      expect(one.body.data).toEqual(created.body.data);
+      expect(one.body.data).toEqual(mine);
     });
 
     it('stores every field, trimmed, and treats empty optional fields as not set', async () => {

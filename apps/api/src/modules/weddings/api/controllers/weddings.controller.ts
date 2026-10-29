@@ -6,11 +6,13 @@ import {
   ApiErrorResponses,
 } from '../../../../common/http/api-envelope.decorator.js';
 import {
+  CurrentMembership,
   MembershipOnly,
   PermissionAction,
   PermissionModule,
   RequirePermission,
   WeddingAccessGuard,
+  type Membership,
 } from '../../../workspace/index.js';
 import { CreateWeddingUseCase } from '../../application/use-cases/create-wedding.use-case.js';
 import { GetWeddingUseCase } from '../../application/use-cases/get-wedding.use-case.js';
@@ -59,7 +61,7 @@ export class WeddingsController {
   @ApiErrorResponses({ status: 401, description: 'Not signed in' })
   async list(@CurrentAuth() auth: RequestAuth): Promise<WeddingDto[]> {
     const weddings = await this.listWeddings.execute(auth.userId);
-    return weddings.map((wedding) => WeddingDto.from(wedding));
+    return weddings.map(({ wedding, membership }) => WeddingDto.from(wedding, membership));
   }
 
   @Get(':weddingId')
@@ -71,8 +73,11 @@ export class WeddingsController {
     { status: 401, description: 'Not signed in' },
     { status: 404, description: 'WEDDING_NOT_FOUND — missing, or not a member' },
   )
-  async get(@Param('weddingId') weddingId: string): Promise<WeddingDto> {
-    return WeddingDto.from(await this.getWedding.execute(weddingId));
+  async get(
+    @Param('weddingId') weddingId: string,
+    @CurrentMembership() membership: Membership,
+  ): Promise<WeddingDto> {
+    return WeddingDto.from(await this.getWedding.execute(weddingId), membership);
   }
 
   @Patch(':weddingId')

@@ -10,6 +10,7 @@ import {
 } from 'class-validator';
 import { isCalendarDate, WeddingLimits } from '../../domain/rules/wedding-rules.js';
 import type { Wedding } from '../../domain/types/wedding.js';
+import { MemberType, type Membership } from '../../../workspace/index.js';
 
 // Field messages match the approved form copy (decision 0016).
 const Messages = {
@@ -180,6 +181,24 @@ export class UpdateWeddingDto {
   description?: string | null;
 }
 
+/** The caller's own membership of a wedding (API Design §6, decision 0035). */
+export class WeddingMembershipDto {
+  @ApiProperty() membershipId!: string;
+
+  @ApiProperty({ enum: ['OWNER', 'ADMIN', 'ORGANIZER', 'EDITOR', 'VIEWER'] })
+  role!: string;
+
+  @ApiProperty() isOwner!: boolean;
+
+  static from(membership: Membership): WeddingMembershipDto {
+    return {
+      membershipId: membership.id,
+      role: membership.role,
+      isOwner: membership.memberType === MemberType.Owner,
+    };
+  }
+}
+
 /** A wedding as returned by the API. */
 export class WeddingDto {
   @ApiProperty({ example: '6650f0c2a1b2c3d4e5f60718' })
@@ -212,7 +231,13 @@ export class WeddingDto {
   @ApiProperty({ example: 'Asia/Kolkata' })
   timezone!: string;
 
-  static from(wedding: Wedding): WeddingDto {
-    return { ...wedding };
+  @ApiPropertyOptional({
+    type: WeddingMembershipDto,
+    description: "The caller's role in this wedding (GET /weddings and GET /weddings/{id}).",
+  })
+  membership?: WeddingMembershipDto;
+
+  static from(wedding: Wedding, membership?: Membership): WeddingDto {
+    return { ...wedding, ...(membership && { membership: WeddingMembershipDto.from(membership) }) };
   }
 }
