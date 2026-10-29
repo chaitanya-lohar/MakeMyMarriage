@@ -207,12 +207,15 @@ export class MemberInvitationsRepository {
     return document ? toInvitation(document) : null;
   }
 
-  /** Live → ACCEPTED, in the acceptance transaction; null when no longer live. */
+  /**
+   * Live → ACCEPTED, in the acceptance transaction or — for an invitee who is already a
+   * member (0036) — alone; null when no longer live.
+   */
   async accept(
     tokenHash: string,
     acceptedBy: { userId: string; membershipId: string },
     now: Date,
-    transaction: Transaction,
+    transaction?: Transaction,
   ): Promise<MemberInvitation | null> {
     const document = await this.invitations.findOneAndUpdate(
       { tokenHash, ...live(now) },

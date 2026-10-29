@@ -292,6 +292,34 @@ describe('Member invitations', () => {
     await invitee.post(`/api/v1/member-invitations/${tokenFor(email)}/accept`).expect(409);
   });
 
+  it('closes an invitation accepted by someone already a member, changing nothing (0036)', async () => {
+    const { agent: owner, weddingId, invite } = await wedding();
+    const email = newEmail();
+    const id = (await invite(owner, { email, role: 'ADMIN' }).expect(201)).body.data.id as string;
+    const invitee = await account(email);
+    const userId = (await invitee.get('/api/v1/me').expect(200)).body.data.user.id as string;
+    // Meanwhile the person became a member another way.
+    const { insertedId } = await memberships().insertOne({
+      weddingId: new Types.ObjectId(weddingId),
+      userId: new Types.ObjectId(userId),
+      memberType: 'MEMBER',
+      role: 'VIEWER',
+      status: 'ACTIVE',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const response = await invitee
+      .post(`/api/v1/member-invitations/${tokenFor(email)}/accept`)
+      .expect(409);
+    expect(response.body.error.code).toBe('MEMBER_ALREADY_ACTIVE');
+    expect(await invitations().findOne({ _id: new Types.ObjectId(id) })).toMatchObject({
+      status: 'ACCEPTED',
+      membershipId: insertedId,
+    });
+    expect(await memberships().findOne({ _id: insertedId })).toMatchObject({ role: 'VIEWER' });
+  });
+
   it('keeps the invitation when the email cannot be sent', async () => {
     const { agent: owner, invite } = await wedding();
     sender.unreachable = true;
