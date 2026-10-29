@@ -73,7 +73,7 @@ function rememberedWedding(userId: string): string | null {
   }
 }
 
-function rememberWedding(userId: string, weddingId: string): void {
+export function rememberWedding(userId: string, weddingId: string): void {
   try {
     window.localStorage.setItem(selectionKey(userId), weddingId);
   } catch {

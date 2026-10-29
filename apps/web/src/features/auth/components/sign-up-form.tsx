@@ -14,7 +14,7 @@ const MIN_PASSWORD_LENGTH = 8;
 type FieldErrors = Partial<Record<'email' | 'password' | 'confirmPassword', string>>;
 
 /** Stitch "Sign Up". */
-export function SignUpForm() {
+export function SignUpForm({ next = '/dashboard' }: { next?: string }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string>();
@@ -57,7 +57,7 @@ export function SignUpForm() {
       setError(result.error.status === 0 ? networkError : result.error.message);
       return;
     }
-    router.replace('/dashboard');
+    router.replace(next);
   }
 
   return (

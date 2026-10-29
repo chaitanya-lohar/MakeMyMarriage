@@ -12,7 +12,14 @@ import { FormFeedback, formText, SubmitButton, TextField } from './form-controls
 export type SignInNotice = 'password-updated' | 'session-ended';
 
 /** Stitch "Sign In (V1)". */
-export function SignInForm({ notice }: { notice?: SignInNotice }) {
+export function SignInForm({
+  notice,
+  next = '/dashboard',
+}: {
+  notice?: SignInNotice;
+  /** Where to go once signed in (nextPath). */
+  next?: string;
+}) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string>();
@@ -51,7 +58,7 @@ export function SignInForm({ notice }: { notice?: SignInNotice }) {
       setError(result.error.status === 0 ? networkError : result.error.message);
       return;
     }
-    router.replace('/dashboard');
+    router.replace(next);
   }
 
   return (

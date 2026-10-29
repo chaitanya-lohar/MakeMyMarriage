@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Icon } from '@/components/ui/icon';
 import { DashboardSummaries } from '@/features/dashboard/components/dashboard-summaries';
+import { OwnershipOfferBanner } from '@/features/members/components/ownership';
 import { WEDDING_DETAILS_PATH } from '@/features/workspace/components/shell-parts';
 import { weddingSelector } from '@/features/workspace/content';
 import { usePermissions, useWorkspace } from '@/features/workspace/workspace-context';
@@ -94,6 +95,7 @@ export function DashboardView({ wedding }: { wedding: ApiWedding }) {
         )}
       </header>
 
+      <OwnershipOfferBanner />
       <CountdownCard startDate={wedding.startDate} timezone={wedding.timezone} />
       <DetailsCard wedding={wedding} />
       <DashboardSummaries wedding={wedding} />
