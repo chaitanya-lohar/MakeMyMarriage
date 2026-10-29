@@ -319,6 +319,10 @@ stay unchanged. The check and the recording of the resend time are one condition
 on the invitation (Database Design §7.5), so concurrent resends cannot exceed it. A resend
 never changes the membership: a revoked member stays revoked until they accept (R5).
 
+**Invitation link.** The email links to the web page `/member-invite/{token}` (Stitch P10 · M7).
+A signed-out invitee signs in or creates an account and returns there: sign-in and sign-up
+accept `?next=`, honoured only for a `/member-invite/{token}` path (never another site or page).
+
 **`GET /member-invitations/{token}`** — `{ weddingDisplayName, invitedByName, role, message,
 status, expiresAt, emailHint }` (`emailHint` masks the address, e.g. `me***@gmail.com`) so the
 page can ask the invitee to sign in with the right account. `EXPIRED`, `ACCEPTED`, `DECLINED`
@@ -932,6 +936,7 @@ Error codes in use or approved:
 | `MEMBER_INVITATION_EMAIL_MISMATCH`   | 403  | Phase 10                                                                                                                              |
 | `OWNERSHIP_TRANSFER_ALREADY_PENDING` | 409  | Phase 10                                                                                                                              |
 | `OWNERSHIP_TRANSFER_NOT_PENDING`     | 409  | Phase 10                                                                                                                              |
+| `OWNERSHIP_TRANSFER_NOT_FOUND`       | 404  | Phase 10: an unknown offer, or one of another wedding                                                                                 |
 
 ## 22. Validation and DTO strategy
 
@@ -992,7 +997,8 @@ guard. Phase 10 replaces that rule; there is no fallback:
 2. Enforce it centrally: the permission guard runs on every wedding route; a route without a
    declared permission fails a contract test (only routes explicitly marked "membership
    only" — `GET /weddings`, `GET /weddings/{id}`, `GET …/dashboard`, `GET …/members`,
-   `GET …/members/me/permissions` — are exempt).
+   `GET …/members/me/permissions`, and the five ownership-transfer routes, whose owner,
+   recipient and giver checks are in the service (§7.1) — are exempt).
 3. Keep the existing tenant checks: the guard's `ACTIVE` lookup and the `weddingId` filter in
    every repository; IDs of other weddings stay `404`.
 4. Move the dashboard to per-section permissions (§6).
