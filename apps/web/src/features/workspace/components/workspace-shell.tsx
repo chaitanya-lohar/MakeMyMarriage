@@ -6,7 +6,8 @@ import type { ApiWedding } from '@/features/weddings/wedding-form-model';
 import { loadError, loading } from '../content';
 import { useWorkspace } from '../workspace-context';
 import { MobileNav } from './mobile-nav';
-import { NavLinks, WeddingName, WorkspaceFooter, WorkspaceLogo } from './shell-parts';
+import { NavLinks, WorkspaceFooter, WorkspaceLogo } from './shell-parts';
+import { WeddingSelector } from './wedding-selector';
 import { UserMenu } from './user-menu';
 
 /**
@@ -45,7 +46,7 @@ function Sidebar({ user, wedding }: { user?: ApiUser; wedding: ApiWedding | null
         {wedding && (
           <>
             <div className="mt-4 border-b border-hairline/70 px-6 pb-4">
-              <WeddingName name={wedding.displayName} className="text-base" />
+              <WeddingSelector wedding={wedding} />
             </div>
             <div className="mt-6 px-3">
               <NavLinks />

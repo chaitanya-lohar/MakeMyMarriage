@@ -5135,7 +5135,16 @@
     "/api/v1/weddings/{weddingId}/members/me/permissions": {
       "get": {
         "operationId": "MembersController_me",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "weddingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",

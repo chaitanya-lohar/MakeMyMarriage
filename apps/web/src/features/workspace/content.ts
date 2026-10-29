@@ -13,6 +13,8 @@ export const workspaceNav = {
   tasks: 'Tasks',
   expenses: 'Expenses',
   vendors: 'Vendors',
+  // Phase 10 adds Members for every member (0035 #1).
+  members: 'Members',
   yourWedding: 'Your wedding',
   menu: 'Menu',
   openMenu: 'Open menu',
@@ -35,4 +37,25 @@ export const loadError = {
 
 export const loading = {
   label: 'Loading your wedding…',
+};
+
+/** Role names (Stitch "P10 · M1"). Draft wording (0035). */
+export const roleLabels: Record<string, string> = {
+  OWNER: 'Owner',
+  ADMIN: 'Admin',
+  ORGANIZER: 'Organizer',
+  EDITOR: 'Editor',
+  VIEWER: 'Viewer',
+};
+
+/** The wedding selector (Stitch "P10 · M11", decision 0035 #4). Draft wording. */
+export const weddingSelector = {
+  title: 'Your weddings',
+  open: 'Switch wedding',
+  current: 'Current wedding',
+  switched: (name: string) => `Switched to ${name}`,
+  noAccessTitle: 'You no longer have access to this wedding',
+  noAccessBody: 'An owner removed your access to this wedding.',
+  chooseAnother: 'Choose another wedding',
+  goHome: 'Go to home',
 };

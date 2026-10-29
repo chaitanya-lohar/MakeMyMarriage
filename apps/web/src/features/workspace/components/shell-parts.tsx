@@ -6,7 +6,8 @@ import { legalLinks } from '@/components/layout/site-links';
 import { Icon, type IconName } from '@/components/ui/icon';
 import { Logo } from '@/components/ui/logo';
 import type { ApiUser } from '@/lib/api';
-import { workspaceFooter, workspaceNav } from '../content';
+import { roleLabels, workspaceFooter, workspaceNav } from '../content';
+import { useWorkspace } from '../workspace-context';
 
 export const DASHBOARD_PATH = '/dashboard';
 export const CREATE_WEDDING_PATH = '/wedding/new';
@@ -16,11 +17,12 @@ export const GUESTS_PATH = '/guests';
 export const TASKS_PATH = '/tasks';
 export const EXPENSES_PATH = '/expenses';
 export const VENDORS_PATH = '/vendors';
+export const MEMBERS_PATH = '/members';
 
 /**
  * The workspace navigation (0016); Phase 4 adds Events and Guests & RSVP (0019 #3), Phase 7
  * adds Tasks after them (0027), with no count badge, and Phase 8 adds Expenses after Tasks
- * (0029).
+ * (0029). Phase 10 adds Members, shown to every member (0035 #1).
  */
 const navItems: { href: string; label: string; icon: IconName }[] = [
   { href: DASHBOARD_PATH, label: workspaceNav.dashboard, icon: 'space_dashboard' },
@@ -30,10 +32,11 @@ const navItems: { href: string; label: string; icon: IconName }[] = [
   { href: TASKS_PATH, label: workspaceNav.tasks, icon: 'checklist' },
   { href: EXPENSES_PATH, label: workspaceNav.expenses, icon: 'payments' },
   { href: VENDORS_PATH, label: workspaceNav.vendors, icon: 'group' },
+  { href: MEMBERS_PATH, label: workspaceNav.members, icon: 'manage_accounts' },
 ];
 
 /** Items with sub-pages stay highlighted on them, e.g. a guest's detail page. */
-const SECTIONS = [EVENTS_PATH, GUESTS_PATH, TASKS_PATH, EXPENSES_PATH, VENDORS_PATH];
+const SECTIONS = [EVENTS_PATH, GUESTS_PATH, TASKS_PATH, EXPENSES_PATH, VENDORS_PATH, MEMBERS_PATH];
 
 function isActive(pathname: string, href: string): boolean {
   if (SECTIONS.includes(href)) {
@@ -116,11 +119,16 @@ export function UserAvatar({ user, size = 'size-10' }: { user: ApiUser; size?: s
   );
 }
 
+/** The user's name and, inside a wedding, their role in it (Stitch "P10 · M1", "M11"). */
 export function UserSummary({ user }: { user: ApiUser }) {
+  const { state } = useWorkspace();
+  const role = state.status === 'ready' ? state.permissions?.role : undefined;
   return (
     <span className="min-w-0 flex-1 text-left">
       <span className="block truncate text-sm font-medium text-navy">{user.displayName}</span>
-      <span className="block truncate text-xs text-on-surface-variant">{user.email}</span>
+      <span className="block truncate text-xs text-on-surface-variant">
+        {role ? (roleLabels[role] ?? role) : user.email}
+      </span>
     </span>
   );
 }

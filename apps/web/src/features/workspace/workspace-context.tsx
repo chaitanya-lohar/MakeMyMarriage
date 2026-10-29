@@ -1,5 +1,6 @@
 'use client';
 
+import type { components } from '@makemymarriage/api-client';
 import { useRouter } from 'next/navigation';
 import {
   createContext,
@@ -13,21 +14,35 @@ import {
 import { api, call, type ApiUser } from '@/lib/api';
 import type { ApiWedding } from '@/features/weddings/wedding-form-model';
 
+/** A member's effective permissions in the selected wedding (API Design §7.1). */
+export type ApiPermissions = components['schemas']['MemberPermissionsDto'];
+
 export type WorkspaceState =
   | { status: 'loading' }
   | { status: 'error' }
-  | { status: 'ready'; user: ApiUser; wedding: ApiWedding | null };
+  | {
+      status: 'ready';
+      user: ApiUser;
+      /** The selected wedding, or null when the user belongs to none. */
+      wedding: ApiWedding | null;
+      /** Every wedding the user is an active member of, in the API's order (0035). */
+      weddings: ApiWedding[];
+      /** The caller's permissions in the selected wedding; null without one. */
+      permissions: ApiPermissions | null;
+    };
 
 /** A one-off message for the next page view, e.g. after creating the wedding or deleting. */
 export type WorkspaceNotice =
   | 'wedding-created'
   | 'wedding-saved'
+  | 'wedding-switched'
   | 'event-saved'
   | 'event-deleted'
   | 'guest-deleted'
   | 'task-deleted'
   | 'expense-saved'
   | 'expense-deleted'
+  | 'member-removed'
   | null;
 
 interface WorkspaceContextValue {
@@ -35,6 +50,8 @@ interface WorkspaceContextValue {
   reload: () => void;
   /** Replaces the wedding after it is created or saved. */
   setWedding: (wedding: ApiWedding) => void;
+  /** Switches the whole workspace to another of the user's weddings (System Design §7.12). */
+  selectWedding: (weddingId: string) => void;
   notice: WorkspaceNotice;
   setNotice: (notice: WorkspaceNotice) => void;
   signOut: () => Promise<void>;
@@ -45,9 +62,31 @@ const WorkspaceContext = createContext<WorkspaceContextValue | null>(null);
 
 export const SESSION_ENDED_PATH = '/login?session=ended';
 
+/** The selected wedding is a per-device preference, never trusted by the server (§7.12). */
+const selectionKey = (userId: string) => `mmm.selectedWedding.${userId}`;
+
+function rememberedWedding(userId: string): string | null {
+  try {
+    return window.localStorage.getItem(selectionKey(userId));
+  } catch {
+    return null;
+  }
+}
+
+function rememberWedding(userId: string, weddingId: string): void {
+  try {
+    window.localStorage.setItem(selectionKey(userId), weddingId);
+  } catch {
+    // Storage blocked: the selection lasts until the next load.
+  }
+}
+
 /**
- * Loads the signed-in user and their wedding once for every workspace page (decision
- * 0016). A session that cannot be refreshed goes to sign-in, as in decision 0015.
+ * Loads the signed-in user, their weddings, the selected wedding and the user's permissions
+ * in it, once for every workspace page (decisions 0016, 0035). A remembered selection that
+ * is no longer one of the user's weddings is discarded; the first wedding is the default.
+ * Switching reloads everything, so nothing from the previous wedding is reused. A session
+ * that cannot be refreshed goes to sign-in, as in decision 0015.
  */
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -58,20 +97,44 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let active = true;
-    void Promise.all([
-      call(() => api.GET('/api/v1/me')),
-      call(() => api.GET('/api/v1/weddings')),
-    ]).then(([me, weddings]) => {
+    void (async () => {
+      const [me, weddings] = await Promise.all([
+        call(() => api.GET('/api/v1/me')),
+        call(() => api.GET('/api/v1/weddings')),
+      ]);
       if (!active) return;
       if (me.error?.status === 401 || weddings.error?.status === 401) {
         router.replace(SESSION_ENDED_PATH);
-      } else if (me.data && weddings.data) {
-        // A user owns at most one wedding (decision 0012); it is the one shown.
-        setState({ status: 'ready', user: me.data.user, wedding: weddings.data[0] ?? null });
-      } else {
-        setState({ status: 'error' });
+        return;
       }
-    });
+      if (!me.data || !weddings.data) {
+        setState({ status: 'error' });
+        return;
+      }
+      const user = me.data.user;
+      const remembered = rememberedWedding(user.id);
+      const wedding =
+        weddings.data.find((candidate) => candidate.id === remembered) ?? weddings.data[0] ?? null;
+      let permissions: ApiPermissions | null = null;
+      if (wedding) {
+        const result = await call(() =>
+          api.GET('/api/v1/weddings/{weddingId}/members/me/permissions', {
+            params: { path: { weddingId: wedding.id } },
+          }),
+        );
+        if (!active) return;
+        if (result.error?.status === 401) {
+          router.replace(SESSION_ENDED_PATH);
+          return;
+        }
+        if (!result.data) {
+          setState({ status: 'error' });
+          return;
+        }
+        permissions = result.data;
+      }
+      setState({ status: 'ready', user, wedding, weddings: weddings.data, permissions });
+    })();
     return () => {
       active = false;
     };
@@ -83,8 +146,31 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const setWedding = useCallback((wedding: ApiWedding) => {
-    setState((current) => (current.status === 'ready' ? { ...current, wedding } : current));
+    setState((current) => {
+      if (current.status !== 'ready') return current;
+      const known = current.weddings.some((candidate) => candidate.id === wedding.id);
+      return {
+        ...current,
+        wedding: { ...current.wedding, ...wedding },
+        weddings: known
+          ? current.weddings.map((candidate) =>
+              candidate.id === wedding.id ? { ...candidate, ...wedding } : candidate,
+            )
+          : [...current.weddings, wedding],
+      };
+    });
   }, []);
+
+  const selectWedding = useCallback(
+    (weddingId: string) => {
+      if (state.status !== 'ready') return;
+      rememberWedding(state.user.id, weddingId);
+      setNotice('wedding-switched');
+      router.push('/dashboard');
+      reload();
+    },
+    [state, router, reload],
+  );
 
   const signOut = useCallback(async () => {
     setSigningOut(true);
@@ -93,8 +179,17 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   }, [router]);
 
   const value = useMemo(
-    () => ({ state, reload, setWedding, notice, setNotice, signOut, signingOut }),
-    [state, reload, setWedding, notice, signOut, signingOut],
+    () => ({
+      state,
+      reload,
+      setWedding,
+      selectWedding,
+      notice,
+      setNotice,
+      signOut,
+      signingOut,
+    }),
+    [state, reload, setWedding, selectWedding, notice, signOut, signingOut],
   );
   return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>;
 }
@@ -113,5 +208,27 @@ export function useReadyWorkspace() {
   if (context.state.status !== 'ready') {
     throw new Error('useReadyWorkspace used before the workspace finished loading');
   }
-  return { ...context, user: context.state.user, wedding: context.state.wedding };
+  return {
+    ...context,
+    user: context.state.user,
+    wedding: context.state.wedding,
+    weddings: context.state.weddings,
+    permissions: context.state.permissions,
+  };
+}
+
+/**
+ * What the caller may do in the selected wedding, to show or hide controls (API Design §7.1).
+ * The server authorizes every request; this never replaces that.
+ */
+export function usePermissions() {
+  const { permissions } = useReadyWorkspace();
+  return useMemo(() => {
+    const granted = (permissions?.permissions ?? {}) as Record<string, string[] | undefined>;
+    return {
+      isOwner: permissions?.isOwner ?? false,
+      role: permissions?.role ?? null,
+      can: (module: string, action: string) => granted[module]?.includes(action) ?? false,
+    };
+  }, [permissions]);
 }

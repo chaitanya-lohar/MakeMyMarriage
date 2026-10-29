@@ -10,7 +10,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiCookieAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiCookieAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { ValidationFailedException } from '../../../../common/errors/validation-failed.exception.js';
 import {
   ApiEnvelopeResponse,
@@ -85,6 +85,7 @@ export class MembersController {
   @Get('members/me/permissions')
   @MembershipOnly()
   @ApiOperation({ summary: "The caller's effective permissions in this wedding" })
+  @ApiParam({ name: 'weddingId', type: String })
   @ApiEnvelopeResponse(200, MemberPermissionsDto)
   @ApiErrorResponses({ status: 401, description: 'Not signed in' }, notFound)
   me(
