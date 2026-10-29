@@ -3,7 +3,12 @@ import { InjectModel } from '@nestjs/mongoose';
 import { isValidObjectId, Model, Types } from 'mongoose';
 import { sessionOf, type Transaction } from '../../../../infrastructure/database/transaction.js';
 import { MemberType, MembershipRole, MembershipStatus } from '../../domain/enums/membership.js';
-import { OwnerMembershipExistsError, type Membership } from '../../domain/types/membership.js';
+import {
+  OwnerMembershipExistsError,
+  type InvitedAccess,
+  type Membership,
+  type OwnerSeat,
+} from '../../domain/types/membership.js';
 import {
   WeddingMembershipRecord,
   type WeddingMembershipDocument,
@@ -161,6 +166,120 @@ export class WeddingMembershipsRepository {
       { new: true },
     );
     return document ? toMembership(document) : null;
+  }
+
+  /**
+   * The membership an accepted invitation gives (Database Design §7.2, P10-3): a new ACTIVE
+   * row, or the user's REVOKED row reused — old overrides replaced, revocation cleared.
+   * Null when the user already has an ACTIVE membership or an OWNER row here.
+   */
+  async admitFromInvitation(
+    weddingId: string,
+    userId: string,
+    access: InvitedAccess,
+    now: Date,
+    transaction: Transaction,
+  ): Promise<{ membership: Membership; reactivated: boolean } | null> {
+    const session = sessionOf(transaction);
+    const key = { weddingId: new Types.ObjectId(weddingId), userId: new Types.ObjectId(userId) };
+    const fields = {
+      role: access.role,
+      status: MembershipStatus.Active,
+      invitationId: new Types.ObjectId(access.invitationId),
+      invitedBy: new Types.ObjectId(access.invitedBy),
+      invitedAt: access.invitedAt,
+      acceptedAt: now,
+    };
+    const overrides =
+      access.permissionOverrides.length > 0
+        ? { $set: { ...fields, permissionOverrides: access.permissionOverrides } }
+        : { $set: fields, $unset: { permissionOverrides: 1 } };
+
+    const reactivated = await this.memberships.findOneAndUpdate(
+      { ...key, memberType: MemberType.Member, status: MembershipStatus.Revoked },
+      { ...overrides, $unset: { ...overrides.$unset, revokedAt: 1, revokedBy: 1 } },
+      { new: true, session },
+    );
+    if (reactivated) return { membership: toMembership(reactivated), reactivated: true };
+    // An ACTIVE member or an owner row: nothing to admit. Checked before inserting, since a
+    // duplicate-key error would abort the whole transaction.
+    if (await this.memberships.exists(key).session(session ?? null)) return null;
+
+    try {
+      const [document] = await this.memberships.create(
+        [{ ...key, memberType: MemberType.Member, ...overrides.$set }],
+        { session },
+      );
+      return {
+        membership: toMembership(document as WeddingMembershipDocument),
+        reactivated: false,
+      };
+    } catch (error) {
+      // A concurrent request admitted the user first (unique (userId, weddingId)).
+      if ((error as { code?: number }).code === DUPLICATE_KEY) return null;
+      throw error;
+    }
+  }
+
+  /**
+   * Ownership transfer, step 2 (Database Design §7.6): the giver, still OWNER on `seat`,
+   * becomes an ADMIN member without seat or overrides. Null when that no longer holds.
+   */
+  async demoteOwner(
+    weddingId: string,
+    membershipId: string,
+    seat: OwnerSeat,
+    transaction: Transaction,
+  ): Promise<Membership | null> {
+    const document = await this.memberships.findOneAndUpdate(
+      {
+        _id: new Types.ObjectId(membershipId),
+        weddingId: new Types.ObjectId(weddingId),
+        memberType: MemberType.Owner,
+        ownerSeat: seat,
+        status: MembershipStatus.Active,
+      },
+      {
+        $set: { memberType: MemberType.Member, role: MembershipRole.Admin },
+        $unset: { ownerSeat: 1, permissionOverrides: 1 },
+      },
+      { new: true, session: sessionOf(transaction) },
+    );
+    return document ? toMembership(document) : null;
+  }
+
+  /**
+   * Ownership transfer, step 3: the recipient, still an ACTIVE member, becomes OWNER on
+   * `seat` without overrides. Null when that no longer holds; throws
+   * OwnerMembershipExistsError when the user owns another wedding (0012).
+   */
+  async promoteToOwner(
+    weddingId: string,
+    membershipId: string,
+    seat: OwnerSeat,
+    transaction: Transaction,
+  ): Promise<Membership | null> {
+    try {
+      const document = await this.memberships.findOneAndUpdate(
+        {
+          _id: new Types.ObjectId(membershipId),
+          weddingId: new Types.ObjectId(weddingId),
+          memberType: MemberType.Member,
+          status: MembershipStatus.Active,
+        },
+        {
+          $set: { memberType: MemberType.Owner, role: MembershipRole.Owner, ownerSeat: seat },
+          $unset: { permissionOverrides: 1 },
+        },
+        { new: true, session: sessionOf(transaction) },
+      );
+      return document ? toMembership(document) : null;
+    } catch (error) {
+      if ((error as { code?: number }).code === DUPLICATE_KEY) {
+        throw new OwnerMembershipExistsError();
+      }
+      throw error;
+    }
   }
 
   /** The user's active memberships, oldest first. */

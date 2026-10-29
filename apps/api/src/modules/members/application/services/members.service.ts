@@ -32,6 +32,7 @@ import {
 import { startOfDayIn, nextDay } from '../../domain/rules/audit-dates.js';
 import type { MemberView, MemberPage } from '../../domain/types/member.js';
 import { MembersErrors } from '../members-errors.js';
+import { OwnershipTransfersService } from './ownership-transfers.service.js';
 
 const MEMBERSHIP = 'wedding_membership';
 
@@ -62,6 +63,7 @@ export class MembersService {
     private readonly users: UsersService,
     private readonly weddings: WeddingsService,
     private readonly audit: AuditService,
+    private readonly transfers: OwnershipTransfersService,
   ) {}
 
   /**
@@ -195,6 +197,8 @@ export class MembersService {
     }
     const revoked = await this.memberships.revoke(weddingId, target.id, caller.membership.userId);
     if (!revoked) throw MembersErrors.notFound();
+    // A removed member can no longer take part in an ownership offer (Database Design §7.6).
+    await this.transfers.cancelForMembership(weddingId, target.id, caller.membership.userId);
     await this.record(weddingId, caller, target, AuditAction.MemberRemoved, {
       targetMembershipId: target.id,
       targetUserId: target.userId,

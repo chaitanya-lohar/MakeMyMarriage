@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { Transaction } from '../../../../infrastructure/database/transaction.js';
 import type { MembershipStatus } from '../../domain/enums/membership.js';
-import type { Membership } from '../../domain/types/membership.js';
+import type { InvitedAccess, Membership, OwnerSeat } from '../../domain/types/membership.js';
 import { WeddingMembershipsRepository } from '../../infrastructure/repositories/wedding-memberships.repository.js';
 
 /** Membership and access context for weddings — the workspace module's public API. */
@@ -54,6 +54,37 @@ export class MembershipsService {
     now: Date = new Date(),
   ): Promise<Membership | null> {
     return this.memberships.revoke(weddingId, membershipId, revokedBy, now);
+  }
+
+  /** The membership an accepted invitation gives: new, or a removed member's row reused. */
+  admitFromInvitation(
+    weddingId: string,
+    userId: string,
+    access: InvitedAccess,
+    now: Date,
+    transaction: Transaction,
+  ): Promise<{ membership: Membership; reactivated: boolean } | null> {
+    return this.memberships.admitFromInvitation(weddingId, userId, access, now, transaction);
+  }
+
+  /** Ownership transfer: the giving owner becomes an ADMIN member (Database Design §7.6). */
+  demoteOwner(
+    weddingId: string,
+    membershipId: string,
+    seat: OwnerSeat,
+    transaction: Transaction,
+  ): Promise<Membership | null> {
+    return this.memberships.demoteOwner(weddingId, membershipId, seat, transaction);
+  }
+
+  /** Ownership transfer: the recipient takes the owner seat (Database Design §7.6). */
+  promoteToOwner(
+    weddingId: string,
+    membershipId: string,
+    seat: OwnerSeat,
+    transaction: Transaction,
+  ): Promise<Membership | null> {
+    return this.memberships.promoteToOwner(weddingId, membershipId, seat, transaction);
   }
 
   /** The user's active memberships, oldest first. */

@@ -34,7 +34,9 @@ export const RequirePermission = (
 /**
  * Marks one of the few wedding routes that need only an active membership (API Design §23:
  * `GET /weddings`, `GET /weddings/{id}`, `GET …/dashboard`, `GET …/members`,
- * `GET …/members/me/permissions`). The route-permission contract test refuses it elsewhere.
+ * `GET …/members/me/permissions`; and the ownership-transfer routes, whose owner and
+ * recipient checks are in the service, §7.1). The route-permission contract test refuses it
+ * elsewhere.
  */
 export const MembershipOnly = (): MethodDecorator => SetMetadata(MEMBERSHIP_ONLY, true);
 

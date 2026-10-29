@@ -94,6 +94,13 @@ const MEMBERSHIP_ONLY_ROUTES = new Set([
   'GET /weddings/:weddingId/dashboard',
   'GET /weddings/:weddingId/members',
   'GET /weddings/:weddingId/members/me/permissions',
+  // Ownership-seat transfer: protected, not a module action (API Design §7.1, P10-5). The
+  // service lets only an owner offer, the recipient answer and the giver cancel.
+  'GET /weddings/:weddingId/ownership-transfers',
+  'POST /weddings/:weddingId/ownership-transfers',
+  'POST /weddings/:weddingId/ownership-transfers/:transferId/accept',
+  'POST /weddings/:weddingId/ownership-transfers/:transferId/decline',
+  'POST /weddings/:weddingId/ownership-transfers/:transferId/cancel',
 ]);
 
 const isWeddingRoute = (route: RouteInfo) => route.key.includes('/:weddingId');
@@ -142,7 +149,7 @@ describe('route-permission contract (API Design §23)', async () => {
     expect(offending).toEqual([]);
   });
 
-  it('marks membership only nowhere but the five exempt routes', () => {
+  it('marks membership only nowhere but the exempt routes', () => {
     const offending = routes
       .filter((route) => route.membershipOnly && !MEMBERSHIP_ONLY_ROUTES.has(route.key))
       .map((route) => route.key);

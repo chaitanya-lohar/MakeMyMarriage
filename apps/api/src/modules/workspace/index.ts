@@ -25,6 +25,7 @@ export {
 export {
   OWNER_SEATS,
   OwnerMembershipExistsError,
+  type InvitedAccess,
   type Membership,
   type OwnerSeat,
   type PermissionOverride,

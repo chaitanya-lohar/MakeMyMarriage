@@ -33,6 +33,15 @@ export interface Membership {
   revokedBy?: string;
 }
 
+/** What an accepted organizer invitation grants (Database Design §7.5, P10-3). */
+export interface InvitedAccess {
+  role: MembershipRole;
+  permissionOverrides: PermissionOverride[];
+  invitationId: string;
+  invitedBy: string;
+  invitedAt: Date;
+}
+
 /** The user already holds an OWNER membership (0010 #18, decision 0012). */
 export class OwnerMembershipExistsError extends Error {
   constructor() {
