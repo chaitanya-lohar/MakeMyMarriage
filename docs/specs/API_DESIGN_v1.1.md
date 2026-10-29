@@ -336,7 +336,8 @@ display name.
 - **Expiry (P10-2):** `409 MEMBER_INVITATION_EXPIRED` when `expiresAt` has passed — checked in
   the conditional update itself, whatever the stored status says; the invitation is then
   written `EXPIRED` (audited). `409 MEMBER_INVITATION_NOT_PENDING` for accepted, declined or
-  revoked. `409 MEMBER_ALREADY_ACTIVE` if the user is already an active member.
+  revoked. `409 MEMBER_ALREADY_ACTIVE` if the user is already an active member; the invitation is
+  then closed as `ACCEPTED`, linked to the existing membership, which is not changed (0036).
 - In one transaction (Database Design §24): conditional `PENDING` and `expiresAt > now` →
   `ACCEPTED`; membership created `ACTIVE` with the invited role and overrides, or — for a
   revoked member (P10-3) — the **same row** reactivated: old overrides cleared, the

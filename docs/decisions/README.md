@@ -41,6 +41,7 @@ in a specification, the record names that statement.
 | [0033](0033-phase-9-design-approval.md)                   | Phase 9 design approval: screens, additions and corrections         | Accepted                                            |
 | [0034](0034-phase-10-authorization.md)                    | Phase 10: organizers, roles and permissions (P10-1–P10-8)           | Accepted                                            |
 | [0035](0035-phase-10-design-approval.md)                  | Phase 10 design approval: screens, UI decisions, corrections        | Accepted                                            |
+| [0036](0036-invitation-for-an-existing-member.md)         | An invitation accepted by someone already a member                  | Accepted                                            |
 
 Conflicts between specifications or decision records are handled with the protocol in
 [0004](0004-specification-authority.md) — never resolved silently in code.
