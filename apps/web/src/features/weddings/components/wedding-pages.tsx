@@ -3,7 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { DASHBOARD_PATH } from '@/features/workspace/components/shell-parts';
-import { useReadyWorkspace } from '@/features/workspace/workspace-context';
+import { NoAccess } from '@/features/workspace/components/workspace-page';
+import { usePermissions, useReadyWorkspace } from '@/features/workspace/workspace-context';
 import { CreateWeddingForm } from './create-wedding-form';
 import { DashboardView } from './dashboard-view';
 import { NoWeddingCard } from './no-wedding-card';
@@ -24,10 +25,14 @@ export function CreateWeddingPageContent() {
 export function WeddingDetailsPageContent() {
   const router = useRouter();
   const { wedding } = useReadyWorkspace();
+  const { can } = usePermissions();
 
   useEffect(() => {
     if (!wedding) router.replace(DASHBOARD_PATH);
   }, [wedding, router]);
 
-  return wedding ? <WeddingDetailsForm key={wedding.id} wedding={wedding} /> : null;
+  if (!wedding) return null;
+  // Editing the wedding needs WEDDING_SETTINGS:EDIT, owner-only by default (Stitch "P10 · M8").
+  if (!can('WEDDING_SETTINGS', 'EDIT')) return <NoAccess />;
+  return <WeddingDetailsForm key={wedding.id} wedding={wedding} />;
 }

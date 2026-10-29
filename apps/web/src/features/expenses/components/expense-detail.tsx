@@ -15,6 +15,7 @@ import {
   PageHeader,
   SkeletonCard,
   useOneOffNotice,
+  Can,
 } from '@/features/workspace/components/workspace-page';
 import { SESSION_ENDED_PATH, useReadyWorkspace } from '@/features/workspace/workspace-context';
 import { api, call, type ApiError } from '@/lib/api';
@@ -179,16 +180,20 @@ export function ExpenseDetail({ wedding, expenseId }: { wedding: ApiWedding; exp
         }
         actions={
           <>
-            <Link
-              href={`${EXPENSES_PATH}/${expense.id}/edit`}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-champagne bg-white px-5 text-label-md text-navy transition-colors hover:bg-ivory focus-visible:outline-2 focus-visible:outline-secondary"
-            >
-              <Icon name="edit" className="size-5" />
-              {expenseDetail.edit}
-            </Link>
-            <QuietButton icon="delete" tone="danger" onClick={() => setConfirmingDelete(true)}>
-              {expenseDetail.delete}
-            </QuietButton>
+            <Can module="EXPENSES" action="EDIT">
+              <Link
+                href={`${EXPENSES_PATH}/${expense.id}/edit`}
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-champagne bg-white px-5 text-label-md text-navy transition-colors hover:bg-ivory focus-visible:outline-2 focus-visible:outline-secondary"
+              >
+                <Icon name="edit" className="size-5" />
+                {expenseDetail.edit}
+              </Link>
+            </Can>
+            <Can module="EXPENSES" action="DELETE">
+              <QuietButton icon="delete" tone="danger" onClick={() => setConfirmingDelete(true)}>
+                {expenseDetail.delete}
+              </QuietButton>
+            </Can>
           </>
         }
       />
@@ -244,24 +249,26 @@ export function ExpenseDetail({ wedding, expenseId }: { wedding: ApiWedding; exp
               </span>
             </h2>
             <div className="flex flex-col gap-2 sm:items-end">
-              <div className="flex flex-col gap-3 sm:flex-row">
-                {!fullyPaid && (
-                  <SecondaryButton
-                    icon="check_circle"
-                    onClick={() => setDialog({ kind: 'fullyPaid' })}
+              <Can module="EXPENSES" action="CREATE">
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  {!fullyPaid && (
+                    <SecondaryButton
+                      icon="check_circle"
+                      onClick={() => setDialog({ kind: 'fullyPaid' })}
+                    >
+                      {expenseDetail.markFullyPaid}
+                    </SecondaryButton>
+                  )}
+                  <PrimaryButton
+                    icon="add"
+                    disabled={fullyPaid}
+                    onClick={() => setDialog({ kind: 'add' })}
+                    aria-describedby={fullyPaid ? 'fully-paid-hint' : undefined}
                   >
-                    {expenseDetail.markFullyPaid}
-                  </SecondaryButton>
-                )}
-                <PrimaryButton
-                  icon="add"
-                  disabled={fullyPaid}
-                  onClick={() => setDialog({ kind: 'add' })}
-                  aria-describedby={fullyPaid ? 'fully-paid-hint' : undefined}
-                >
-                  {expenseDetail.addPayment}
-                </PrimaryButton>
-              </div>
+                    {expenseDetail.addPayment}
+                  </PrimaryButton>
+                </div>
+              </Can>
               {fullyPaid && (
                 <p id="fully-paid-hint" className="text-body-sm text-on-surface-variant">
                   {expenseDetail.fullyPaidHint}
@@ -361,12 +368,16 @@ function PaymentsList({
   const header = 'px-3 py-3 text-left text-label-sm font-semibold text-on-surface-variant';
   const actions = (payment: ApiPayment) => (
     <span className="inline-flex gap-1">
-      <QuietButton icon="edit" onClick={() => onEdit(payment)}>
-        {expenseDetail.editPayment}
-      </QuietButton>
-      <QuietButton icon="delete" tone="danger" onClick={() => onRemove(payment)}>
-        {expenseDetail.removePayment}
-      </QuietButton>
+      <Can module="EXPENSES" action="EDIT">
+        <QuietButton icon="edit" onClick={() => onEdit(payment)}>
+          {expenseDetail.editPayment}
+        </QuietButton>
+      </Can>
+      <Can module="EXPENSES" action="DELETE">
+        <QuietButton icon="delete" tone="danger" onClick={() => onRemove(payment)}>
+          {expenseDetail.removePayment}
+        </QuietButton>
+      </Can>
     </span>
   );
   const dash = <span className="text-outline">—</span>;

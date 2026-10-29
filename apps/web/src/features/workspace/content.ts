@@ -59,3 +59,14 @@ export const weddingSelector = {
   chooseAnother: 'Choose another wedding',
   goHome: 'Go to home',
 };
+
+/** Access states (Stitch "P10 · M8", decision 0035). Draft wording. */
+export const accessStates = {
+  noAccessTitle: "You don't have access to this section",
+  noAccessBody: 'Ask an owner if you need it.',
+  goToDashboard: 'Go to dashboard',
+  refused: "You don't have permission to do that.",
+  guestLinkLocked: 'Only owners can send or copy guest links.',
+  ownerOnly: 'Owner only',
+  linkActive: 'Link active',
+};

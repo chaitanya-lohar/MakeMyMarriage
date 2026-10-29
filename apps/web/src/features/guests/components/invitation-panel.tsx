@@ -7,6 +7,8 @@ import { PrimaryButton, QuietButton, SecondaryButton } from '@/components/ui/for
 import { Icon } from '@/components/ui/icon';
 import { networkError } from '@/features/weddings/content';
 import type { ApiWedding } from '@/features/weddings/wedding-form-model';
+import { accessStates } from '@/features/workspace/content';
+import { usePermissions } from '@/features/workspace/workspace-context';
 import { api, call, type ApiError } from '@/lib/api';
 import { invitationPanel, linkRevoked, regenerateLink, revokeLink } from '../content';
 import {
@@ -37,6 +39,7 @@ export function InvitationPanel({
   onGuestChanged: () => void;
   onError: (error: ApiError) => boolean;
 }) {
+  const { can } = usePermissions();
   const invitation = guest.invitation;
   const path = { weddingId: wedding.id, guestId: guest.id };
   const firstName = firstNameOf(guest.name);
@@ -259,14 +262,16 @@ export function InvitationPanel({
           <p className="mb-4 text-body-md text-on-surface-variant">
             {invitationPanel.none.replace('{name}', firstName)}
           </p>
-          <PrimaryButton
-            icon="add_link"
-            onClick={() => void create()}
-            pending={busy.has('create')}
-            pendingLabel={invitationPanel.creating}
-          >
-            {invitationPanel.create}
-          </PrimaryButton>
+          {can('INVITATIONS', 'CREATE') && (
+            <PrimaryButton
+              icon="add_link"
+              onClick={() => void create()}
+              pending={busy.has('create')}
+              pendingLabel={invitationPanel.creating}
+            >
+              {invitationPanel.create}
+            </PrimaryButton>
+          )}
         </>
       )}
 
@@ -282,13 +287,15 @@ export function InvitationPanel({
           </p>
           <p className="mb-4 text-body-sm text-on-surface-variant">{invitationPanel.revokedNote}</p>
           <History history={history} />
-          <PrimaryButton
-            icon="refresh"
-            onClick={() => setDialog('regenerate')}
-            pending={busy.has('regenerate')}
-          >
-            {invitationPanel.regenerate}
-          </PrimaryButton>
+          {can('INVITATIONS', 'MANAGE') && (
+            <PrimaryButton
+              icon="refresh"
+              onClick={() => setDialog('regenerate')}
+              pending={busy.has('regenerate')}
+            >
+              {invitationPanel.regenerate}
+            </PrimaryButton>
+          )}
         </>
       )}
 
@@ -321,8 +328,17 @@ export function InvitationPanel({
           )}
           <History history={history} />
 
+          {!can('INVITATIONS', 'SEND') && (
+            <p className="mb-3 flex items-center gap-2 rounded-lg border border-hairline bg-[#faf5ee] px-3 py-2.5 text-body-sm text-navy">
+              <Icon name="lock" className="size-4 text-secondary" />
+              {accessStates.guestLinkLocked}
+              <span className="ml-auto text-label-sm text-on-surface-variant">
+                {accessStates.ownerOnly}
+              </span>
+            </p>
+          )}
           <div className="space-y-3">
-            {guest.email ? (
+            {!can('INVITATIONS', 'SEND') ? null : guest.email ? (
               invitation.deliveryStatus === 'DRAFT' ? (
                 <PrimaryButton
                   icon="send"
@@ -347,30 +363,34 @@ export function InvitationPanel({
             ) : (
               <p className="text-body-sm text-on-surface-variant">{invitationPanel.needsEmail}</p>
             )}
-            <div className="grid grid-cols-1 gap-3 sm:flex sm:flex-wrap">
-              <SecondaryButton
-                icon="chat"
-                onClick={() => void shareOnWhatsApp()}
-                pending={busy.has('whatsapp')}
-              >
-                {invitationPanel.whatsapp}
-              </SecondaryButton>
-              <SecondaryButton
-                icon="content_copy"
-                onClick={() => void copyLink()}
-                pending={busy.has('copy')}
-              >
-                {invitationPanel.copy}
-              </SecondaryButton>
-            </div>
-            <div className="flex flex-wrap justify-between gap-2 border-t border-hairline pt-3">
-              <QuietButton icon="refresh" onClick={() => setDialog('regenerate')}>
-                {invitationPanel.regenerate}
-              </QuietButton>
-              <QuietButton icon="block" onClick={() => setDialog('revoke')} tone="danger">
-                {invitationPanel.revoke}
-              </QuietButton>
-            </div>
+            {can('INVITATIONS', 'SEND') && (
+              <div className="grid grid-cols-1 gap-3 sm:flex sm:flex-wrap">
+                <SecondaryButton
+                  icon="chat"
+                  onClick={() => void shareOnWhatsApp()}
+                  pending={busy.has('whatsapp')}
+                >
+                  {invitationPanel.whatsapp}
+                </SecondaryButton>
+                <SecondaryButton
+                  icon="content_copy"
+                  onClick={() => void copyLink()}
+                  pending={busy.has('copy')}
+                >
+                  {invitationPanel.copy}
+                </SecondaryButton>
+              </div>
+            )}
+            {can('INVITATIONS', 'MANAGE') && (
+              <div className="flex flex-wrap justify-between gap-2 border-t border-hairline pt-3">
+                <QuietButton icon="refresh" onClick={() => setDialog('regenerate')}>
+                  {invitationPanel.regenerate}
+                </QuietButton>
+                <QuietButton icon="block" onClick={() => setDialog('revoke')} tone="danger">
+                  {invitationPanel.revoke}
+                </QuietButton>
+              </div>
+            )}
           </div>
         </>
       )}

@@ -16,6 +16,7 @@ import {
   PrimaryLink,
   SkeletonCard,
   useOneOffNotice,
+  Can,
 } from '@/features/workspace/components/workspace-page';
 import { SESSION_ENDED_PATH } from '@/features/workspace/workspace-context';
 import { api, call, toApiError, type ApiError } from '@/lib/api';
@@ -199,7 +200,11 @@ export function ExpensesList({ wedding }: { wedding: ApiWedding }) {
     <div>
       <PageHeader
         title={expensesPage.title}
-        actions={<PrimaryLink href={`${EXPENSES_PATH}/new`}>{expensesPage.add}</PrimaryLink>}
+        actions={
+          <Can module="EXPENSES" action="CREATE">
+            <PrimaryLink href={`${EXPENSES_PATH}/new`}>{expensesPage.add}</PrimaryLink>
+          </Can>
+        }
       />
 
       {state.status === 'ready' && !empty && (
@@ -696,7 +701,9 @@ function EmptyState({ filtered, onClear }: { filtered: boolean; onClear: () => v
           {expensesPage.clearFilters}
         </SecondaryButton>
       ) : (
-        <PrimaryLink href={`${EXPENSES_PATH}/new`}>{expensesPage.add}</PrimaryLink>
+        <Can module="EXPENSES" action="CREATE">
+          <PrimaryLink href={`${EXPENSES_PATH}/new`}>{expensesPage.add}</PrimaryLink>
+        </Can>
       )}
     </section>
   );

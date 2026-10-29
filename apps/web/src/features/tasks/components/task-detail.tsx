@@ -10,7 +10,7 @@ import { networkError } from '@/features/weddings/content';
 import { formatDate } from '@/features/weddings/dates';
 import type { ApiWedding } from '@/features/weddings/wedding-form-model';
 import { TASKS_PATH } from '@/features/workspace/components/shell-parts';
-import { PageHeader, SkeletonCard } from '@/features/workspace/components/workspace-page';
+import { PageHeader, SkeletonCard, Can } from '@/features/workspace/components/workspace-page';
 import { SESSION_ENDED_PATH, useReadyWorkspace } from '@/features/workspace/workspace-context';
 import { api, call, type ApiError } from '@/lib/api';
 import { deleteTask, priorityLabels, statusLabels, taskDetail, tasksPage } from '../content';
@@ -202,37 +202,43 @@ export function TaskDetail({ wedding, taskId }: { wedding: ApiWedding; taskId: s
         }
         actions={
           <>
-            <label className="relative">
-              <span className="sr-only">{taskDetail.changeStatus.replace('{status}', '')}</span>
-              <select
-                value={chosenStatus ?? task.status}
-                disabled={busy}
-                onChange={(changeEvent) =>
-                  void changeStatus(changeEvent.target.value as TaskStatus)
-                }
-                className={`${controlClasses} min-h-11 appearance-none py-2.5 pr-10 pl-3 sm:w-52`}
+            <Can module="TASKS" action="EDIT">
+              <label className="relative">
+                <span className="sr-only">{taskDetail.changeStatus.replace('{status}', '')}</span>
+                <select
+                  value={chosenStatus ?? task.status}
+                  disabled={busy}
+                  onChange={(changeEvent) =>
+                    void changeStatus(changeEvent.target.value as TaskStatus)
+                  }
+                  className={`${controlClasses} min-h-11 appearance-none py-2.5 pr-10 pl-3 sm:w-52`}
+                >
+                  {TASK_STATUSES.map((status) => (
+                    <option key={status} value={status}>
+                      {taskDetail.changeStatus.replace('{status}', statusLabels[status])}
+                    </option>
+                  ))}
+                </select>
+                <Icon
+                  name="keyboard_arrow_down"
+                  className="pointer-events-none absolute top-1/2 right-3 size-5 -translate-y-1/2 text-outline"
+                />
+              </label>
+            </Can>
+            <Can module="TASKS" action="EDIT">
+              <Link
+                href={`${TASKS_PATH}/${task.id}/edit`}
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-champagne bg-white px-5 text-label-md text-navy transition-colors hover:bg-ivory focus-visible:outline-2 focus-visible:outline-secondary"
               >
-                {TASK_STATUSES.map((status) => (
-                  <option key={status} value={status}>
-                    {taskDetail.changeStatus.replace('{status}', statusLabels[status])}
-                  </option>
-                ))}
-              </select>
-              <Icon
-                name="keyboard_arrow_down"
-                className="pointer-events-none absolute top-1/2 right-3 size-5 -translate-y-1/2 text-outline"
-              />
-            </label>
-            <Link
-              href={`${TASKS_PATH}/${task.id}/edit`}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-champagne bg-white px-5 text-label-md text-navy transition-colors hover:bg-ivory focus-visible:outline-2 focus-visible:outline-secondary"
-            >
-              <Icon name="edit" className="size-5" />
-              {taskDetail.edit}
-            </Link>
-            <QuietButton icon="delete" tone="danger" onClick={() => setConfirming(true)}>
-              {taskDetail.delete}
-            </QuietButton>
+                <Icon name="edit" className="size-5" />
+                {taskDetail.edit}
+              </Link>
+            </Can>
+            <Can module="TASKS" action="DELETE">
+              <QuietButton icon="delete" tone="danger" onClick={() => setConfirming(true)}>
+                {taskDetail.delete}
+              </QuietButton>
+            </Can>
           </>
         }
       />

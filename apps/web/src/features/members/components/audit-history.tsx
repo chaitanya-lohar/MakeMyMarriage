@@ -10,14 +10,17 @@ import {
   SkeletonCard,
 } from '@/features/workspace/components/workspace-page';
 import { roleLabels } from '@/features/workspace/content';
-import { usePermissions } from '@/features/workspace/workspace-context';
 import type { ApiWedding } from '@/features/weddings/wedding-form-model';
 import { api, call } from '@/lib/api';
 import { auditCopy as copy } from '../content';
 import { dateTime, type ApiAuditEntry, type ApiMember } from '../member-model';
 
 export function AuditPageContent() {
-  return <RequireWedding>{(wedding) => <AuditHistory wedding={wedding} />}</RequireWedding>;
+  return (
+    <RequireWedding permission={['AUDIT', 'VIEW']}>
+      {(wedding) => <AuditHistory wedding={wedding} />}
+    </RequireWedding>
+  );
 }
 
 /** The areas of Stitch "P10 · M9", each with the audit resource types it covers. */
@@ -85,7 +88,6 @@ function areaOf(entry: ApiAuditEntry): string {
 
 /** The audit history (Stitch "P10 · M9", API Design §7.1): read-only, for AUDIT:VIEW. */
 function AuditHistory({ wedding }: { wedding: ApiWedding }) {
-  const { can } = usePermissions();
   const [area, setArea] = useState('');
   const [person, setPerson] = useState('');
   const [from, setFrom] = useState('');
@@ -142,9 +144,6 @@ function AuditHistory({ wedding }: { wedding: ApiWedding }) {
   }, [load, attempt]);
 
   const back = { href: MEMBERS_PATH, label: copy.back };
-  if (!can('AUDIT', 'VIEW')) {
-    return <NoAccessNotice back={back} />;
-  }
 
   return (
     <>
@@ -234,26 +233,5 @@ function AuditHistory({ wedding }: { wedding: ApiWedding }) {
         </>
       )}
     </>
-  );
-}
-
-/** The no-access state of Stitch "P10 · M8" inside the workspace. */
-export function NoAccessNotice({ back }: { back?: { href: string; label: string } }) {
-  return (
-    <section
-      role="alert"
-      className="mx-auto mt-6 max-w-[480px] rounded-xl border border-hairline bg-white p-8 text-center shadow-sm"
-    >
-      <h1 className="mb-2 font-serif text-headline-sm text-navy">
-        {"You don't have access to this section"}
-      </h1>
-      <p className="mb-6 text-body-sm text-on-surface-variant">Ask an owner if you need it.</p>
-      <a
-        href={back?.href ?? '/dashboard'}
-        className="inline-flex min-h-11 items-center justify-center rounded-lg bg-navy px-6 text-label-md text-on-primary"
-      >
-        {back ? back.label : 'Go to dashboard'}
-      </a>
-    </section>
   );
 }

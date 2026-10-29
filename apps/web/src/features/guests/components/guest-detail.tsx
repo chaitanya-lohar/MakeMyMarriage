@@ -11,8 +11,12 @@ import { eventTypeIcons, formatEventWhen, type ApiEvent } from '@/features/event
 import { networkError } from '@/features/weddings/content';
 import type { ApiWedding } from '@/features/weddings/wedding-form-model';
 import { GUESTS_PATH } from '@/features/workspace/components/shell-parts';
-import { SkeletonCard } from '@/features/workspace/components/workspace-page';
-import { SESSION_ENDED_PATH, useReadyWorkspace } from '@/features/workspace/workspace-context';
+import { SkeletonCard, Can } from '@/features/workspace/components/workspace-page';
+import {
+  SESSION_ENDED_PATH,
+  useReadyWorkspace,
+  usePermissions,
+} from '@/features/workspace/workspace-context';
 import { api, call, type ApiError } from '@/lib/api';
 import { deleteGuest, guestDetail, guestsPage, removeFromEvent } from '../content';
 import {
@@ -136,6 +140,7 @@ function GuestDetailView({
 }) {
   const router = useRouter();
   const { setNotice } = useReadyWorkspace();
+  const { can } = usePermissions();
   const { guest, assignments, events } = data;
   const firstName = firstNameOf(guest.name);
   const eventsById = new Map(events.map((event) => [event.id, event]));
@@ -270,28 +275,32 @@ function GuestDetailView({
           </p>
         </div>
         <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
-          <Link
-            href={`${GUESTS_PATH}/${guest.id}/edit`}
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-outline-variant/70 bg-white px-4 text-label-md text-navy transition-colors hover:bg-surface-container-low focus-visible:outline-2 focus-visible:outline-secondary"
-          >
-            <Icon name="edit" className="size-4" />
-            {guestDetail.edit}
-          </Link>
-          <button
-            type="button"
-            onClick={() => setDeleting(true)}
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-error/40 bg-white px-4 text-label-md text-error transition-colors hover:bg-error-container/40 focus-visible:outline-2 focus-visible:outline-secondary"
-          >
-            <Icon name="delete" className="size-4" />
-            {guestDetail.delete}
-          </button>
+          <Can module="GUESTS" action="EDIT">
+            <Link
+              href={`${GUESTS_PATH}/${guest.id}/edit`}
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-outline-variant/70 bg-white px-4 text-label-md text-navy transition-colors hover:bg-surface-container-low focus-visible:outline-2 focus-visible:outline-secondary"
+            >
+              <Icon name="edit" className="size-4" />
+              {guestDetail.edit}
+            </Link>
+          </Can>
+          <Can module="GUESTS" action="DELETE">
+            <button
+              type="button"
+              onClick={() => setDeleting(true)}
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-error/40 bg-white px-4 text-label-md text-error transition-colors hover:bg-error-container/40 focus-visible:outline-2 focus-visible:outline-secondary"
+            >
+              <Icon name="delete" className="size-4" />
+              {guestDetail.delete}
+            </button>
+          </Can>
         </div>
       </section>
 
       <section className="mb-6 rounded-xl border border-hairline bg-white p-6 shadow-sm">
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="font-serif text-headline-sm text-navy">{guestDetail.eventsTitle}</h2>
-          {unassigned.length > 0 && (
+          {unassigned.length > 0 && can('GUESTS', 'CREATE') && (
             <div className="flex flex-col gap-2 sm:flex-row">
               <label className="relative">
                 <span className="sr-only">{guestDetail.chooseEvent}</span>
@@ -378,12 +387,16 @@ function GuestDetailView({
                     </div>
                   </div>
                   <div className="flex shrink-0 gap-1">
-                    <QuietButton icon="edit_note" onClick={() => setEditing(assignment)}>
-                      {guestDetail.editRsvp}
-                    </QuietButton>
-                    <QuietButton icon="person_remove" onClick={() => setRemoving(assignment)}>
-                      {guestDetail.removeFromEvent}
-                    </QuietButton>
+                    <Can module="INVITATIONS" action="EDIT">
+                      <QuietButton icon="edit_note" onClick={() => setEditing(assignment)}>
+                        {guestDetail.editRsvp}
+                      </QuietButton>
+                    </Can>
+                    <Can module="GUESTS" action="DELETE">
+                      <QuietButton icon="person_remove" onClick={() => setRemoving(assignment)}>
+                        {guestDetail.removeFromEvent}
+                      </QuietButton>
+                    </Can>
                   </div>
                 </li>
               );
@@ -392,7 +405,14 @@ function GuestDetailView({
         )}
       </section>
 
-      <InvitationPanel wedding={wedding} guest={guest} onGuestChanged={reload} onError={onError} />
+      <Can module="INVITATIONS" action="VIEW">
+        <InvitationPanel
+          wedding={wedding}
+          guest={guest}
+          onGuestChanged={reload}
+          onError={onError}
+        />
+      </Can>
 
       {editing && editingEvent && (
         <RsvpEditor

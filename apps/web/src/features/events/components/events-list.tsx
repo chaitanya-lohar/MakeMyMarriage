@@ -15,6 +15,7 @@ import {
   PrimaryLink,
   SkeletonCard,
   useOneOffNotice,
+  Can,
 } from '@/features/workspace/components/workspace-page';
 import { SESSION_ENDED_PATH } from '@/features/workspace/workspace-context';
 import { api, call } from '@/lib/api';
@@ -60,7 +61,11 @@ export function EventsList({ wedding }: { wedding: ApiWedding }) {
       <PageHeader
         title={eventsPage.title}
         subtitle={eventsPage.subtitle}
-        actions={<PrimaryLink href={`${EVENTS_PATH}/new`}>{eventsPage.add}</PrimaryLink>}
+        actions={
+          <Can module="EVENTS" action="CREATE">
+            <PrimaryLink href={`${EVENTS_PATH}/new`}>{eventsPage.add}</PrimaryLink>
+          </Can>
+        }
       />
 
       {showDeleted && (
@@ -179,7 +184,9 @@ function EmptyEvents() {
       </span>
       <h2 className="mb-1 font-serif text-headline-sm text-navy">{eventsPage.emptyTitle}</h2>
       <p className="mb-6 text-body-sm text-on-surface-variant">{eventsPage.emptyBody}</p>
-      <PrimaryLink href={`${EVENTS_PATH}/new`}>{eventsPage.add}</PrimaryLink>
+      <Can module="EVENTS" action="CREATE">
+        <PrimaryLink href={`${EVENTS_PATH}/new`}>{eventsPage.add}</PrimaryLink>
+      </Can>
     </section>
   );
 }

@@ -15,6 +15,7 @@ import {
   PrimaryLink,
   SkeletonCard,
   useOneOffNotice,
+  Can,
 } from '@/features/workspace/components/workspace-page';
 import { SESSION_ENDED_PATH } from '@/features/workspace/workspace-context';
 import { api, call, toApiError, type ApiError } from '@/lib/api';
@@ -202,7 +203,11 @@ export function TasksList({ wedding }: { wedding: ApiWedding }) {
       <PageHeader
         title={tasksPage.title}
         subtitle={tasksPage.subtitle}
-        actions={<PrimaryLink href={`${TASKS_PATH}/new`}>{tasksPage.add}</PrimaryLink>}
+        actions={
+          <Can module="TASKS" action="CREATE">
+            <PrimaryLink href={`${TASKS_PATH}/new`}>{tasksPage.add}</PrimaryLink>
+          </Can>
+        }
       />
 
       {!empty && (
@@ -737,7 +742,9 @@ function EmptyState({ filtered, onClear }: { filtered: boolean; onClear: () => v
           {tasksPage.clearFilters}
         </SecondaryButton>
       ) : (
-        <PrimaryLink href={`${TASKS_PATH}/new`}>{tasksPage.emptyAdd}</PrimaryLink>
+        <Can module="TASKS" action="CREATE">
+          <PrimaryLink href={`${TASKS_PATH}/new`}>{tasksPage.emptyAdd}</PrimaryLink>
+        </Can>
       )}
     </section>
   );
