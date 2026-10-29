@@ -9,6 +9,8 @@ export interface ApiError {
   status: number;
   /** Field name → messages, for VALIDATION_FAILED. */
   fields: Record<string, string[]>;
+  /** The error's details, e.g. `reason` of PERMISSION_DENIED (API Design §7.1). */
+  details: Record<string, unknown>;
 }
 
 const REFRESH_PATH = '/api/v1/auth/refresh';
@@ -55,6 +57,7 @@ export function toApiError(body: unknown, status: number): ApiError {
     message: error?.message ?? 'Something went wrong. Please try again.',
     status,
     fields: fields ?? {},
+    details: error?.details ?? {},
   };
 }
 
