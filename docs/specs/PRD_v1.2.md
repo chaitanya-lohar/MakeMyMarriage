@@ -32,6 +32,7 @@ Production-ready wedding planning and management platform for Indian weddings.
 | 1.2     | 2026-10-20 | Decision 0028: §15 and §18 updated for Phase 8 (expenses).                                                                                   |
 | 1.2     | 2026-10-24 | Decision 0032: §15, §17, §18 and §30 updated for Phase 9 (vendors and bookings; discovery and attachments deferred).                         |
 | 1.2     | 2026-10-27 | Phase 10 requirements and decisions P10-1–P10-8 (product owner): §24 default role matrix approved; §30 updated.                              |
+| 1.2     | 2026-11-03 | Decision 0038 (Phase 16): §7, §9, §23, §30, §31 updated — one shared wedding (A4) and leaving (A5).                                          |
 
 ## 1. Executive summary
 
@@ -109,11 +110,11 @@ Decisions 0012 (C1, C2, N1) and 0009.
   both become `OWNER` members of the same wedding; B does not get a second wedding.
 - **A partner connection cannot be accepted while the invitee owns a wedding** (N1). The
   system never merges weddings, archives or deletes the invitee's wedding, or silently
-  transfers ownership.
+  transfers ownership; the invitee first transfers their wedding's ownership (0038 D6).
 - **"Independent workspaces"** means each partner keeps their own account and their own
-  access; it does not mean separate weddings. What each partner keeps private within the
-  shared wedding is defined by decision A4 (**Open** — 0011), except that **expenses are
-  automatically shared with the connected partner** (0009).
+  access; it does not mean separate weddings. **The wedding is shared by both partners**:
+  every wedding resource, expenses included (0009), is shared; only personal account
+  information stays private (0038 D1).
 - Server-side authorization is mandatory for every protected operation.
 
 ## 8. Wedding setup
@@ -170,9 +171,8 @@ Decisions 0010 (#10) and 0017; product-owner answer Q7 (2026-10-10).
 | Public event identifier (`publicId`)                                                       | —        | Later phase                               |
 | Instructions                                                                               | —        | Later phase, once its purpose is approved |
 
-- Events can remain private or be selectively shared with the connected partner; partner
-  connection does not automatically share every event. The exact sharing model is decision
-  A4 (**Open** — 0011).
+- Events are shared by both partners, like every wedding resource; there is no per-event
+  sharing (0038 D1).
 
 ## 10. Guest management
 
@@ -409,18 +409,24 @@ Decision 0016; product-owner answer Q4.
 
 ## 23. Partner connection and resource sharing
 
-Decisions 0009, 0011 and 0012.
+Decisions 0038 (answering A4 and A5 of 0011), 0009 and 0012; specification:
+[Phase 16 PRD v1.0](PHASE_16_PRD_v1.0.md).
 
-- The bride and groom may connect; either can initiate, and either can disconnect.
+- Either partner may invite the other by email; the invitation is valid for seven days and
+  is accepted with the invited email, without other verification. Either may later leave.
 - Connection never merges accounts or private data; both partners become `OWNER` members
-  of the same wedding (section 7).
-- Sharing is explicit and resource-specific; some events may be shared while others stay
-  private. Selected common resources such as live streams, website information and gallery
-  may be shared subject to authorization. Expenses are always shared (0009).
-- **Open — A4 (0011):** exactly which resources are automatically shared, private,
-  explicitly shared or event-scoped.
-- **Open — A5 (0011):** what happens to membership, access, ownership, resources and
-  expenses when partners disconnect.
+  of the same wedding (section 7). The partner is the second owner, however they became one.
+- **One shared wedding (A4):** every wedding resource — settings, events, guests, invitations
+  and RSVP, tasks, expenses, vendors, members, audit history and future modules — is shared
+  by both partners. There are no private resources or sharing switches; personal account
+  information is never shared. Organizers see what their permissions allow.
+- An invitee who owns another wedding transfers its ownership before accepting; an existing
+  organizer is promoted on their membership, with custom permissions cleared.
+- **Disconnection (A5):** a partner disconnects by leaving the wedding and loses access at
+  once; the other partner is the sole owner; every record stays. Neither partner can remove
+  the other. A former partner can be invited again; history is kept and access returns only
+  on acceptance.
+- Bride/groom labels are not collected (section 8).
 
 ## 24. Organizer and permission management
 
@@ -545,16 +551,16 @@ Public website: Home, Our Story, Events, RSVP, Gallery, Live Stream, Share Your 
 
 ## 30. Deferred and open product decisions
 
-| Area                             | Status                                                                  |
-| -------------------------------- | ----------------------------------------------------------------------- |
-| A4 — partner sharing scope       | **Open** (0011). Expenses already decided: automatically shared (0009). |
-| A5 — partner disconnection       | **Open** (0011).                                                        |
-| Guest fields beyond the core set | Deferred until a real need is established.                              |
-| Vendor management depth          | Decided for Phase 9 (0032); discovery and attachments deferred.         |
-| Reminder cadence and channels    | Engine included; schedules, channels and customization deferred.        |
-| Roles and permission templates   | Default matrix approved for Phase 10 (§24, 2026-10-27).                 |
-| QR expiry                        | Deferred. Revoke and regenerate are approved.                           |
-| Invitation token expiry          | No automatic expiry in V1 (0017); revisit only through a new decision.  |
+| Area                             | Status                                                                 |
+| -------------------------------- | ---------------------------------------------------------------------- |
+| A4 — partner sharing scope       | Decided (0038 D1): one shared wedding; no private resources.           |
+| A5 — partner disconnection       | Decided (0038 D7): the leaver loses access; the other is sole owner.   |
+| Guest fields beyond the core set | Deferred until a real need is established.                             |
+| Vendor management depth          | Decided for Phase 9 (0032); discovery and attachments deferred.        |
+| Reminder cadence and channels    | Engine included; schedules, channels and customization deferred.       |
+| Roles and permission templates   | Default matrix approved for Phase 10 (§24, 2026-10-27).                |
+| QR expiry                        | Deferred. Revoke and regenerate are approved.                          |
+| Invitation token expiry          | No automatic expiry in V1 (0017); revisit only through a new decision. |
 
 | Delivered status, and Failed reported after acceptance | Depend on provider webhooks, which are not yet approved; Sent is the highest status shown until then. Immediate rejections are Failed (0018). |
 | Expense payment status Cancelled | Not in V1 (0018); needs a decision to add. |
@@ -565,10 +571,11 @@ Public website: Home, Our Story, Events, RSVP, Gallery, Live Stream, Share Your 
 
 ## 31. Product principles
 
-- Private by default.
+- Private by default: personal accounts and anything not explicitly public stay private;
+  within a wedding, access follows membership and permissions.
 - The bride and groom keep their own accounts; connection never merges them.
-- Sharing is selective, not automatic — except expenses, which are shared with the
-  connected partner by an approved decision (0009).
+- Connected partners share the whole wedding (0038 D1); organizers see what their role
+  allows.
 - Guests do not need accounts for invitations, RSVP or memory uploads.
 - Keep guest management simple.
 - Prefer external integrations over rebuilding non-core infrastructure.

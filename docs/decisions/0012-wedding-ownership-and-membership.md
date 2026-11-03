@@ -3,7 +3,10 @@
 **Status:** Accepted (resolutions C1, C2 and N1). Supplemented by
 [0034](0034-phase-10-authorization.md) on 2026-10-27: a wedding has at most two owners, each
 holding an owner seat, and an owner may transfer their own seat (P10-5). The rule that a user
-owns at most one wedding is unchanged.
+owns at most one wedding is unchanged. Amended by
+[0038](0038-phase-16-partner-connection.md) on 2026-11-03: an invitee who owns a wedding
+transfers its ownership before accepting a partner invitation (D6), and a partner who leaves
+becomes a removed `MEMBER` membership while the other partner remains sole owner (D7).
 
 ## Ownership (C1)
 

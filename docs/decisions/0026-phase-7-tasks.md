@@ -1,7 +1,8 @@
 # 0026 — Phase 7: tasks
 
 **Status:** Accepted (approved by the product owner on 2026-10-19; #20 amended on
-2026-10-20; #14 amended by [0034](0034-phase-10-authorization.md) on 2026-10-27). Answers
+2026-10-20; #14 amended by [0034](0034-phase-10-authorization.md) on 2026-10-27 and by
+[0038](0038-phase-16-partner-connection.md) on 2026-11-03). Answers
 P7-TASK-Q01–Q26
 and R1–R3 from the Phase 7 discovery; the full specification is the
 [Phase 7 PRD v1.0](../specs/PHASE_7_PRD_v1.0.md).
@@ -68,6 +69,8 @@ routes (Database Design §13, API Design §13), and settles what those left open
     the `TASKS` permissions (API Design §23). A member without the permission gets `403`. Any
     `ACTIVE` member can still be chosen as an assignee, and being chosen grants no access
     (P10-8).
+    **Amended by [0038](0038-phase-16-partner-connection.md):** there is no partner privacy;
+    tasks are shared by both partners like every wedding resource (D1).
 
 ### History and audit
 
