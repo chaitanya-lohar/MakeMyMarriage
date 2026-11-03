@@ -5,9 +5,11 @@ import { sessionOf, type Transaction } from '../../../../infrastructure/database
 import { MemberType, MembershipRole, MembershipStatus } from '../../domain/enums/membership.js';
 import {
   OwnerMembershipExistsError,
+  OwnerSeatTakenError,
   type InvitedAccess,
   type Membership,
   type OwnerSeat,
+  type PartnerAdmission,
 } from '../../domain/types/membership.js';
 import {
   WeddingMembershipRecord,
@@ -290,6 +292,102 @@ export class WeddingMembershipsRepository {
       }
       throw error;
     }
+  }
+
+  /** The wedding's OWNER rows, read inside `transaction` when given. */
+  async listOwners(weddingId: string, transaction?: Transaction): Promise<Membership[]> {
+    if (!isValidObjectId(weddingId)) return [];
+    const documents = await this.memberships
+      .find({ weddingId: new Types.ObjectId(weddingId), memberType: MemberType.Owner })
+      .session(sessionOf(transaction) ?? null);
+    return documents.map(toMembership);
+  }
+
+  /**
+   * Partner acceptance, step 3 (Database Design §7.3, decision 0038): the user becomes an
+   * ACTIVE OWNER on `seat` — their ACTIVE non-owner row promoted with overrides cleared (D5),
+   * their REVOKED row reactivated (D10), or a new row. Null when the user already has an
+   * OWNER row in this wedding. Throws OwnerMembershipExistsError when the user owns another
+   * wedding and OwnerSeatTakenError when the seat is taken.
+   */
+  async admitAsPartner(
+    weddingId: string,
+    userId: string,
+    seat: OwnerSeat,
+    now: Date,
+    transaction: Transaction,
+  ): Promise<{ membership: Membership; admission: PartnerAdmission } | null> {
+    const session = sessionOf(transaction);
+    const key = { weddingId: new Types.ObjectId(weddingId), userId: new Types.ObjectId(userId) };
+    const owner = { memberType: MemberType.Owner, role: MembershipRole.Owner, ownerSeat: seat };
+    try {
+      const promoted = await this.memberships.findOneAndUpdate(
+        { ...key, memberType: MemberType.Member, status: MembershipStatus.Active },
+        { $set: owner, $unset: { permissionOverrides: 1 } },
+        { new: true, session },
+      );
+      if (promoted) return { membership: toMembership(promoted), admission: 'PROMOTED' };
+
+      const reactivated = await this.memberships.findOneAndUpdate(
+        { ...key, memberType: MemberType.Member, status: MembershipStatus.Revoked },
+        {
+          $set: { ...owner, status: MembershipStatus.Active, acceptedAt: now },
+          $unset: { permissionOverrides: 1, revokedAt: 1, revokedBy: 1 },
+        },
+        { new: true, session },
+      );
+      if (reactivated) return { membership: toMembership(reactivated), admission: 'REACTIVATED' };
+
+      // Already an owner here: nothing to admit (checked before inserting).
+      if (await this.memberships.exists(key).session(session ?? null)) return null;
+      const [document] = await this.memberships.create(
+        [{ ...key, ...owner, status: MembershipStatus.Active, acceptedAt: now }],
+        { session },
+      );
+      return {
+        membership: toMembership(document as WeddingMembershipDocument),
+        admission: 'CREATED',
+      };
+    } catch (error) {
+      const failure = error as { code?: number; keyPattern?: Record<string, unknown> };
+      if (failure.code !== DUPLICATE_KEY) throw error;
+      if (failure.keyPattern && 'ownerSeat' in failure.keyPattern) throw new OwnerSeatTakenError();
+      throw new OwnerMembershipExistsError();
+    }
+  }
+
+  /**
+   * Leaving (Database Design §7.3, decision 0038 D7): the caller's ACTIVE OWNER row becomes a
+   * removed VIEWER member without seat or overrides. Null when it is no longer an owner.
+   */
+  async leaveAsOwner(
+    weddingId: string,
+    membershipId: string,
+    revokedBy: string,
+    now: Date,
+    transaction: Transaction,
+  ): Promise<Membership | null> {
+    if (!isValidObjectId(weddingId) || !isValidObjectId(membershipId)) return null;
+    const document = await this.memberships.findOneAndUpdate(
+      {
+        _id: new Types.ObjectId(membershipId),
+        weddingId: new Types.ObjectId(weddingId),
+        memberType: MemberType.Owner,
+        status: MembershipStatus.Active,
+      },
+      {
+        $set: {
+          memberType: MemberType.Member,
+          role: MembershipRole.Viewer,
+          status: MembershipStatus.Revoked,
+          revokedAt: now,
+          revokedBy: new Types.ObjectId(revokedBy),
+        },
+        $unset: { ownerSeat: 1, permissionOverrides: 1 },
+      },
+      { new: true, session: sessionOf(transaction) },
+    );
+    return document ? toMembership(document) : null;
   }
 
   /** The user's active memberships, oldest first. */

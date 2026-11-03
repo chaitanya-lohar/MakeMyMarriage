@@ -926,6 +926,142 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/weddings/{weddingId}/partner": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The other owner, and the pending or just-expired invitation */
+        get: operations["PartnerController_state"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/partner/invitations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Invite the partner by email; the link works for 7 days */
+        post: operations["PartnerController_invite"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/partner/invitations/{invitationId}/resend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send a new link; the old one stops working; 7 days from now */
+        post: operations["PartnerController_resend"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/partner/invitations/{invitationId}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel the pending invitation; the link stops working */
+        post: operations["PartnerController_revoke"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/weddings/{weddingId}/partner/leave": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Leave the wedding; access ends at once; the other owner remains */
+        post: operations["PartnerController_leave"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/partner-invitations/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The invitation behind a token, with its status */
+        get: operations["PartnerInvitationResponseController_details"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/partner-invitations/{token}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Accept as the signed-in user; become the second owner */
+        post: operations["PartnerInvitationResponseController_accept"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/partner-invitations/{token}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Decline with the token alone */
+        post: operations["PartnerInvitationResponseController_decline"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1987,7 +2123,7 @@ export interface components {
         AuditLogDto: {
             id: string;
             /** @enum {string} */
-            action: "RSVP_RESET_TO_PENDING" | "INVITATION_TOKEN_REGENERATED" | "INVITATION_TOKEN_REVOKED" | "INVITATION_LINK_RETRIEVED" | "TASK_DELETED" | "EXPENSE_CREATED" | "EXPENSE_UPDATED" | "EXPENSE_DELETED" | "EXPENSE_EVENT_UNLINKED" | "EXPENSE_PAYMENT_ADDED" | "EXPENSE_PAYMENT_UPDATED" | "EXPENSE_PAYMENT_REMOVED" | "VENDOR_CREATED" | "VENDOR_UPDATED" | "VENDOR_DELETED" | "VENDOR_BOOKING_CREATED" | "VENDOR_BOOKING_UPDATED" | "VENDOR_BOOKING_STATUS_CHANGED" | "VENDOR_BOOKING_EVENT_UNLINKED" | "MEMBER_INVITATION_CREATED" | "MEMBER_INVITATION_RESENT" | "MEMBER_INVITATION_ACCEPTED" | "MEMBER_INVITATION_DECLINED" | "MEMBER_INVITATION_EXPIRED" | "MEMBER_INVITATION_REVOKED" | "MEMBER_ROLE_CHANGED" | "MEMBER_PERMISSIONS_CHANGED" | "MEMBER_REMOVED" | "MEMBER_REACTIVATED" | "OWNERSHIP_TRANSFER_OFFERED" | "OWNERSHIP_TRANSFER_DECLINED" | "OWNERSHIP_TRANSFER_CANCELLED" | "OWNERSHIP_TRANSFERRED" | "PERMISSION_DENIED";
+            action: "RSVP_RESET_TO_PENDING" | "INVITATION_TOKEN_REGENERATED" | "INVITATION_TOKEN_REVOKED" | "INVITATION_LINK_RETRIEVED" | "TASK_DELETED" | "EXPENSE_CREATED" | "EXPENSE_UPDATED" | "EXPENSE_DELETED" | "EXPENSE_EVENT_UNLINKED" | "EXPENSE_PAYMENT_ADDED" | "EXPENSE_PAYMENT_UPDATED" | "EXPENSE_PAYMENT_REMOVED" | "VENDOR_CREATED" | "VENDOR_UPDATED" | "VENDOR_DELETED" | "VENDOR_BOOKING_CREATED" | "VENDOR_BOOKING_UPDATED" | "VENDOR_BOOKING_STATUS_CHANGED" | "VENDOR_BOOKING_EVENT_UNLINKED" | "MEMBER_INVITATION_CREATED" | "MEMBER_INVITATION_RESENT" | "MEMBER_INVITATION_ACCEPTED" | "MEMBER_INVITATION_DECLINED" | "MEMBER_INVITATION_EXPIRED" | "MEMBER_INVITATION_REVOKED" | "MEMBER_ROLE_CHANGED" | "MEMBER_PERMISSIONS_CHANGED" | "MEMBER_REMOVED" | "MEMBER_REACTIVATED" | "OWNERSHIP_TRANSFER_OFFERED" | "OWNERSHIP_TRANSFER_DECLINED" | "OWNERSHIP_TRANSFER_CANCELLED" | "OWNERSHIP_TRANSFERRED" | "PARTNER_INVITATION_CREATED" | "PARTNER_INVITATION_RESENT" | "PARTNER_INVITATION_REVOKED" | "PARTNER_INVITATION_ACCEPTED" | "PARTNER_INVITATION_DECLINED" | "PARTNER_INVITATION_EXPIRED" | "PARTNER_CONNECTED" | "PARTNER_DISCONNECTED" | "MEMBER_PROMOTED_TO_OWNER" | "PERMISSION_DENIED";
             resourceType: string;
             resourceId: string;
             actorUserId: string | null;
@@ -2116,6 +2252,53 @@ export interface components {
         CompletedOwnershipTransferDto: {
             giver: components["schemas"]["TransferredMembershipDto"];
             recipient: components["schemas"]["TransferredMembershipDto"];
+        };
+        PartnerDto: {
+            membershipId: string;
+            userId: string;
+            displayName: string;
+            email: string;
+            /**
+             * Format: date-time
+             * @description When the partner invitation was accepted; null for an owner by seat transfer.
+             */
+            connectedAt: string | null;
+        };
+        PartnerInvitationDto: {
+            id: string;
+            inviteeEmail: string;
+            /** @enum {string} */
+            status: "PENDING" | "ACTIVE" | "DECLINED" | "REVOKED" | "EXPIRED" | "DISCONNECTED";
+            /** Format: date-time */
+            expiresAt: string;
+            /** Format: date-time */
+            lastSentAt: string;
+            /** @description Whether the last email was sent. */
+            emailSent: boolean;
+            /** @description Resends left in the rolling 24 hours (at most 3). */
+            resendsLeft: number;
+        };
+        PartnerStateDto: {
+            partner: components["schemas"]["PartnerDto"] | null;
+            invitation: components["schemas"]["PartnerInvitationDto"] | null;
+        };
+        CreatePartnerInvitationDto: {
+            /** @example aarav@example.com */
+            email: string;
+        };
+        PartnerInvitationDetailsDto: {
+            weddingDisplayName: string;
+            invitedByName: string;
+            /** @enum {string} */
+            status: "PENDING" | "ACTIVE" | "DECLINED" | "REVOKED" | "EXPIRED" | "DISCONNECTED";
+            /** Format: date-time */
+            expiresAt: string;
+            /** @example aa***@example.com */
+            emailHint: string;
+        };
+        AcceptedPartnerInvitationDto: {
+            weddingId: string;
+            membershipId: string;
         };
     };
     responses: never;
@@ -5258,7 +5441,7 @@ export interface operations {
     MembersController_auditLogs: {
         parameters: {
             query?: {
-                action?: "RSVP_RESET_TO_PENDING" | "INVITATION_TOKEN_REGENERATED" | "INVITATION_TOKEN_REVOKED" | "INVITATION_LINK_RETRIEVED" | "TASK_DELETED" | "EXPENSE_CREATED" | "EXPENSE_UPDATED" | "EXPENSE_DELETED" | "EXPENSE_EVENT_UNLINKED" | "EXPENSE_PAYMENT_ADDED" | "EXPENSE_PAYMENT_UPDATED" | "EXPENSE_PAYMENT_REMOVED" | "VENDOR_CREATED" | "VENDOR_UPDATED" | "VENDOR_DELETED" | "VENDOR_BOOKING_CREATED" | "VENDOR_BOOKING_UPDATED" | "VENDOR_BOOKING_STATUS_CHANGED" | "VENDOR_BOOKING_EVENT_UNLINKED" | "MEMBER_INVITATION_CREATED" | "MEMBER_INVITATION_RESENT" | "MEMBER_INVITATION_ACCEPTED" | "MEMBER_INVITATION_DECLINED" | "MEMBER_INVITATION_EXPIRED" | "MEMBER_INVITATION_REVOKED" | "MEMBER_ROLE_CHANGED" | "MEMBER_PERMISSIONS_CHANGED" | "MEMBER_REMOVED" | "MEMBER_REACTIVATED" | "OWNERSHIP_TRANSFER_OFFERED" | "OWNERSHIP_TRANSFER_DECLINED" | "OWNERSHIP_TRANSFER_CANCELLED" | "OWNERSHIP_TRANSFERRED" | "PERMISSION_DENIED";
+                action?: "RSVP_RESET_TO_PENDING" | "INVITATION_TOKEN_REGENERATED" | "INVITATION_TOKEN_REVOKED" | "INVITATION_LINK_RETRIEVED" | "TASK_DELETED" | "EXPENSE_CREATED" | "EXPENSE_UPDATED" | "EXPENSE_DELETED" | "EXPENSE_EVENT_UNLINKED" | "EXPENSE_PAYMENT_ADDED" | "EXPENSE_PAYMENT_UPDATED" | "EXPENSE_PAYMENT_REMOVED" | "VENDOR_CREATED" | "VENDOR_UPDATED" | "VENDOR_DELETED" | "VENDOR_BOOKING_CREATED" | "VENDOR_BOOKING_UPDATED" | "VENDOR_BOOKING_STATUS_CHANGED" | "VENDOR_BOOKING_EVENT_UNLINKED" | "MEMBER_INVITATION_CREATED" | "MEMBER_INVITATION_RESENT" | "MEMBER_INVITATION_ACCEPTED" | "MEMBER_INVITATION_DECLINED" | "MEMBER_INVITATION_EXPIRED" | "MEMBER_INVITATION_REVOKED" | "MEMBER_ROLE_CHANGED" | "MEMBER_PERMISSIONS_CHANGED" | "MEMBER_REMOVED" | "MEMBER_REACTIVATED" | "OWNERSHIP_TRANSFER_OFFERED" | "OWNERSHIP_TRANSFER_DECLINED" | "OWNERSHIP_TRANSFER_CANCELLED" | "OWNERSHIP_TRANSFERRED" | "PARTNER_INVITATION_CREATED" | "PARTNER_INVITATION_RESENT" | "PARTNER_INVITATION_REVOKED" | "PARTNER_INVITATION_ACCEPTED" | "PARTNER_INVITATION_DECLINED" | "PARTNER_INVITATION_EXPIRED" | "PARTNER_CONNECTED" | "PARTNER_DISCONNECTED" | "MEMBER_PROMOTED_TO_OWNER" | "PERMISSION_DENIED";
                 resourceType?: string;
                 actorUserId?: string;
                 /** @description Inclusive, in the wedding timezone. */
@@ -6071,6 +6254,504 @@ export interface operations {
             };
             /** @description OWNERSHIP_TRANSFER_NOT_PENDING */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    PartnerController_state: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PartnerStateDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description PERMISSION_DENIED — owners only */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND or PARTNER_INVITATION_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    PartnerController_invite: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreatePartnerInvitationDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PartnerInvitationDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description VALIDATION_FAILED (including the owner's own email) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description PERMISSION_DENIED — owners only */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND or PARTNER_INVITATION_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description PARTNER_ALREADY_CONNECTED or PARTNER_INVITATION_ALREADY_PENDING */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description RATE_LIMITED (details.retryAfterSeconds) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    PartnerController_resend: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                invitationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PartnerInvitationDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description PERMISSION_DENIED — owners only */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND or PARTNER_INVITATION_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description PARTNER_INVITATION_NOT_PENDING (details.status) or PARTNER_INVITATION_EXPIRED */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description RATE_LIMITED (details.retryAfterSeconds) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    PartnerController_revoke: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+                invitationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @description Always null.
+                         * @example null
+                         */
+                        data: unknown;
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description PERMISSION_DENIED — owners only */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND or PARTNER_INVITATION_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description PARTNER_INVITATION_NOT_PENDING (details.status) or PARTNER_INVITATION_EXPIRED */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    PartnerController_leave: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                weddingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @description Always null.
+                         * @example null
+                         */
+                        data: unknown;
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description PERMISSION_DENIED — owners only */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description WEDDING_NOT_FOUND or PARTNER_INVITATION_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description PARTNER_NOT_CONNECTED — the only owner cannot leave */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    PartnerInvitationResponseController_details: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["PartnerInvitationDetailsDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description PARTNER_INVITATION_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description RATE_LIMITED (details.retryAfterSeconds) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    PartnerInvitationResponseController_accept: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AcceptedPartnerInvitationDto"];
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description Not signed in */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description PARTNER_INVITATION_EMAIL_MISMATCH */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description PARTNER_INVITATION_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description PARTNER_INVITATION_EXPIRED, PARTNER_INVITATION_NOT_PENDING, PARTNER_INVITEE_OWNS_WEDDING, PARTNER_SEAT_UNAVAILABLE or PARTNER_ALREADY_CONNECTED */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description RATE_LIMITED (details.retryAfterSeconds) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+        };
+    };
+    PartnerInvitationResponseController_decline: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /**
+                         * @description Always null.
+                         * @example null
+                         */
+                        data: unknown;
+                        meta: components["schemas"]["ResponseMetaDto"];
+                    };
+                };
+            };
+            /** @description PARTNER_INVITATION_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description PARTNER_INVITATION_EXPIRED or PARTNER_INVITATION_NOT_PENDING */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponseDto"];
+                };
+            };
+            /** @description RATE_LIMITED (details.retryAfterSeconds) */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };

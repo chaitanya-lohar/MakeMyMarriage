@@ -5530,6 +5530,15 @@
                 "OWNERSHIP_TRANSFER_DECLINED",
                 "OWNERSHIP_TRANSFER_CANCELLED",
                 "OWNERSHIP_TRANSFERRED",
+                "PARTNER_INVITATION_CREATED",
+                "PARTNER_INVITATION_RESENT",
+                "PARTNER_INVITATION_REVOKED",
+                "PARTNER_INVITATION_ACCEPTED",
+                "PARTNER_INVITATION_DECLINED",
+                "PARTNER_INVITATION_EXPIRED",
+                "PARTNER_CONNECTED",
+                "PARTNER_DISCONNECTED",
+                "MEMBER_PROMOTED_TO_OWNER",
                 "PERMISSION_DENIED"
               ]
             }
@@ -6819,6 +6828,732 @@
         "summary": "The giving owner cancels the offer",
         "tags": [
           "Members"
+        ]
+      }
+    },
+    "/api/v1/weddings/{weddingId}/partner": {
+      "get": {
+        "operationId": "PartnerController_state",
+        "parameters": [
+          {
+            "name": "weddingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/PartnerStateDto"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ResponseMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "PERMISSION_DENIED — owners only",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "WEDDING_NOT_FOUND or PARTNER_INVITATION_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "The other owner, and the pending or just-expired invitation",
+        "tags": [
+          "Partner"
+        ]
+      }
+    },
+    "/api/v1/weddings/{weddingId}/partner/invitations": {
+      "post": {
+        "operationId": "PartnerController_invite",
+        "parameters": [
+          {
+            "name": "weddingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePartnerInvitationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/PartnerInvitationDto"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ResponseMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_FAILED (including the owner's own email)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "PERMISSION_DENIED — owners only",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "WEDDING_NOT_FOUND or PARTNER_INVITATION_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "PARTNER_ALREADY_CONNECTED or PARTNER_INVITATION_ALREADY_PENDING",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "RATE_LIMITED (details.retryAfterSeconds)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Invite the partner by email; the link works for 7 days",
+        "tags": [
+          "Partner"
+        ]
+      }
+    },
+    "/api/v1/weddings/{weddingId}/partner/invitations/{invitationId}/resend": {
+      "post": {
+        "operationId": "PartnerController_resend",
+        "parameters": [
+          {
+            "name": "weddingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "invitationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/PartnerInvitationDto"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ResponseMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "PERMISSION_DENIED — owners only",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "WEDDING_NOT_FOUND or PARTNER_INVITATION_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "PARTNER_INVITATION_NOT_PENDING (details.status) or PARTNER_INVITATION_EXPIRED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "RATE_LIMITED (details.retryAfterSeconds)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Send a new link; the old one stops working; 7 days from now",
+        "tags": [
+          "Partner"
+        ]
+      }
+    },
+    "/api/v1/weddings/{weddingId}/partner/invitations/{invitationId}/revoke": {
+      "post": {
+        "operationId": "PartnerController_revoke",
+        "parameters": [
+          {
+            "name": "weddingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "invitationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "nullable": true,
+                      "example": null,
+                      "description": "Always null."
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ResponseMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "PERMISSION_DENIED — owners only",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "WEDDING_NOT_FOUND or PARTNER_INVITATION_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "PARTNER_INVITATION_NOT_PENDING (details.status) or PARTNER_INVITATION_EXPIRED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Cancel the pending invitation; the link stops working",
+        "tags": [
+          "Partner"
+        ]
+      }
+    },
+    "/api/v1/weddings/{weddingId}/partner/leave": {
+      "post": {
+        "operationId": "PartnerController_leave",
+        "parameters": [
+          {
+            "name": "weddingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "nullable": true,
+                      "example": null,
+                      "description": "Always null."
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ResponseMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "PERMISSION_DENIED — owners only",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "WEDDING_NOT_FOUND or PARTNER_INVITATION_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "PARTNER_NOT_CONNECTED — the only owner cannot leave",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Leave the wedding; access ends at once; the other owner remains",
+        "tags": [
+          "Partner"
+        ]
+      }
+    },
+    "/api/v1/partner-invitations/{token}": {
+      "get": {
+        "operationId": "PartnerInvitationResponseController_details",
+        "parameters": [
+          {
+            "name": "token",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/PartnerInvitationDetailsDto"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ResponseMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "PARTNER_INVITATION_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "RATE_LIMITED (details.retryAfterSeconds)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "The invitation behind a token, with its status",
+        "tags": [
+          "Partner invitation"
+        ]
+      }
+    },
+    "/api/v1/partner-invitations/{token}/accept": {
+      "post": {
+        "operationId": "PartnerInvitationResponseController_accept",
+        "parameters": [
+          {
+            "name": "token",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/AcceptedPartnerInvitationDto"
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ResponseMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "PARTNER_INVITATION_EMAIL_MISMATCH",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "PARTNER_INVITATION_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "PARTNER_INVITATION_EXPIRED, PARTNER_INVITATION_NOT_PENDING, PARTNER_INVITEE_OWNS_WEDDING, PARTNER_SEAT_UNAVAILABLE or PARTNER_ALREADY_CONNECTED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "RATE_LIMITED (details.retryAfterSeconds)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "summary": "Accept as the signed-in user; become the second owner",
+        "tags": [
+          "Partner invitation"
+        ]
+      }
+    },
+    "/api/v1/partner-invitations/{token}/decline": {
+      "post": {
+        "operationId": "PartnerInvitationResponseController_decline",
+        "parameters": [
+          {
+            "name": "token",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "nullable": true,
+                      "example": null,
+                      "description": "Always null."
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ResponseMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "PARTNER_INVITATION_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "PARTNER_INVITATION_EXPIRED or PARTNER_INVITATION_NOT_PENDING",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "RATE_LIMITED (details.retryAfterSeconds)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Decline with the token alone",
+        "tags": [
+          "Partner invitation"
         ]
       }
     }
@@ -10006,6 +10741,15 @@
               "OWNERSHIP_TRANSFER_DECLINED",
               "OWNERSHIP_TRANSFER_CANCELLED",
               "OWNERSHIP_TRANSFERRED",
+              "PARTNER_INVITATION_CREATED",
+              "PARTNER_INVITATION_RESENT",
+              "PARTNER_INVITATION_REVOKED",
+              "PARTNER_INVITATION_ACCEPTED",
+              "PARTNER_INVITATION_DECLINED",
+              "PARTNER_INVITATION_EXPIRED",
+              "PARTNER_CONNECTED",
+              "PARTNER_DISCONNECTED",
+              "MEMBER_PROMOTED_TO_OWNER",
               "PERMISSION_DENIED"
             ]
           },
@@ -10496,6 +11240,175 @@
         "required": [
           "giver",
           "recipient"
+        ]
+      },
+      "PartnerDto": {
+        "type": "object",
+        "properties": {
+          "membershipId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "connectedAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true,
+            "description": "When the partner invitation was accepted; null for an owner by seat transfer."
+          }
+        },
+        "required": [
+          "membershipId",
+          "userId",
+          "displayName",
+          "email",
+          "connectedAt"
+        ]
+      },
+      "PartnerInvitationDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "inviteeEmail": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "ACTIVE",
+              "DECLINED",
+              "REVOKED",
+              "EXPIRED",
+              "DISCONNECTED"
+            ]
+          },
+          "expiresAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "lastSentAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "emailSent": {
+            "type": "boolean",
+            "description": "Whether the last email was sent."
+          },
+          "resendsLeft": {
+            "type": "number",
+            "description": "Resends left in the rolling 24 hours (at most 3)."
+          }
+        },
+        "required": [
+          "id",
+          "inviteeEmail",
+          "status",
+          "expiresAt",
+          "lastSentAt",
+          "emailSent",
+          "resendsLeft"
+        ]
+      },
+      "PartnerStateDto": {
+        "type": "object",
+        "properties": {
+          "partner": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PartnerDto"
+              }
+            ]
+          },
+          "invitation": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PartnerInvitationDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "partner",
+          "invitation"
+        ]
+      },
+      "CreatePartnerInvitationDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "aarav@example.com",
+            "maxLength": 254
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "PartnerInvitationDetailsDto": {
+        "type": "object",
+        "properties": {
+          "weddingDisplayName": {
+            "type": "string"
+          },
+          "invitedByName": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "ACTIVE",
+              "DECLINED",
+              "REVOKED",
+              "EXPIRED",
+              "DISCONNECTED"
+            ]
+          },
+          "expiresAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "emailHint": {
+            "type": "string",
+            "example": "aa***@example.com"
+          }
+        },
+        "required": [
+          "weddingDisplayName",
+          "invitedByName",
+          "status",
+          "expiresAt",
+          "emailHint"
+        ]
+      },
+      "AcceptedPartnerInvitationDto": {
+        "type": "object",
+        "properties": {
+          "weddingId": {
+            "type": "string"
+          },
+          "membershipId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "weddingId",
+          "membershipId"
         ]
       }
     }

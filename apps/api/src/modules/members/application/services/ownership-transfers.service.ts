@@ -1,8 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { ValidationFailedException } from '../../../../common/errors/validation-failed.exception.js';
-import { TransactionRunner } from '../../../../infrastructure/database/transaction.js';
+import {
+  TransactionRunner,
+  type Transaction,
+} from '../../../../infrastructure/database/transaction.js';
 import { AuditAction, AuditService } from '../../../audit/index.js';
 import { UsersService } from '../../../users/index.js';
+import { WeddingsService } from '../../../weddings/index.js';
 import {
   MemberType,
   MembershipsService,
@@ -46,6 +50,7 @@ export class OwnershipTransfersService {
     private readonly transfers: OwnershipTransfersRepository,
     private readonly memberships: MembershipsService,
     private readonly users: UsersService,
+    private readonly weddings: WeddingsService,
     private readonly audit: AuditService,
     private readonly transactions: TransactionRunner,
   ) {}
@@ -114,6 +119,10 @@ export class OwnershipTransfersService {
     }
     try {
       return await this.transactions.run(async (transaction) => {
+        // Serializes with partner acceptance and leaving (decision 0038).
+        if (!(await this.weddings.bumpOwnersVersion(weddingId, transaction))) {
+          throw new TransferChangedError();
+        }
         const accepted = await this.transfers.close(
           weddingId,
           transfer.id,
@@ -220,6 +229,47 @@ export class OwnershipTransfersService {
         actorUserId,
       );
     }
+  }
+
+  /**
+   * Inside another transaction (leaving, decision 0038 D7): cancels the pending offer the
+   * membership takes part in (MEMBERSHIP_CHANGED), with its audit entry.
+   */
+  async cancelForMembershipIn(
+    weddingId: string,
+    membershipId: string,
+    actorUserId: string,
+    now: Date,
+    transaction: Transaction,
+  ): Promise<void> {
+    const pending = await this.transfers.findPendingFor(weddingId, membershipId, transaction);
+    if (!pending) return;
+    const reason = TransferCancelReason.MembershipChanged;
+    const cancelled = await this.transfers.close(
+      weddingId,
+      pending.id,
+      OwnershipTransferStatus.Cancelled,
+      now,
+      { reason, transaction },
+    );
+    if (!cancelled) return;
+    await this.audit.record(
+      {
+        weddingId,
+        actorUserId,
+        action: AuditAction.OwnershipTransferCancelled,
+        resourceType: TRANSFER,
+        resourceId: cancelled.id,
+        metadata: {
+          fromMembershipId: cancelled.fromMembershipId,
+          toMembershipId: cancelled.toMembershipId,
+          ownerSeat: cancelled.ownerSeat,
+          reason,
+          outcome: 'SUCCEEDED',
+        },
+      },
+      transaction,
+    );
   }
 
   private async cancel(

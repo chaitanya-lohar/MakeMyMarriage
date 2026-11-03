@@ -41,6 +41,16 @@ export const AuditAction = {
   OwnershipTransferDeclined: 'OWNERSHIP_TRANSFER_DECLINED',
   OwnershipTransferCancelled: 'OWNERSHIP_TRANSFER_CANCELLED',
   OwnershipTransferred: 'OWNERSHIP_TRANSFERRED',
+  /** Phase 16: partner invitation, connection and leaving (Database Design §22, 0038). */
+  PartnerInvitationCreated: 'PARTNER_INVITATION_CREATED',
+  PartnerInvitationResent: 'PARTNER_INVITATION_RESENT',
+  PartnerInvitationRevoked: 'PARTNER_INVITATION_REVOKED',
+  PartnerInvitationAccepted: 'PARTNER_INVITATION_ACCEPTED',
+  PartnerInvitationDeclined: 'PARTNER_INVITATION_DECLINED',
+  PartnerInvitationExpired: 'PARTNER_INVITATION_EXPIRED',
+  PartnerConnected: 'PARTNER_CONNECTED',
+  PartnerDisconnected: 'PARTNER_DISCONNECTED',
+  MemberPromotedToOwner: 'MEMBER_PROMOTED_TO_OWNER',
   /** A refused management action (§8.3); never written for ordinary 404s. */
   PermissionDenied: 'PERMISSION_DENIED',
 } as const;

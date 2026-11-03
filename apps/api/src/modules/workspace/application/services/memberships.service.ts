@@ -1,7 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import type { Transaction } from '../../../../infrastructure/database/transaction.js';
 import type { MembershipStatus } from '../../domain/enums/membership.js';
-import type { InvitedAccess, Membership, OwnerSeat } from '../../domain/types/membership.js';
+import type {
+  InvitedAccess,
+  Membership,
+  OwnerSeat,
+  PartnerAdmission,
+} from '../../domain/types/membership.js';
 import { WeddingMembershipsRepository } from '../../infrastructure/repositories/wedding-memberships.repository.js';
 
 /** Membership and access context for weddings — the workspace module's public API. */
@@ -90,6 +95,33 @@ export class MembershipsService {
     transaction: Transaction,
   ): Promise<Membership | null> {
     return this.memberships.promoteToOwner(weddingId, membershipId, seat, transaction);
+  }
+
+  /** The wedding's OWNER rows, read inside `transaction` when given. */
+  listOwners(weddingId: string, transaction?: Transaction): Promise<Membership[]> {
+    return this.memberships.listOwners(weddingId, transaction);
+  }
+
+  /** Partner acceptance: the user takes `seat` as owner (Database Design §7.3, 0038 D5, D10). */
+  admitAsPartner(
+    weddingId: string,
+    userId: string,
+    seat: OwnerSeat,
+    now: Date,
+    transaction: Transaction,
+  ): Promise<{ membership: Membership; admission: PartnerAdmission } | null> {
+    return this.memberships.admitAsPartner(weddingId, userId, seat, now, transaction);
+  }
+
+  /** Leaving: the owner becomes a removed member (Database Design §7.3, 0038 D7). */
+  leaveAsOwner(
+    weddingId: string,
+    membershipId: string,
+    revokedBy: string,
+    now: Date,
+    transaction: Transaction,
+  ): Promise<Membership | null> {
+    return this.memberships.leaveAsOwner(weddingId, membershipId, revokedBy, now, transaction);
   }
 
   /** The user's active memberships, oldest first. */

@@ -11,6 +11,7 @@ import { ExpensesModule } from './modules/expenses/index.js';
 import { GuestsModule } from './modules/guests/index.js';
 import { InvitationsModule } from './modules/invitations/index.js';
 import { MembersModule } from './modules/members/index.js';
+import { PartnerModule } from './modules/partner/index.js';
 import { TasksModule } from './modules/tasks/index.js';
 import { UsersModule } from './modules/users/index.js';
 import { WeddingsModule } from './modules/weddings/index.js';
@@ -39,6 +40,7 @@ import { HealthModule } from './platform/health/health.module.js';
     VendorsModule,
     DashboardModule,
     MembersModule,
+    PartnerModule,
   ],
   controllers: [HealthController],
   providers: [
