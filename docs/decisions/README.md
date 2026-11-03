@@ -43,7 +43,8 @@ in a specification, the record names that statement.
 | [0035](0035-phase-10-design-approval.md)                  | Phase 10 design approval: screens, UI decisions, corrections        | Accepted                                            |
 | [0036](0036-invitation-for-an-existing-member.md)         | An invitation accepted by someone already a member                  | Accepted                                            |
 | [0037](0037-phase-16-before-phases-11-15.md)              | Phase 16 before Phases 11–15                                        | Accepted                                            |
-| [0038](0038-phase-16-partner-connection.md)               | Phase 16: partner connection and sharing (D1–D10)                   | Accepted                                            |
+| [0038](0038-phase-16-partner-connection.md)               | Phase 16: partner connection and sharing (D1–D10)                   | Accepted; supplemented by 0039                      |
+| [0039](0039-phase-16-design-approval.md)                  | Phase 16 design approval: screens and corrections                   | Accepted                                            |
 
 Conflicts between specifications or decision records are handled with the protocol in
 [0004](0004-specification-authority.md) — never resolved silently in code.

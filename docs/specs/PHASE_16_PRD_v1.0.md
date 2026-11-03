@@ -2,7 +2,7 @@
 
 | Item         | Value                                                                                                                                                                    |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Status       | **Canonical** for Phase 16. Approved decisions D1–D10 (0038); screens pending design approval; not yet built.                                                            |
+| Status       | **Canonical** for Phase 16. Approved decisions D1–D10 (0038); screens approved (0039); not yet built.                                                                    |
 | Date         | 2026-11-03                                                                                                                                                               |
 | Parent       | [PRD v1.2](PRD_v1.2.md) (sections 7, 23 and 24)                                                                                                                          |
 | Decisions    | [0038](../decisions/0038-phase-16-partner-connection.md), [0037](../decisions/0037-phase-16-before-phases-11-15.md), with 0009, 0012 and 0034                            |
@@ -12,6 +12,7 @@
 | Version | Date       | Change                                                      |
 | ------- | ---------- | ----------------------------------------------------------- |
 | 1.0     | 2026-11-03 | First version, from the Phase 16 discovery (decision 0038). |
+| 1.0     | 2026-11-03 | §9: screens approved with corrections (decision 0039).      |
 
 ## 1. Purpose and outcomes
 
@@ -99,7 +100,7 @@ and seat transfers can never produce three owners, no owner, or a user owning tw
 
 ## 9. UI
 
-Stitch M16-01 to M16-09 (design approval pending): the partner section on the Members page
+Stitch M16-01 to M16-09, approved with the corrections in decision 0039: the partner section on the Members page
 (empty, pending, connected), the invite dialog, the public invitation page and its states,
 connection success, the leave confirmation, the remaining partner's view, the former
 partner's view, reconnection, and the error states. Draft wording, as earlier phases.
