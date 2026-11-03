@@ -1,8 +1,11 @@
 # 0011 — Partner/Sharing decisions A4 and A5
 
-**Status:** Pending — must be decided before the Partner/Sharing module is built.
+**Status:** Accepted — answered by [0038](0038-phase-16-partner-connection.md) on 2026-11-03:
+A4 — one shared wedding, every wedding resource shared by both partners, no private
+resources or sharing switches (D1); A5 — a partner disconnects by leaving the wedding, loses
+access at once, and the other partner remains sole owner with every record intact (D7).
 
-No behaviour for A4 or A5 is implemented or assumed anywhere in the codebase.
+The original questions are kept below for history.
 
 ## A4 — Resource sharing scope
 
