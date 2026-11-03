@@ -68,6 +68,10 @@ export class MemberDto {
   @ApiPropertyOptional({ type: Date, nullable: true }) invitedAt?: Date | null;
   @ApiPropertyOptional({ type: Date, nullable: true }) acceptedAt?: Date | null;
   @ApiPropertyOptional({ type: Date, nullable: true }) revokedAt?: Date | null;
+  @ApiPropertyOptional({
+    description: 'A removed member who left the wedding themselves (a former owner, 0038 D7).',
+  })
+  left?: boolean;
 
   static from({ membership: m, displayName, email }: MemberView, details: boolean): MemberDto {
     const directory = {
@@ -87,6 +91,7 @@ export class MemberDto {
       invitedAt: m.invitedAt ?? null,
       acceptedAt: m.acceptedAt ?? null,
       revokedAt: m.revokedAt ?? null,
+      left: m.status === MembershipStatus.Revoked && m.revokedBy === m.userId,
     };
   }
 }

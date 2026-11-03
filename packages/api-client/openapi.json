@@ -10575,6 +10575,10 @@
             "format": "date-time",
             "type": "string",
             "nullable": true
+          },
+          "left": {
+            "type": "boolean",
+            "description": "A removed member who left the wedding themselves (a former owner, 0038 D7)."
           }
         },
         "required": [

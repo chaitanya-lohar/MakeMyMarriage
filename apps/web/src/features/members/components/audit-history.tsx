@@ -28,6 +28,7 @@ const AREAS: { label: string; resourceType?: string; actions?: string[] }[] = [
   { label: 'Members', resourceType: 'wedding_membership' },
   { label: 'Invitations to members', resourceType: 'member_invitation' },
   { label: 'Ownership', resourceType: 'ownership_transfer' },
+  { label: 'Partner', resourceType: 'partner_connection' },
   { label: 'Guest invitations', resourceType: 'guest_invitation' },
   { label: 'Guests', resourceType: 'guest_event' },
   { label: 'Tasks', resourceType: 'task' },
@@ -71,6 +72,25 @@ function describe(entry: ApiAuditEntry): string {
       return 'An ownership offer was cancelled';
     case 'OWNERSHIP_TRANSFERRED':
       return `${actor} accepted ownership`;
+    // Phase 16 (decision 0038); wording draft (0039).
+    case 'PARTNER_INVITATION_CREATED':
+      return `${actor} invited ${String(m.email)} as their partner`;
+    case 'PARTNER_INVITATION_RESENT':
+      return `${actor} resent the partner invitation to ${String(m.email)}`;
+    case 'PARTNER_INVITATION_REVOKED':
+      return `${actor} cancelled the partner invitation to ${String(m.email)}`;
+    case 'PARTNER_INVITATION_ACCEPTED':
+      return `${actor} accepted the partner invitation`;
+    case 'PARTNER_INVITATION_DECLINED':
+      return `The partner invitation to ${String(m.email)} was declined`;
+    case 'PARTNER_INVITATION_EXPIRED':
+      return `The partner invitation to ${String(m.email)} expired`;
+    case 'PARTNER_CONNECTED':
+      return `${actor} became an owner of the wedding`;
+    case 'PARTNER_DISCONNECTED':
+      return `${actor} left the wedding`;
+    case 'MEMBER_PROMOTED_TO_OWNER':
+      return `${actor} became an owner; their custom permissions no longer apply`;
     case 'PERMISSION_DENIED':
       return `${actor} was refused an action they are not allowed to take`;
     default: {

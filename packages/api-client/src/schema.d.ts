@@ -2086,6 +2086,8 @@ export interface components {
             acceptedAt?: string | null;
             /** Format: date-time */
             revokedAt?: string | null;
+            /** @description A removed member who left the wedding themselves (a former owner, 0038 D7). */
+            left?: boolean;
         };
         PermissionOverrideDto: {
             /** @enum {string} */
