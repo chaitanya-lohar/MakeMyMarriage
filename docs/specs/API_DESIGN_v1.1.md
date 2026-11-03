@@ -19,6 +19,7 @@
 | 1.1     | 2026-10-24 | Decision 0032 (Phase 9): vendor and booking routes, expense `vendorId`, dashboard vendor summary; discovery deferred.                                                                                                                           |
 | 1.1     | 2026-10-27 | Phase 10 requirements (product owner): §7.1 member, invitation, permission, audit and ownership routes; §6 and §23 required permissions for every route; §21 error codes; §25 and §28.                                                          |
 | 1.1     | 2026-10-27 | Phase 10 decisions P10-1–P10-8 applied: expiry and re-invitation rules, Admin limits, ownership-seat transfer routes, `INVITATIONS:SEND`, per-section dashboard permissions, assignee and payer eligibility, rollout over the Phase 4–9 routes. |
+| 1.1     | 2026-11-03 | Decisions 0037 and 0038 (Phase 16): §7.2 partner routes (invite, resend, revoke, leave, accept, decline); no share routes; §8, §21, §23, §25, §28, §33, §35, §36.                                                                               |
 
 **Status of each route group** — _Built_: implemented; the generated OpenAPI contract
 (`packages/api-client/openapi.json`) is the exact reference. _Phase 4_: approved, not built.
@@ -222,7 +223,7 @@ serviceDate, eventId, eventName }] }`, counting only vendors that are not delete
 
 ## 7. Membership, partner and sharing API
 
-### 7.1 Members, organizer invitations and permissions (Planned — Phase 10)
+### 7.1 Members, organizer invitations and permissions (Built — Phase 10)
 
 The routes follow the v1.0 conventions; the first four rows were already in v1.0, the rest
 are added for Phase 10. Permission keys, the default matrix, Admin limits and protected
@@ -397,25 +398,47 @@ status, createdAt, respondedAt }`.
   audited (`OWNERSHIP_TRANSFER_DECLINED`, `_CANCELLED`); a non-pending offer is `409`.
 - No expiry is defined; an offer stays pending until one of these happens.
 
-### 7.2 Partner and sharing (Planned — Phase 16)
+### 7.2 Partner connection (Planned — Phase 16, decision 0038)
 
-| Method | Endpoint                                    | Purpose                     |
-| ------ | ------------------------------------------- | --------------------------- |
-| GET    | `/weddings/{weddingId}/partner`             | Get the partner connection  |
-| POST   | `/weddings/{weddingId}/partner/invitations` | Invite the partner          |
-| POST   | `/partner/invitations/{token}/accept`       | Accept a partner invitation |
-| POST   | `/weddings/{weddingId}/partner/disconnect`  | Disconnect                  |
-| GET    | `/weddings/{weddingId}/shares`              | List explicit shares        |
-| POST   | `/weddings/{weddingId}/shares`              | Create a resource share     |
-| DELETE | `/weddings/{weddingId}/shares/{shareId}`    | Revoke a share              |
+| Method | Endpoint                                                | Purpose                        | Permission                |
+| ------ | ------------------------------------------------------- | ------------------------------ | ------------------------- |
+| GET    | `/weddings/{weddingId}/partner`                         | Partner state of the wedding   | `PARTNER_SHARING:VIEW`    |
+| POST   | `/weddings/{weddingId}/partner/invitations`             | Invite the partner `{ email }` | `PARTNER_SHARING:CREATE`  |
+| POST   | `/weddings/{weddingId}/partner/invitations/{id}/resend` | New link, expiry reset         | `PARTNER_SHARING:EDIT`    |
+| POST   | `/weddings/{weddingId}/partner/invitations/{id}/revoke` | Cancel a pending invitation    | `PARTNER_SHARING:DELETE`  |
+| POST   | `/weddings/{weddingId}/partner/leave`                   | The caller leaves the wedding  | `PARTNER_SHARING:DELETE`  |
+| GET    | `/partner-invitations/{token}`                          | Public invitation summary      | Token                     |
+| POST   | `/partner-invitations/{token}/accept`                   | Accept                         | Signed in, matching email |
+| POST   | `/partner-invitations/{token}/decline`                  | Decline                        | Token                     |
 
-- Membership answers "who can access this wedding"; sharing answers "which protected
-  resource is shared"; the partner connection records the relationship. Partner invitations
-  are separate from organizer invitations (§7.1) and are the only invitations that create an
-  `OWNER` membership.
-- Accepting returns a clear domain error while the invitee owns a wedding (0012, N1).
-- Partner routes are owner-only (`PARTNER_SHARING`, protected — Database Design §8.3).
-- Share resource types and disconnect behaviour depend on A4 and A5 (0011).
+- **One shared wedding (D1):** there are no share routes; v1.0's `…/shares` and
+  `…/events/{eventId}/share` are not built. Partner invitations are separate from organizer
+  invitations (§7.1) and are the only invitations that create an `OWNER` membership.
+- `PARTNER_SHARING` is owner-only and never grantable (Database Design §8.3), so organizers get
+  `403 PERMISSION_DENIED` on the wedding routes.
+- `GET …/partner` returns the wedding's other owner (if any: name, email, since when) and the
+  pending invitation (if any: id, invited email, expiry, last sent, whether the email was sent,
+  resends left). A second owner from a Phase 10 seat transfer is the partner (D3).
+- `POST …/invitations` — `201`; refused while the wedding has two owners
+  (`PARTNER_ALREADY_CONNECTED`) or a pending invitation (`PARTNER_INVITATION_ALREADY_PENDING`);
+  the inviter's own email is `VALIDATION_FAILED`. The email is sent during the request (0025);
+  a failed send returns `emailSent: false` and the invitation stays pending.
+- `resend` / `revoke` — only while `PENDING` and not expired (`PARTNER_INVITATION_NOT_PENDING`,
+  `PARTNER_INVITATION_EXPIRED`); resend issues a new token and resets the expiry to seven days.
+- `leave` — `204`; only while the wedding has two owners (`PARTNER_NOT_CONNECTED`). The caller
+  loses access at once (later requests `404`); the other owner remains (D7). There is no route
+  to remove the other owner (D8).
+- `GET /partner-invitations/{token}` — wedding name, inviter's name, masked invited email,
+  expiry and status; nothing else about the wedding. Unknown token: `404
+PARTNER_INVITATION_NOT_FOUND`.
+- `accept` — `200` with the wedding id. Checks, in order: invitation live
+  (`…_NOT_PENDING`, `…_EXPIRED`); account email equals the invited email
+  (`PARTNER_INVITATION_EMAIL_MISMATCH`); the caller owns no wedding
+  (`PARTNER_INVITEE_OWNS_WEDDING`, D6); a free owner seat (`PARTNER_SEAT_UNAVAILABLE`). Promotes
+  an existing organizer (D5) or reactivates a former member (D10) on the same membership.
+- `decline` — `204`; grants nothing.
+- The email links to the web page `/partner-invite/{token}`; sign-in and sign-up may return
+  there (as for member invitations).
 
 ## 8. Event API (Phase 4 — decision 0017)
 
@@ -449,7 +472,7 @@ POST /api/v1/weddings/{weddingId}/events
 - Errors: `400 VALIDATION_FAILED`, `404 WEDDING_NOT_FOUND`, `404 EVENT_NOT_FOUND`
   (missing, deleted or in another wedding).
 - **Planned (not Phase 4):** `isPublic`, cover image, map location, `instructions`,
-  `publicId`; v1.0's `POST/DELETE …/events/{eventId}/share` routes depend on A4 (0011).
+  `publicId`. v1.0's `POST/DELETE …/events/{eventId}/share` routes are not built (0038 D1).
 
 ## 9. Guest, assignment and RSVP API (Phase 4 — decision 0017)
 
@@ -938,6 +961,15 @@ Error codes in use or approved:
 | `OWNERSHIP_TRANSFER_ALREADY_PENDING` | 409  | Phase 10                                                                                                                              |
 | `OWNERSHIP_TRANSFER_NOT_PENDING`     | 409  | Phase 10                                                                                                                              |
 | `OWNERSHIP_TRANSFER_NOT_FOUND`       | 404  | Phase 10: an unknown offer, or one of another wedding                                                                                 |
+| `PARTNER_INVITATION_NOT_FOUND`       | 404  | Phase 16: unknown token or invitation                                                                                                 |
+| `PARTNER_ALREADY_CONNECTED`          | 409  | Phase 16: the wedding has two owners                                                                                                  |
+| `PARTNER_INVITATION_ALREADY_PENDING` | 409  | Phase 16                                                                                                                              |
+| `PARTNER_INVITATION_NOT_PENDING`     | 409  | Phase 16 (`details.status`)                                                                                                           |
+| `PARTNER_INVITATION_EXPIRED`         | 409  | Phase 16                                                                                                                              |
+| `PARTNER_INVITATION_EMAIL_MISMATCH`  | 403  | Phase 16                                                                                                                              |
+| `PARTNER_INVITEE_OWNS_WEDDING`       | 409  | Phase 16: transfer that wedding's ownership first (0038 D6)                                                                           |
+| `PARTNER_SEAT_UNAVAILABLE`           | 409  | Phase 16: no free owner seat at acceptance                                                                                            |
+| `PARTNER_NOT_CONNECTED`              | 409  | Phase 16: leaving while the wedding has one owner                                                                                     |
 
 ## 22. Validation and DTO strategy
 
@@ -951,7 +983,7 @@ signature; business rules stay in application services.
 
 ```text
 Request → authentication guard → resolve weddingId → membership lookup → ACTIVE check
-        → role + overrides → resource share check (where applicable) → controller
+        → role + overrides → controller
         → application service → repository (weddingId-scoped query)
 ```
 
@@ -979,6 +1011,7 @@ Required permissions for the built routes (Phases 3–9) and the next ones:
 | Expenses and payments                                                  | `EXPENSES:VIEW` / `CREATE` / `EDIT` / `DELETE` (a payment: add `CREATE`, edit `EDIT`, remove `DELETE`; any active member may be the payer — §7.1) |
 | Vendors and bookings                                                   | `VENDORS:VIEW` / `CREATE` / `EDIT` / `DELETE` (cancel or reopen a booking: `EDIT`)                                                                |
 | Members, invitations, audit, ownership                                 | §7.1                                                                                                                                              |
+| Partner (Phase 16)                                                     | `PARTNER_SHARING:VIEW` / `CREATE` / `EDIT` / `DELETE` — owner-only (§7.2)                                                                         |
 | Website, gallery, QR, live stream, reports (planned)                   | Their module's actions, including `WEBSITE:PUBLISH`, `MEMORY_QR:REGENERATE` (owner-only by default, P10-6), `REPORTS:EXPORT`                      |
 
 - Side effects run with the permission of the action that causes them: deleting an event
@@ -1029,7 +1062,7 @@ parameters; no MongoDB operators from query strings.
 | Create guest           | Normal POST; duplicate mobile produces a warning, never a block                                                                                |
 | Assign guest to event  | Partial unique active assignment; repeat returns the existing one                                                                              |
 | Send/resend invitation | Each attempt is a delivery record; optional `Idempotency-Key`; jobs idempotent                                                                 |
-| Accept partner invite  | Idempotent on invitation/connection state                                                                                                      |
+| Partner invitation     | One open per wedding (`409`); accept, decline, resend, revoke and leave are conditional, so a repeat is `409`, never a second owner            |
 | Member invitation      | One pending per wedding and email (`409`); accept/decline/revoke are conditional on `PENDING`, so a repeat is `409`, never a second membership |
 | Ownership transfer     | One open offer per wedding; acceptance conditional on `PENDING`                                                                                |
 | Create payment         | Optional `Idempotency-Key`                                                                                                                     |
@@ -1072,6 +1105,9 @@ There is no worker or job queue (0025).
 | Member invitation token    | Token and IP limits, as for guest routes (0023: 120 per IP, 60 per token a minute) |
 | Create member invitations  | 10 per wedding in any rolling hour (0034 R1)                                       |
 | Resend a member invitation | 3 per invitation in any rolling 24 hours (0034 R2)                                 |
+| Partner invitation token   | 120 per IP, 60 per token a minute (as member invitations; 0038)                    |
+| Create partner invitations | 10 per wedding in any rolling hour (0038)                                          |
+| Resend a partner invite    | 3 per invitation in any rolling 24 hours (0038)                                    |
 | Guest photo upload         | Token and IP limits + file size and content limits                                 |
 | QR endpoints               | Token and IP limits                                                                |
 | Public website             | General traffic limit                                                              |
@@ -1119,14 +1155,14 @@ independently where practical.
 
 ## 33. Testing strategy
 
-| Level       | Coverage                                                                                                                                 |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| Unit        | DTO validation, services, permission evaluators, token services                                                                          |
-| Integration | Controllers + MongoDB repositories + authorization (real Redis, in-memory MongoDB)                                                       |
-| Contract    | Generated OpenAPI checked in CI; request/response schemas                                                                                |
-| Security    | Authentication, tenant isolation, token guessing, IDOR, rate limiting                                                                    |
-| Workflow    | Invitation → send → open → RSVP; QR → upload → gallery → guest deletion; partner invite → accept → share → disconnect; expense → payment |
-| Provider    | Resend, Google Places, YouTube adapters                                                                                                  |
+| Level       | Coverage                                                                                                                               |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Unit        | DTO validation, services, permission evaluators, token services                                                                        |
+| Integration | Controllers + MongoDB repositories + authorization (real Redis, in-memory MongoDB)                                                     |
+| Contract    | Generated OpenAPI checked in CI; request/response schemas                                                                              |
+| Security    | Authentication, tenant isolation, token guessing, IDOR, rate limiting                                                                  |
+| Workflow    | Invitation → send → open → RSVP; QR → upload → gallery → guest deletion; partner invite → accept → leave → reinvite; expense → payment |
+| Provider    | Resend, Google Places, YouTube adapters                                                                                                |
 
 Required for Phase 4: every application route under `/api/v1`; signup without a wedding;
 cross-wedding IDs return `404`; all four RSVP status/count combinations and every rejected
@@ -1157,7 +1193,6 @@ notes absent from guest responses.
 
 | Webhooks | Delivery webhooks for `DELIVERED`/`FAILED` |
 | Roles | Settled for Phase 10: default matrix and decisions P10-1–P10-8 (Database Design §8, §32). Interpretations R1–R6 approved (0034); UI decisions in 0035 |
-| Sharing | Resource types and actions for `resource_shares` (A4) |
 | Reminders | Schedules, recipients, templates |
 | Uploads | File size and type limits; image processing |
 | Vendor discovery | Google fields and caching rules (discovery deferred — 0032 #3) |
@@ -1168,14 +1203,14 @@ notes absent from guest responses.
 Resolved since v1.0: invitee-already-owns-a-wedding acceptance (0012, N1); attendee-count
 validation and token expiry and status semantics (0017); token and session lifetimes (0015);
 invitation token storage, organizer reset to `PENDING`, immediate rejection and deleted
-guests' links (0018); showing the link again after creation (0019).
+guests' links (0018); showing the link again after creation (0019); partner sharing scope and
+disconnection, A4/A5 (0038).
 
 ## 36. Implementation order
 
-Built: foundation (prefix, envelope, errors, validation, request IDs, guards); auth and
-sessions; weddings and membership. Next: Phase 4 events, guests, RSVP and invitations. Then,
-as approved: partner and sharing, notifications, expenses, tasks, vendors, website, gallery
-and QR, live stream, reports, audit and operations.
+Phases are approved one at a time; the built phases and the next one are in
+`docs/PROJECT_STATUS.md`. Partner connection (Phase 16) is built before the website, gallery
+and QR, live stream, notifications and reports (Phases 11–15; decision 0037).
 
 ## 37. OpenAPI contract
 

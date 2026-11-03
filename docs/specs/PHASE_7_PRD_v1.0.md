@@ -25,7 +25,8 @@ see on the dashboard what is pending, blocked, done and late.
 - Tasks belong to exactly one wedding. Every route is wedding-scoped and admits only
   `ACTIVE` members; anything else is `404` (System Design §7.2).
 - Any active member can do everything with a wedding's tasks in Phase 7 (0026 #14).
-  Per-member permissions arrive in Phase 10; partner privacy is decision A4 (0011).
+  Per-member permissions arrive in Phase 10; there is no partner privacy — tasks are shared by
+  both partners (0038 D1).
 - Dates are calendar dates in the wedding's timezone (`Asia/Kolkata`), as for events
   (0017 #17). Nothing is scheduled: overdue state is computed when tasks are read (0025).
 - Deletion is soft; history is never erased.
@@ -171,7 +172,7 @@ Added to the existing dashboard (PRD §18; API Design §6), computed on every re
 - Task attachments — with the first phase that adds file storage (0026 #3).
 - Reminders and notifications — Phase 14.
 - Task reports and Excel export — Phase 15.
-- Per-member permissions — Phase 10; partner privacy — A4 (0011), Phase 16.
+- Per-member permissions — Phase 10. Partner privacy — none; tasks are shared (0038 D1).
 - Showing a deleted task's history ("recently deleted") — not in Phase 7.
 - Recurring tasks, templates and checklists, status board, bulk actions — future ideas only.
 

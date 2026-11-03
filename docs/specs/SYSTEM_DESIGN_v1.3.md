@@ -25,6 +25,7 @@
 | 1.3     | 2026-10-24 | Decision 0032: vendors and bookings (§13); discovery and vendor attachments deferred (§13, §20).                                         |
 | 1.3     | 2026-10-27 | Phase 10 requirements (product owner): organizers and permissions architecture (§7.2–§7.9), Workspace module (§6), open questions (§28). |
 | 1.3     | 2026-10-27 | Phase 10 decisions P10-1–P10-8 applied (§7.2–§7.9); dashboard and member selection (§7.10); rollout over Phases 4–9 (§7.11); §28.        |
+| 1.3     | 2026-11-03 | Decisions 0037 and 0038 (Phase 16): §3, §4, §6, §7.4, §8, §28, §29, §30 — one shared wedding, no Sharing module, leaving.                |
 
 ## 1. Purpose and scope
 
@@ -65,10 +66,12 @@ reporting, sharing, security, observability and deployment.
 - Signup creates only a user; wedding creation is separate (0012).
 - A user owns at most one wedding; after a partner connection both partners are `OWNER`
   members of the same wedding, and accounts are never merged.
-- Sharing is explicit and resource-specific, except expenses, which are shared with the
-  connected partner (0009).
+- Connected partners share the whole wedding: every wedding resource is shared by both
+  owners; only personal account information stays private (0038 D1). There is no
+  per-resource sharing.
 - Guests need no accounts for invitations, RSVP or photo uploads.
-- Private data is private by default; server-side authorization is mandatory.
+- Personal and non-public data is private by default; access to a wedding follows membership
+  and permissions; server-side authorization is mandatory.
 - Guest identity is separate from event participation.
 - Secure random tokens are used for invitation and QR access; database IDs are never
   public.
@@ -82,7 +85,7 @@ Users / guests
 Vercel ─ Next.js web app and public wedding websites
    ↓ /api/v1/* proxied server-side (same origin for the browser — 0001)
 NestJS API (Vercel function — 0025) ─ modular monolith
-   ├─ Auth · Users · Weddings · Workspace · Partner · Sharing
+   ├─ Auth · Users · Weddings · Workspace · Partner
    ├─ Events · Guests · Invitations · RSVP
    ├─ Notifications · Tasks · Expenses
    ├─ Vendors · Vendor discovery
@@ -129,8 +132,7 @@ Decisions 0001, 0002, 0005 and 0025; answer Q1.
 | Users            | User accounts and the current-user endpoint                                                |
 | Weddings         | Wedding identity, couple details, settings                                                 |
 | Workspace        | Memberships, organizer invitations, permission evaluation and the access checks (Phase 10) |
-| Partner          | Partner connection                                                                         |
-| Sharing          | Resource-specific sharing                                                                  |
+| Partner          | Partner invitation, connection and leaving (Phase 16, 0038); no separate Sharing module    |
 | Events           | Predefined and custom events                                                               |
 | Guests           | Guest records and event assignment                                                         |
 | Invitations      | Invitation tokens, delivery lifecycle and activity                                         |
@@ -264,8 +266,7 @@ request ─► sign-in guard (JWT) ─► wedding access guard
 - Overrides can never grant protected actions (§7.8) and are ignored for owners.
 - **Grant ceiling:** a non-owner who may edit permissions can only grant actions they
   effectively hold themselves.
-- Resource sharing (A4, Phase 16) will apply after overrides and only to partner-private
-  resources; Phase 10 has no sharing.
+- There is no resource-sharing layer: partners share the whole wedding as owners (0038 D1).
 
 ### 7.5 Members and admins
 
@@ -429,16 +430,25 @@ wedding** at a time:
 ## 8. Partner connection and sharing
 
 ```text
-Partner invites → partner accepts → both are OWNER members of one wedding
-   → accounts stay separate → resources private by default (except expenses)
-   → explicit sharing enables access
+Owner invites by email → invitee accepts with that email → both are OWNER members of one
+   wedding → accounts stay separate → the whole wedding is shared
+Either owner leaves → loses access at once → the other is sole owner → records stay
 ```
 
-- Either partner can initiate; either can disconnect.
-- Connection never merges accounts or private data.
-- An invitee who owns a wedding cannot accept until that is resolved (0012, N1).
-- Shared-resource state is enforced by the authorization layer.
-- **Open:** A4 sharing scope and A5 disconnection behaviour (0011).
+Decision 0038 and the [Phase 16 PRD v1.0](PHASE_16_PRD_v1.0.md).
+
+- The Partner module owns `partner_connections` (Database Design §7.3), which holds the
+  invitation (hashed single-use token, seven-day expiry, resends) and the connection.
+- Accepting runs one transaction: the connection becomes `ACTIVE` and the invitee takes the
+  free owner seat — a new membership, an existing organizer's membership promoted with
+  overrides cleared (D5), or a former partner's membership reactivated (D10).
+- An invitee who owns a wedding cannot accept until they transfer its ownership (D6).
+- Leaving: the caller's membership becomes a removed member; the other owner remains; pending
+  ownership offers involving the leaver are cancelled (D7). Neither owner can remove the other.
+- Every owner-changing transaction (acceptance, leaving, Phase 10 seat transfer) increments
+  `weddings.ownersVersion`, so concurrent owner changes on one wedding are serialized.
+- Authorization is unchanged: owners hold every permission; partner routes need
+  `PARTNER_SHARING`, which is owner-only (0034).
 
 ## 9. Wedding, event, guest and RSVP model
 
@@ -745,14 +755,13 @@ decision records in `docs/decisions/`, which are the authoritative history.
 - Website sitemap, metadata and crawler directives.
 - How scheduled and background work runs on Vercel-only hosting (0025).
 - Phase 10: decisions P10-1–P10-8 are settled (§7.2–§7.11; decision 0034). Still to confirm:
-  the interpretations R1–R6 in 0034, including the member-invitation rate limits. A4/A5 (0011) stay open
-  and are not needed by Phase 10, which builds no partner connection or sharing.
+  the interpretations R1–R6 in 0034, including the member-invitation rate limits.
+- A4/A5 (0011) are decided by 0038 (Phase 16): one shared wedding; leaving.
 
 ## 29. Implementation sequence
 
-Phases are approved one at a time; the current state is in `docs/PROJECT_STATUS.md`.
-Built so far: scaffold, design system and home page, authentication, wedding setup.
-Next: Phase 4 — events, guests, RSVP and invitations.
+Phases are approved one at a time; the current state and the built phases are in
+`docs/PROJECT_STATUS.md`. Phase 16 is built before Phases 11–15 (0037).
 
 ## 30. Summary
 
@@ -760,6 +769,6 @@ A modular monolith designed for secure public deployment: Next.js on Vercel for 
 experience, the NestJS API as a Vercel function (0025), MongoDB Atlas for domain data, S3 for
 media, Redis for rate limiting, and Resend for email. It
 preserves the product principles: one owned wedding per account, accounts never merged,
-explicit sharing (expenses excepted), account-free guests, event-level RSVP, secure
+one wedding shared by connected partners, account-free guests, event-level RSVP, secure
 tokenized guest and QR access, deliberate website publication and granular server-side
 authorization.

@@ -2,7 +2,7 @@
 
 The single place to see where MakeMyMarriage stands. Read this first.
 
-- **Updated:** 2026-10-24, after Phase 9 (Vendors) merged to `main` (PR #31).
+- **Updated:** 2026-11-03, Phase 16 documentation (decisions 0037 and 0038) on `docs/phase-16-partner`.
 - **Source of truth:** the canonical documents listed in the [documentation index](README.md)
   and the decision records in [`decisions/`](decisions/README.md). This page only summarises
   and links; where they differ, the decision record wins.
@@ -13,15 +13,15 @@ The single place to see where MakeMyMarriage stands. Read this first.
 
 | Item            | State                                                                       |
 | --------------- | --------------------------------------------------------------------------- |
-| Current phase   | Phase 10 (Organizers and permissions) — done and merged (PR #36)            |
-| Next phase      | Phase 11 — not started; requires explicit approval                          |
-| `main`          | Scaffold and Phases 1–4, 7–10 (PRs #1–36); decisions 0001–0036; Phase 9 PRD |
-| Open PRs        | None                                                                        |
+| Current phase   | Phase 16 (Partner connection) — documentation and design review             |
+| Next phase      | Phase 16 implementation, after the docs merge and Stitch approval (0037)    |
+| `main`          | Scaffold and Phases 1–4, 7–10 (PRs #1–38); decisions 0001–0036; Phase 9 PRD |
+| Open PRs        | `docs/phase-16-partner` (to be opened)                                      |
 | Live deployment | None yet                                                                    |
 
 ### Branches
 
-Every branch below except `feat/vercel-single-runtime` and `fix/invitation-already-member` is merged into `main`; new work starts from `main`.
+Every branch below except `feat/vercel-single-runtime` and `docs/phase-16-partner` is merged into `main`; new work starts from `main`.
 
 | Branch                            | Contains                                                                                                                                      | State             |
 | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
@@ -57,7 +57,8 @@ Every branch below except `feat/vercel-single-runtime` and `fix/invitation-alrea
 | `docs/phase-10-technical-design`  | Decision 0034, Phase 10 spec updates, amendments to 0012, 0019, 0022, 0026, 0028, 0032                                                        | Merged (PR #34)   |
 | `docs/phase-10-design-approval`   | Decision 0035, R1–R6 accepted in 0034, spec updates for rate limits, migrations, audit index, wedding selector                                | Merged (PR #35)   |
 | `feat/phase-10`                   | Phase 10: migrations and owner seats, permissions on every route, members, invitations, ownership transfer, audit history, web screens M1–M11 | Merged (PR #36)   |
-| `fix/invitation-already-member`   | Decision 0036: an invitation accepted by someone already a member is closed                                                                   | Pull request      |
+| `fix/invitation-already-member`   | Decision 0036: an invitation accepted by someone already a member is closed                                                                   | Merged (PR #38)   |
+| `docs/phase-16-partner`           | Decisions 0037 and 0038, the Phase 16 PRD, spec updates, amendments to 0011, 0012 and 0026                                                    | Pull request      |
 
 The merged branches can be deleted, on GitHub and locally.
 
@@ -68,25 +69,25 @@ approved combining events, guests and RSVP, and invitations into one Phase 4 (an
 later phases keep their numbers. Each phase is approved before it starts, and any open
 questions for it are raised then (0004).
 
-| #   | Phase                                | State                       | Records                                                          |
-| --- | ------------------------------------ | --------------------------- | ---------------------------------------------------------------- |
-| 0   | Scaffold (monorepo, API, CI)         | Done, merged                | 0001–0013                                                        |
-| 1   | Design system and home page          | Done, merged                | 0014                                                             |
-| 2   | Authentication                       | Done, merged                | 0015                                                             |
-| 3   | Wedding setup and dashboard shell    | Done, merged                | 0010, 0012, 0016                                                 |
-| 4   | Events, guests, RSVP and invitations | Done, merged                | 0008, 0010, 0017–0023; [Phase 4 PRD](specs/PHASE_4_PRD_v1.2.md)  |
-| 5   | (merged into Phase 4)                | —                           | —                                                                |
-| 6   | (merged into Phase 4)                | —                           | —                                                                |
-| 7   | Tasks                                | Done, merged (PRs #19, #20) | 0010, 0013, 0026, 0027; [Phase 7 PRD](specs/PHASE_7_PRD_v1.0.md) |
-| 8   | Expenses                             | Done, merged (PR #27)       | 0009, 0010, 0028, 0029; [Phase 8 PRD](specs/PHASE_8_PRD_v1.0.md) |
-| 9   | Vendors                              | Done, merged (PR #31)       | 0010, 0032, 0033; [Phase 9 PRD](specs/PHASE_9_PRD_v1.0.md)       |
-| 10  | Organizers and permissions           | Not started                 | 0012                                                             |
-| 11  | Wedding website                      | Not started                 | 0007                                                             |
-| 12  | Gallery and QR memories              | Not started                 | 0007                                                             |
-| 13  | Live stream                          | Not started                 | —                                                                |
-| 14  | Notifications                        | Not started                 | —                                                                |
-| 15  | Reports                              | Not started                 | 0013                                                             |
-| 16  | Partner connection and sharing       | Not started                 | 0011, 0012 — **blocked on A4/A5**                                |
+| #   | Phase                                | State                       | Records                                                            |
+| --- | ------------------------------------ | --------------------------- | ------------------------------------------------------------------ |
+| 0   | Scaffold (monorepo, API, CI)         | Done, merged                | 0001–0013                                                          |
+| 1   | Design system and home page          | Done, merged                | 0014                                                               |
+| 2   | Authentication                       | Done, merged                | 0015                                                               |
+| 3   | Wedding setup and dashboard shell    | Done, merged                | 0010, 0012, 0016                                                   |
+| 4   | Events, guests, RSVP and invitations | Done, merged                | 0008, 0010, 0017–0023; [Phase 4 PRD](specs/PHASE_4_PRD_v1.2.md)    |
+| 5   | (merged into Phase 4)                | —                           | —                                                                  |
+| 6   | (merged into Phase 4)                | —                           | —                                                                  |
+| 7   | Tasks                                | Done, merged (PRs #19, #20) | 0010, 0013, 0026, 0027; [Phase 7 PRD](specs/PHASE_7_PRD_v1.0.md)   |
+| 8   | Expenses                             | Done, merged (PR #27)       | 0009, 0010, 0028, 0029; [Phase 8 PRD](specs/PHASE_8_PRD_v1.0.md)   |
+| 9   | Vendors                              | Done, merged (PR #31)       | 0010, 0032, 0033; [Phase 9 PRD](specs/PHASE_9_PRD_v1.0.md)         |
+| 10  | Organizers and permissions           | Done, merged (PR #36)       | 0012, 0034–0036                                                    |
+| 11  | Wedding website                      | Deferred after 16 (0037)    | 0007                                                               |
+| 12  | Gallery and QR memories              | Deferred after 16 (0037)    | 0007                                                               |
+| 13  | Live stream                          | Deferred after 16 (0037)    | —                                                                  |
+| 14  | Notifications                        | Deferred after 16 (0037)    | —                                                                  |
+| 15  | Reports                              | Deferred after 16 (0037)    | 0013                                                               |
+| 16  | Partner connection and sharing       | Next — docs and design      | 0011, 0012, 0037, 0038; [Phase 16 PRD](specs/PHASE_16_PRD_v1.0.md) |
 
 Deployment follows decision 0025: the web app and the API on Vercel, MongoDB Atlas, Upstash
 Redis and Resend, all on free plans. Steps are in [DEPLOYMENT.md](DEPLOYMENT.md); the
@@ -193,8 +194,7 @@ mobile navigation drawer, a states board and the copy-drafts board.
 
 | Item                                                                                                                     | Blocks            | Owner         |
 | ------------------------------------------------------------------------------------------------------------------------ | ----------------- | ------------- |
-| A4 — what partners share by default (0011)                                                                               | Phase 16          | Product       |
-| A5 — what happens on partner disconnect (0011)                                                                           | Phase 16          | Product       |
+| Phase 16 Stitch screens M16-01 to M16-09: reviewed 2026-11-03, all need revision before approval                         | Phase 16          | Product       |
 | Usage rights for the Stitch-generated photos                                                                             | Public launch     | Product       |
 | Privacy Policy and Terms of Service text                                                                                 | Public launch     | Legal         |
 | A domain verified in Resend (none owned yet; until then email reaches only the Resend account owner — 0025)              | Email to guests   | Product / Ops |
@@ -261,6 +261,7 @@ checked only for loading the saved values.
 
 | Date       | Change                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-11-03 | Phase 16 decisions on `docs/phase-16-partner`: 0037 (Phase 16 before Phases 11–15, which are deferred) and 0038 (D1–D10: one shared wedding with no private resources or `resource_shares`; email invitation valid 7 days, matching email, hashed single-use token; an organizer is promoted on the same membership with overrides cleared; an invitee who owns a wedding transfers it first; leaving removes the leaver and keeps every record; neither partner removes the other; no bride/groom labels; reconnection reuses the membership). Phase 16 PRD v1.0 added; PRD, System, Database and API Design updated; 0011 Accepted; 0012 and 0026 #14 amended. Decision 0036 fix merged (PR #38). Stitch M16 screens reviewed: all need revision. Implementation not started.                                                         |
 | 2026-10-29 | Phase 10 merged to `main` by PR #36 (`73471c3`); CI passed. Decision 0036 (review issue 7, decided under the product owner's delegation): accepting an invitation when already a member closes it as ACCEPTED without changing the membership; code fix on `fix/invitation-already-member`. Phase 10 wording stays draft (0035).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | 2026-10-29 | `feat/phase-10` reviewed and pushed: a code review found 10 issues; 9 fixed (new owners got their permissions only after a reload; a non-owner could drop an owner's deny on an action they cannot grant; member-list paging; a refused duplicate invitation used a rate-limit slot; daylight-saving dates in the audit filter; two duplicate reads and a duplicated cursor), one left open (accepting an invitation after already joining leaves it pending). Checks: 138 API unit, 189 integration and 318 web tests, lint, type-check, build; an end-to-end run against the local stack (invite by email via Mailpit, accept, limited organizer access, role change, removal, audit history, ownership transfer, pages loading) passed all 36 checks.                                                                                |
 | 2026-10-29 | Phase 10 implemented on `feat/phase-10` (local, not pushed): versioned migrations (`db:migrate`) with the owner-seat backfill; the permission catalogue and evaluator; a permission on every Phase 3–9 route and per-section dashboard; the members module (directory, permissions, roles and overrides under the Admin limits, removal, audit history); organizer invitations (7-day expiry, 10 per wedding per hour, 3 resends per 24 hours, accept with matching email, decline with the token); ownership-seat transfer; and the web screens M1–M11 (Members, invite, member detail, confirmations, ownership, public invitation page, access states, audit history, pickers, wedding selector). All checks pass: 133 API unit, 188 integration and 318 web tests, lint, type-check and build. Not yet reviewed or manually tested. |
