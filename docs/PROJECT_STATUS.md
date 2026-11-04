@@ -2,7 +2,7 @@
 
 The single place to see where MakeMyMarriage stands. Read this first.
 
-- **Updated:** 2026-11-04, Phase 16 implemented on `feat/phase-16` (pushed; pull request to open).
+- **Updated:** 2026-11-04, after Phase 16 (Partner connection) merged to `main` (PR #40).
 - **Source of truth:** the canonical documents listed in the [documentation index](README.md)
   and the decision records in [`decisions/`](decisions/README.md). This page only summarises
   and links; where they differ, the decision record wins.
@@ -11,17 +11,17 @@ The single place to see where MakeMyMarriage stands. Read this first.
 
 ## Snapshot
 
-| Item            | State                                                                       |
-| --------------- | --------------------------------------------------------------------------- |
-| Current phase   | Phase 16 (Partner connection) — implemented and tested; pull request        |
-| Next phase      | Phase 16 PR; then Phases 11–15 as approved (0037)                           |
-| `main`          | Scaffold and Phases 1–4, 7–10 (PRs #1–38); decisions 0001–0036; Phase 9 PRD |
-| Open PRs        | None                                                                        |
-| Live deployment | None yet                                                                    |
+| Item            | State                                                                     |
+| --------------- | ------------------------------------------------------------------------- |
+| Current phase   | Phase 16 (Partner connection) — done and merged (PR #40)                  |
+| Next phase      | Phases 11–15 (deferred by 0037) — not started; requires explicit approval |
+| `main`          | Scaffold and Phases 1–4, 7–10, 16 (PRs #1–40); decisions 0001–0039        |
+| Open PRs        | None                                                                      |
+| Live deployment | None yet                                                                  |
 
 ### Branches
 
-Every branch below except `feat/vercel-single-runtime` and `feat/phase-16` is merged into `main`; new work starts from `main`.
+Every branch below except `feat/vercel-single-runtime` is merged into `main`; new work starts from `main`.
 
 | Branch                            | Contains                                                                                                                                      | State           |
 | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | --------------- |
@@ -59,7 +59,7 @@ Every branch below except `feat/vercel-single-runtime` and `feat/phase-16` is me
 | `feat/phase-10`                   | Phase 10: migrations and owner seats, permissions on every route, members, invitations, ownership transfer, audit history, web screens M1–M11 | Merged (PR #36) |
 | `fix/invitation-already-member`   | Decision 0036: an invitation accepted by someone already a member is closed                                                                   | Merged (PR #38) |
 | `docs/phase-16-partner`           | Decisions 0037–0039, the Phase 16 PRD, spec updates, amendments to 0011, 0012 and 0026                                                        | Merged (PR #39) |
-| `feat/phase-16`                   | Phase 16: partner module, owner-change serialization, Members partner card, invitation page, leaving, reconnection                            | Pull request    |
+| `feat/phase-16`                   | Phase 16: partner module, owner-change serialization, Members partner card, invitation page, leaving, reconnection                            | Merged (PR #40) |
 
 The merged branches can be deleted, on GitHub and locally.
 
@@ -88,7 +88,7 @@ questions for it are raised then (0004).
 | 13  | Live stream                          | Deferred after 16 (0037)    | —                                                                 |
 | 14  | Notifications                        | Deferred after 16 (0037)    | —                                                                 |
 | 15  | Reports                              | Deferred after 16 (0037)    | 0013                                                              |
-| 16  | Partner connection and sharing       | Built on `feat/phase-16`    | 0011, 0012, 0037–0039; [Phase 16 PRD](specs/PHASE_16_PRD_v1.0.md) |
+| 16  | Partner connection and sharing       | Done, merged (PR #40)       | 0011, 0012, 0037–0039; [Phase 16 PRD](specs/PHASE_16_PRD_v1.0.md) |
 
 Deployment follows decision 0025: the web app and the API on Vercel, MongoDB Atlas, Upstash
 Redis and Resend, all on free plans. Steps are in [DEPLOYMENT.md](DEPLOYMENT.md); the
@@ -262,6 +262,7 @@ checked only for loading the saved values.
 
 | Date       | Change                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 2026-11-04 | Phase 16 merged to `main` by PR #40 (`68c39cd`). Wording stays draft (0039). Next: Phases 11–15, each only after explicit approval.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | 2026-11-04 | Phase 16 implemented on `feat/phase-16` (local, not pushed): partner module (invite, resend at most 3 a day, cancel, public page, accept with matching email, decline, leave), owner changes serialized with `weddings.ownersVersion` (also in ownership transfer), organizer promoted with overrides cleared and pending offers cancelled, former partner reactivated; Members partner card, invite dialog, leave confirmation, `/partner-invite/[token]`, success screen, "You left" notice, former members; audit wording. Checks: 138 API unit, 203 integration (13 partner) and 342 web tests, lint, type-check, build; a browser run against the local stack (Chromium, desktop 1440px and mobile 390px) passed all 40 checks. Docs PR #39 merged. Wording draft (0039).                                                                                                       |
 | 2026-11-03 | Phase 16 decisions on `docs/phase-16-partner`: 0037 (Phase 16 before Phases 11–15, which are deferred) and 0038 (D1–D10: one shared wedding with no private resources or `resource_shares`; email invitation valid 7 days, matching email, hashed single-use token; an organizer is promoted on the same membership with overrides cleared; an invitee who owns a wedding transfers it first; leaving removes the leaver and keeps every record; neither partner removes the other; no bride/groom labels; reconnection reuses the membership). Phase 16 PRD v1.0 added; PRD, System, Database and API Design updated; 0011 Accepted; 0012 and 0026 #14 amended. Decision 0036 fix merged (PR #38). Decision 0039: Phase 16 Stitch screens M16-01 to M16-09 approved after three review rounds, with binding corrections applied in code; wording draft. Implementation not started. |
 | 2026-10-29 | Phase 10 merged to `main` by PR #36 (`73471c3`); CI passed. Decision 0036 (review issue 7, decided under the product owner's delegation): accepting an invitation when already a member closes it as ACCEPTED without changing the membership; code fix on `fix/invitation-already-member`. Phase 10 wording stays draft (0035).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
