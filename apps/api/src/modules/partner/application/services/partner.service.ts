@@ -334,6 +334,16 @@ export class PartnerService {
           metadata,
         );
         await this.recordIn(transaction, accepted, userId, AuditAction.PartnerConnected, metadata);
+        // An organizer made owner is no longer eligible for an ownership offer (§7.6).
+        if (admitted.admission === 'PROMOTED') {
+          await this.transfers.cancelForMembershipIn(
+            weddingId,
+            admitted.membership.id,
+            userId,
+            now,
+            transaction,
+          );
+        }
         if (admitted.admission !== 'CREATED') {
           await this.audit.record(
             {

@@ -272,11 +272,30 @@ describe('Partner connection', () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     });
+    // A pending ownership offer to the organizer stops being valid once they are an owner.
+    const owner = await memberships().findOne({
+      weddingId: new Types.ObjectId(weddingId),
+      memberType: 'OWNER',
+    });
+    await transfers().insertOne({
+      weddingId: new Types.ObjectId(weddingId),
+      fromMembershipId: owner!._id,
+      toMembershipId: insertedId,
+      ownerSeat: 1,
+      status: 'PENDING',
+      requestedBy: owner!.userId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
     await invite(email).expect(201);
     const accepted = (
       await organizer.post(`/api/v1/partner-invitations/${tokenFor(email)}/accept`).expect(200)
     ).body.data;
     expect(accepted.membershipId).toBe(insertedId.toHexString());
+    expect(await transfers().findOne({ weddingId: new Types.ObjectId(weddingId) })).toMatchObject({
+      status: 'CANCELLED',
+      cancelledReason: 'MEMBERSHIP_CHANGED',
+    });
     const row = await memberships().findOne({ _id: insertedId });
     expect(row).toMatchObject({
       memberType: 'OWNER',

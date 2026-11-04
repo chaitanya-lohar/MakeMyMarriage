@@ -460,6 +460,7 @@ function LeaveDialog({
         <DangerButton
           icon="logout"
           disabled={!understood}
+          className="disabled:cursor-not-allowed disabled:opacity-50!"
           pending={pending}
           pendingLabel={leaveCopy.leaving}
           onClick={() => void leave()}
