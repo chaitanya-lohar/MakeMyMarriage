@@ -2,7 +2,7 @@
 
 The single place to see where MakeMyMarriage stands. Read this first.
 
-- **Updated:** 2026-11-04, after Phase 16 (Partner connection) merged to `main` (PR #40).
+- **Updated:** 2026-11-05, after the full automated and browser test run of `main` with Phase 16.
 - **Source of truth:** the canonical documents listed in the [documentation index](README.md)
   and the decision records in [`decisions/`](decisions/README.md). This page only summarises
   and links; where they differ, the decision record wins.
@@ -15,13 +15,13 @@ The single place to see where MakeMyMarriage stands. Read this first.
 | --------------- | ------------------------------------------------------------------------- |
 | Current phase   | Phase 16 (Partner connection) — done and merged (PR #40)                  |
 | Next phase      | Phases 11–15 (deferred by 0037) — not started; requires explicit approval |
-| `main`          | Scaffold and Phases 1–4, 7–10, 16 (PRs #1–40); decisions 0001–0039        |
+| `main`          | Scaffold and Phases 1–4, 7–10, 16 (PRs #1–41); decisions 0001–0039        |
 | Open PRs        | None                                                                      |
 | Live deployment | None yet                                                                  |
 
 ### Branches
 
-Every branch below except `feat/vercel-single-runtime` is merged into `main`; new work starts from `main`.
+Every branch below except `feat/vercel-single-runtime` and `docs/status-after-testing` is merged into `main`; new work starts from `main`.
 
 | Branch                            | Contains                                                                                                                                      | State           |
 | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | --------------- |
@@ -60,6 +60,8 @@ Every branch below except `feat/vercel-single-runtime` is merged into `main`; ne
 | `fix/invitation-already-member`   | Decision 0036: an invitation accepted by someone already a member is closed                                                                   | Merged (PR #38) |
 | `docs/phase-16-partner`           | Decisions 0037–0039, the Phase 16 PRD, spec updates, amendments to 0011, 0012 and 0026                                                        | Merged (PR #39) |
 | `feat/phase-16`                   | Phase 16: partner module, owner-change serialization, Members partner card, invitation page, leaving, reconnection                            | Merged (PR #40) |
+| `docs/phase-16-merged`            | This page after the Phase 16 merge                                                                                                            | Merged (PR #41) |
+| `docs/status-after-testing`       | This page after the test run of `main`                                                                                                        | Pull request    |
 
 The merged branches can be deleted, on GitHub and locally.
 
@@ -238,6 +240,12 @@ Phase 4 adds the required `INVITATION_TOKEN_KEYS` variable to `apps/api/.env` (s
 `apps/api/.env.example`).
 
 Checks: `pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm test:integration && pnpm build`.
+
+**Latest full run (2026-11-04, `main` at `68c39cd`, Phases 1–4, 7–10 and 16):** all green — format, lint, type-check, 138 API unit, 203 integration and 342 web tests, and the build. Two browser runs against the local stack (Chromium, 1440px and 390px; email through Mailpit): a smoke run of every module (sign-up, wedding creation, events, guests and assignment, tasks, vendors, expenses, members, audit history, an Editor joining by invitation and limited by role, sign-out and sign-in; every workspace page with no console or server errors and no horizontal scrolling) passed 41/41, and the Phase 16 partner run (invite, resend, cancel, invitation page states, accept, leave, reconnect, organizer view) passed 40/40. The browser scripts are not in the repository.
+
+**Email locally:** `apps/api/.env` may set `EMAIL_TRANSPORT=resend`; to send email to Mailpit (:8025) instead, run the built API directly — `EMAIL_TRANSPORT=smtp SMTP_HOST=localhost SMTP_PORT=1025 node --env-file-if-exists=.env dist/main.js` in `apps/api` — because the turbo dev runner does not pass the override through.
+
+Earlier runs:
 On 2026-10-11 `feat/phase-4` passed format, lint, typecheck, 237 web unit, 65 API unit and
 93 integration tests, both builds and the contract check. A browser run with sample data
 checked every Phase 4 screen at 1440px and 390px (no horizontal scrolling), a guest RSVP, the
@@ -262,6 +270,7 @@ checked only for loading the saved values.
 
 | Date       | Change                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 2026-11-04 | Full test run of `main` (`68c39cd`): all checks green (138 API unit, 203 integration, 342 web tests, build); browser smoke run of every module 41/41 and the Phase 16 partner run 40/40. No product bugs found. The status page after the merge merged as PR #41. The local development database was emptied afterwards (local only).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | 2026-11-04 | Phase 16 merged to `main` by PR #40 (`68c39cd`). Wording stays draft (0039). Next: Phases 11–15, each only after explicit approval.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | 2026-11-04 | Phase 16 implemented on `feat/phase-16` (local, not pushed): partner module (invite, resend at most 3 a day, cancel, public page, accept with matching email, decline, leave), owner changes serialized with `weddings.ownersVersion` (also in ownership transfer), organizer promoted with overrides cleared and pending offers cancelled, former partner reactivated; Members partner card, invite dialog, leave confirmation, `/partner-invite/[token]`, success screen, "You left" notice, former members; audit wording. Checks: 138 API unit, 203 integration (13 partner) and 342 web tests, lint, type-check, build; a browser run against the local stack (Chromium, desktop 1440px and mobile 390px) passed all 40 checks. Docs PR #39 merged. Wording draft (0039).                                                                                                       |
 | 2026-11-03 | Phase 16 decisions on `docs/phase-16-partner`: 0037 (Phase 16 before Phases 11–15, which are deferred) and 0038 (D1–D10: one shared wedding with no private resources or `resource_shares`; email invitation valid 7 days, matching email, hashed single-use token; an organizer is promoted on the same membership with overrides cleared; an invitee who owns a wedding transfers it first; leaving removes the leaver and keeps every record; neither partner removes the other; no bride/groom labels; reconnection reuses the membership). Phase 16 PRD v1.0 added; PRD, System, Database and API Design updated; 0011 Accepted; 0012 and 0026 #14 amended. Decision 0036 fix merged (PR #38). Decision 0039: Phase 16 Stitch screens M16-01 to M16-09 approved after three review rounds, with binding corrections applied in code; wording draft. Implementation not started. |
