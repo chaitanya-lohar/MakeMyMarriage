@@ -2,7 +2,7 @@
 
 The single place to see where MakeMyMarriage stands. Read this first.
 
-- **Updated:** 2026-11-04, Phase 16 implemented on `feat/phase-16` (local, not pushed).
+- **Updated:** 2026-11-04, Phase 16 implemented on `feat/phase-16` (pushed; pull request to open).
 - **Source of truth:** the canonical documents listed in the [documentation index](README.md)
   and the decision records in [`decisions/`](decisions/README.md). This page only summarises
   and links; where they differ, the decision record wins.
@@ -11,55 +11,55 @@ The single place to see where MakeMyMarriage stands. Read this first.
 
 ## Snapshot
 
-| Item            | State                                                                        |
-| --------------- | ---------------------------------------------------------------------------- |
-| Current phase   | Phase 16 (Partner connection) — implemented, reviewed and tested; not pushed |
-| Next phase      | Phase 16 PR; then Phases 11–15 as approved (0037)                            |
-| `main`          | Scaffold and Phases 1–4, 7–10 (PRs #1–38); decisions 0001–0036; Phase 9 PRD  |
-| Open PRs        | None                                                                         |
-| Live deployment | None yet                                                                     |
+| Item            | State                                                                       |
+| --------------- | --------------------------------------------------------------------------- |
+| Current phase   | Phase 16 (Partner connection) — implemented and tested; pull request        |
+| Next phase      | Phase 16 PR; then Phases 11–15 as approved (0037)                           |
+| `main`          | Scaffold and Phases 1–4, 7–10 (PRs #1–38); decisions 0001–0036; Phase 9 PRD |
+| Open PRs        | None                                                                        |
+| Live deployment | None yet                                                                    |
 
 ### Branches
 
 Every branch below except `feat/vercel-single-runtime` and `feat/phase-16` is merged into `main`; new work starts from `main`.
 
-| Branch                            | Contains                                                                                                                                      | State             |
-| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
-| `main`                            | Everything below                                                                                                                              | Up to date        |
-| `feat/home-page`                  | Phase 1: design system and home page                                                                                                          | Merged (PR #2)    |
-| `feat/auth`                       | Phase 2: authentication                                                                                                                       | Merged (PR #3)    |
-| `chore/pre-phase-3`               | The three branches below, `.mcp.json`, this page                                                                                              | Merged (PR #4)    |
-| ↳ `fix/auth-hardening`            | Code-review fixes (4 commits)                                                                                                                 | Merged via #4     |
-| ↳ `fix/auth-test-findings`        | Manual-testing fixes (3 commits)                                                                                                              | Merged via #4     |
-| ↳ `docs/status-after-phase-2`     | This page after the Phase 1/2 merges (1 commit)                                                                                               | Merged via #4     |
-| `feat/weddings`                   | Phase 3: wedding setup and dashboard shell                                                                                                    | Merged (PR #5)    |
-| `fix/workspace-logo-home`         | Workspace logo opens the home page (manual-testing fix)                                                                                       | Merged (PR #6)    |
-| `docs/consolidation`              | Consolidated documentation, decisions 0017–0018                                                                                               | Merged (PR #8)    |
-| `docs/phase-4-design-decisions`   | Decision 0019 and the matching spec updates                                                                                                   | Merged (PR #9)    |
-| `docs/regenerate-email-status`    | Decisions 0020–0022 and the matching spec updates                                                                                             | Merged (PR #10)   |
-| `feat/phase-4`                    | Phase 4: events, guests, RSVP, invitations and dashboard                                                                                      | Merged (PR #12)   |
-| `fix/phase-4-review`              | Decision 0023 and the code-review fixes (includes `feat/phase-4-engineering-decisions`)                                                       | Merged (PR #14)   |
-| `feat/event-date-picker`          | Date pickers, save returns to the dashboard, decision 0024 parked                                                                             | Merged (PR #15)   |
-| `feat/vercel-single-runtime`      | Decision 0025: Vercel-only hosting, no worker, emails sent directly, deployment guide                                                         | Local, not pushed |
-| `docs/phase-7-tasks`              | Decisions 0026 and 0027, the Phase 7 PRD                                                                                                      | Merged (PR #19)   |
-| `feat/phase-7`                    | Phase 7: tasks module, screens and dashboard card (0026, 0027)                                                                                | Merged (PR #20)   |
-| `fix/phase-7-review`              | Phase 7 code-review fixes (4 medium, 9 low) and tests                                                                                         | Merged (PR #22)   |
-| `docs/phase-8-expenses`           | Decision 0028, the Phase 8 PRD, the spec updates and the 0026 #20 amendment                                                                   | Merged (PR #24)   |
-| `fix/phase-7-tasks-empty-state`   | Tasks card when every task is cancelled (0026 #20)                                                                                            | Merged (PR #25)   |
-| `docs/phase-8-design-approval`    | Decision 0029: Phase 8 Stitch screens approved                                                                                                | Merged (PR #26)   |
-| `feat/phase-8`                    | Phase 8: expenses module, payments, dashboard card, screens (0028, 0029)                                                                      | Merged (PR #27)   |
-| `fix/phase-8-review`              | Phase 8 code-review fixes (4 medium, 4 low) and tests, incl. the tasks event race                                                             | Merged (PR #28)   |
-| `fix/expenses-payer-and-category` | Decision 0030 (former-member payers) and the category column fix from Manual QA                                                               | Merged (PR #29)   |
-| `docs/wording-approval`           | Decision 0031: wording of Phases 4, 7 and 8 approved                                                                                          | Merged (PR #30)   |
-| `docs/phase-9-vendors`            | Decisions 0032 and 0033, the Phase 9 PRD and the spec updates                                                                                 | Merged (direct)   |
-| `feat/phase-9`                    | Phase 9: vendors, bookings, expense linking and dashboard summary                                                                             | Merged (PR #31)   |
-| `chore/ignore-codex-config`       | `.gitignore` ignores the local Codex MCP configuration (`.codex/config.toml`)                                                                 | Merged (direct)   |
-| `docs/phase-10-technical-design`  | Decision 0034, Phase 10 spec updates, amendments to 0012, 0019, 0022, 0026, 0028, 0032                                                        | Merged (PR #34)   |
-| `docs/phase-10-design-approval`   | Decision 0035, R1–R6 accepted in 0034, spec updates for rate limits, migrations, audit index, wedding selector                                | Merged (PR #35)   |
-| `feat/phase-10`                   | Phase 10: migrations and owner seats, permissions on every route, members, invitations, ownership transfer, audit history, web screens M1–M11 | Merged (PR #36)   |
-| `fix/invitation-already-member`   | Decision 0036: an invitation accepted by someone already a member is closed                                                                   | Merged (PR #38)   |
-| `docs/phase-16-partner`           | Decisions 0037–0039, the Phase 16 PRD, spec updates, amendments to 0011, 0012 and 0026                                                        | Merged (PR #39)   |
-| `feat/phase-16`                   | Phase 16: partner module, owner-change serialization, Members partner card, invitation page, leaving, reconnection                            | Local, not pushed |
+| Branch                            | Contains                                                                                                                                      | State           |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | --------------- |
+| `main`                            | Everything below                                                                                                                              | Up to date      |
+| `feat/home-page`                  | Phase 1: design system and home page                                                                                                          | Merged (PR #2)  |
+| `feat/auth`                       | Phase 2: authentication                                                                                                                       | Merged (PR #3)  |
+| `chore/pre-phase-3`               | The three branches below, `.mcp.json`, this page                                                                                              | Merged (PR #4)  |
+| ↳ `fix/auth-hardening`            | Code-review fixes (4 commits)                                                                                                                 | Merged via #4   |
+| ↳ `fix/auth-test-findings`        | Manual-testing fixes (3 commits)                                                                                                              | Merged via #4   |
+| ↳ `docs/status-after-phase-2`     | This page after the Phase 1/2 merges (1 commit)                                                                                               | Merged via #4   |
+| `feat/weddings`                   | Phase 3: wedding setup and dashboard shell                                                                                                    | Merged (PR #5)  |
+| `fix/workspace-logo-home`         | Workspace logo opens the home page (manual-testing fix)                                                                                       | Merged (PR #6)  |
+| `docs/consolidation`              | Consolidated documentation, decisions 0017–0018                                                                                               | Merged (PR #8)  |
+| `docs/phase-4-design-decisions`   | Decision 0019 and the matching spec updates                                                                                                   | Merged (PR #9)  |
+| `docs/regenerate-email-status`    | Decisions 0020–0022 and the matching spec updates                                                                                             | Merged (PR #10) |
+| `feat/phase-4`                    | Phase 4: events, guests, RSVP, invitations and dashboard                                                                                      | Merged (PR #12) |
+| `fix/phase-4-review`              | Decision 0023 and the code-review fixes (includes `feat/phase-4-engineering-decisions`)                                                       | Merged (PR #14) |
+| `feat/event-date-picker`          | Date pickers, save returns to the dashboard, decision 0024 parked                                                                             | Merged (PR #15) |
+| `feat/vercel-single-runtime`      | Decision 0025: Vercel-only hosting, no worker, emails sent directly, deployment guide                                                         | Pull request    |
+| `docs/phase-7-tasks`              | Decisions 0026 and 0027, the Phase 7 PRD                                                                                                      | Merged (PR #19) |
+| `feat/phase-7`                    | Phase 7: tasks module, screens and dashboard card (0026, 0027)                                                                                | Merged (PR #20) |
+| `fix/phase-7-review`              | Phase 7 code-review fixes (4 medium, 9 low) and tests                                                                                         | Merged (PR #22) |
+| `docs/phase-8-expenses`           | Decision 0028, the Phase 8 PRD, the spec updates and the 0026 #20 amendment                                                                   | Merged (PR #24) |
+| `fix/phase-7-tasks-empty-state`   | Tasks card when every task is cancelled (0026 #20)                                                                                            | Merged (PR #25) |
+| `docs/phase-8-design-approval`    | Decision 0029: Phase 8 Stitch screens approved                                                                                                | Merged (PR #26) |
+| `feat/phase-8`                    | Phase 8: expenses module, payments, dashboard card, screens (0028, 0029)                                                                      | Merged (PR #27) |
+| `fix/phase-8-review`              | Phase 8 code-review fixes (4 medium, 4 low) and tests, incl. the tasks event race                                                             | Merged (PR #28) |
+| `fix/expenses-payer-and-category` | Decision 0030 (former-member payers) and the category column fix from Manual QA                                                               | Merged (PR #29) |
+| `docs/wording-approval`           | Decision 0031: wording of Phases 4, 7 and 8 approved                                                                                          | Merged (PR #30) |
+| `docs/phase-9-vendors`            | Decisions 0032 and 0033, the Phase 9 PRD and the spec updates                                                                                 | Merged (direct) |
+| `feat/phase-9`                    | Phase 9: vendors, bookings, expense linking and dashboard summary                                                                             | Merged (PR #31) |
+| `chore/ignore-codex-config`       | `.gitignore` ignores the local Codex MCP configuration (`.codex/config.toml`)                                                                 | Merged (direct) |
+| `docs/phase-10-technical-design`  | Decision 0034, Phase 10 spec updates, amendments to 0012, 0019, 0022, 0026, 0028, 0032                                                        | Merged (PR #34) |
+| `docs/phase-10-design-approval`   | Decision 0035, R1–R6 accepted in 0034, spec updates for rate limits, migrations, audit index, wedding selector                                | Merged (PR #35) |
+| `feat/phase-10`                   | Phase 10: migrations and owner seats, permissions on every route, members, invitations, ownership transfer, audit history, web screens M1–M11 | Merged (PR #36) |
+| `fix/invitation-already-member`   | Decision 0036: an invitation accepted by someone already a member is closed                                                                   | Merged (PR #38) |
+| `docs/phase-16-partner`           | Decisions 0037–0039, the Phase 16 PRD, spec updates, amendments to 0011, 0012 and 0026                                                        | Merged (PR #39) |
+| `feat/phase-16`                   | Phase 16: partner module, owner-change serialization, Members partner card, invitation page, leaving, reconnection                            | Pull request    |
 
 The merged branches can be deleted, on GitHub and locally.
 
