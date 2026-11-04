@@ -42,6 +42,20 @@ export interface InvitedAccess {
   invitedAt: Date;
 }
 
+/**
+ * How a partner's membership was made an owner (Database Design §7.3, decision 0038): a new
+ * row, an organizer's row promoted (D5), or a removed member's row reactivated (D10).
+ */
+export type PartnerAdmission = 'CREATED' | 'PROMOTED' | 'REACTIVATED';
+
+/** The owner seat was taken by someone else (`owner_seat_per_wedding`). */
+export class OwnerSeatTakenError extends Error {
+  constructor() {
+    super('The owner seat is taken');
+    this.name = 'OwnerSeatTakenError';
+  }
+}
+
 /** The user already holds an OWNER membership (0010 #18, decision 0012). */
 export class OwnerMembershipExistsError extends Error {
   constructor() {

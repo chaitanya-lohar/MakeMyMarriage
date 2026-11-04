@@ -39,6 +39,14 @@ export class WeddingRecord {
   @Prop()
   deletedAt?: Date;
 
+  /**
+   * Incremented by every transaction that changes the wedding's owners (partner acceptance,
+   * leaving, ownership transfer), so two of them conflict and one retries (Database Design
+   * §7.1, decision 0038). Absent means 0; never shown or returned.
+   */
+  @Prop()
+  ownersVersion?: number;
+
   createdAt!: Date;
   updatedAt!: Date;
 }

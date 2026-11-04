@@ -110,13 +110,19 @@ export class OwnershipTransfersRepository {
   }
 
   /** The pending offer that involves a membership, as giver or recipient, if any. */
-  async findPendingFor(weddingId: string, membershipId: string): Promise<OwnershipTransfer | null> {
+  async findPendingFor(
+    weddingId: string,
+    membershipId: string,
+    transaction?: Transaction,
+  ): Promise<OwnershipTransfer | null> {
     const id = new Types.ObjectId(membershipId);
-    const document = await this.transfers.findOne({
-      weddingId: new Types.ObjectId(weddingId),
-      status: OwnershipTransferStatus.Pending,
-      $or: [{ fromMembershipId: id }, { toMembershipId: id }],
-    });
+    const document = await this.transfers
+      .findOne({
+        weddingId: new Types.ObjectId(weddingId),
+        status: OwnershipTransferStatus.Pending,
+        $or: [{ fromMembershipId: id }, { toMembershipId: id }],
+      })
+      .session(sessionOf(transaction) ?? null);
     return document ? toTransfer(document) : null;
   }
 }

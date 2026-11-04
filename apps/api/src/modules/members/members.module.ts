@@ -51,6 +51,6 @@ import {
     MemberInvitationsRepository,
     OwnershipTransfersRepository,
   ],
-  exports: [MembersService],
+  exports: [MembersService, OwnershipTransfersService],
 })
 export class MembersModule {}

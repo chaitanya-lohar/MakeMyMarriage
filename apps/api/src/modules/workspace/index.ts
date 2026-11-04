@@ -25,9 +25,11 @@ export {
 export {
   OWNER_SEATS,
   OwnerMembershipExistsError,
+  OwnerSeatTakenError,
   type InvitedAccess,
   type Membership,
   type OwnerSeat,
+  type PartnerAdmission,
   type PermissionOverride,
 } from './domain/types/membership.js';
 export { WorkspaceModule } from './workspace.module.js';

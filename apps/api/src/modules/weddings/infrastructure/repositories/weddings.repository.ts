@@ -74,6 +74,21 @@ export class WeddingsRepository {
     });
   }
 
+  /**
+   * Increments `ownersVersion` inside an owner-changing transaction (decision 0038): a second
+   * such transaction on the same wedding then hits a write conflict and is retried, so owner
+   * changes are serialized. False when the wedding is missing or deleted.
+   */
+  async bumpOwnersVersion(id: string, transaction: Transaction): Promise<boolean> {
+    if (!isValidObjectId(id)) return false;
+    const result = await this.weddings.updateOne(
+      { _id: id, ...notDeleted() },
+      { $inc: { ownersVersion: 1 } },
+      { session: sessionOf(transaction) },
+    );
+    return result.matchedCount === 1;
+  }
+
   /** Applies the changes; a null optional field is removed. Returns null if not found. */
   async update(id: string, changes: WeddingChanges): Promise<Wedding | null> {
     if (!isValidObjectId(id)) return null;

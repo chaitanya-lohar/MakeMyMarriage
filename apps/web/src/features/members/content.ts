@@ -12,6 +12,9 @@ export const membersCopy = {
   tabInvitations: 'Invitations',
   showRemoved: 'Show removed members',
   removedOn: (date: string) => `Removed ${date}`,
+  /** A former owner who left the wedding (Stitch "P16 · M16-07", decision 0039). */
+  formerMember: 'Former member',
+  leftOn: (date: string) => `Left ${date}`,
   joinedOn: (date: string) => `Joined ${date}`,
   inviteAgain: 'Invite again',
   customPermissions: 'Custom permissions',

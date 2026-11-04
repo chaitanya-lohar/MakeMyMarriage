@@ -1,7 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
+import { PartnerCard } from '@/features/partner/components/partner-card';
+import { rememberLeftWedding } from '@/features/partner/partner-model';
 import { Chip } from '@/components/ui/chip';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Banner, PrimaryButton, SecondaryButton } from '@/components/ui/form';
@@ -44,6 +47,7 @@ type Tab = 'members' | 'invitations';
  * server checks each action again (API Design §7.1).
  */
 function MembersPage({ wedding }: { wedding: ApiWedding }) {
+  const router = useRouter();
   const { user } = useReadyWorkspace();
   const { reload: reloadWorkspace } = useWorkspace();
   const { can, isOwner } = usePermissions();
@@ -167,6 +171,23 @@ function MembersPage({ wedding }: { wedding: ApiWedding }) {
         </section>
       )}
 
+      {isOwner && (
+        <PartnerCard
+          weddingId={wedding.id}
+          weddingName={wedding.displayName}
+          onToast={setToast}
+          onChanged={() => {
+            refresh();
+            reloadWorkspace();
+          }}
+          onLeft={(otherName) => {
+            rememberLeftWedding({ weddingName: wedding.displayName, otherName });
+            router.replace('/dashboard');
+            reloadWorkspace();
+          }}
+        />
+      )}
+
       {canViewDetails && (
         <div role="tablist" className="mb-5 flex gap-2 border-b border-hairline">
           {(['members', 'invitations'] as const).map((value) => (
@@ -267,7 +288,9 @@ function MembersPage({ wedding }: { wedding: ApiWedding }) {
                       {(member.acceptedAt || member.revokedAt) && (
                         <p className="text-body-sm text-on-surface-variant">
                           {removed && member.revokedAt
-                            ? copy.removedOn(shortDate(member.revokedAt))
+                            ? member.left
+                              ? copy.leftOn(shortDate(member.revokedAt))
+                              : copy.removedOn(shortDate(member.revokedAt))
                             : member.acceptedAt
                               ? copy.joinedOn(shortDate(member.acceptedAt))
                               : null}
@@ -276,9 +299,15 @@ function MembersPage({ wedding }: { wedding: ApiWedding }) {
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
                       <Chip tone={member.isOwner ? 'champagne' : 'neutral'}>
-                        {member.isOwner ? copy.owner : (roleLabels[member.role ?? ''] ?? '')}
+                        {member.isOwner
+                          ? copy.owner
+                          : member.left
+                            ? copy.formerMember
+                            : (roleLabels[member.role ?? ''] ?? '')}
                       </Chip>
                       {removed ? (
+                        // A former partner is invited again from the Partner card (0039).
+                        !member.left &&
                         can('MEMBERS', 'INVITE') &&
                         member.email && (
                           <SecondaryButton
