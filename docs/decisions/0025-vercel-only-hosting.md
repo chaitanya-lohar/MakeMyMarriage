@@ -1,7 +1,8 @@
 # 0025 — Vercel-only hosting: no worker, email sent directly
 
 **Status:** Accepted (approved by the product owner on 2026-10-14). Amends 0002 and 0005;
-supersedes 0023 #1 and the worker statements listed below.
+supersedes 0023 #1 and the worker statements listed below. Amended by 0041 (Brevo as an email
+provider: decisions 1 and 3 and the consequence about a domain).
 
 The product owner chose to deploy without containers or a background worker, to keep
 hosting free while the product is tested with a small group. The trade-offs below were

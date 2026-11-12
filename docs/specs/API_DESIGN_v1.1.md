@@ -42,7 +42,7 @@ external integrations.
 
 ```text
 Browser → Next.js (Vercel) → /api/v1 proxy (same origin — 0001) → NestJS API (Vercel function — 0025)
-NestJS API → MongoDB Atlas · Redis (rate limits) · Amazon S3 · Resend · Google Places · YouTube Live
+NestJS API → MongoDB Atlas · Redis (rate limits) · Amazon S3 · email provider (Brevo or Resend, 0041) · Google Places · YouTube Live
 ```
 
 The browser never receives database, Redis or provider credentials. Public and guest
@@ -1147,7 +1147,7 @@ independently where practical.
 
 | Integration         | API responsibility                                                  |
 | ------------------- | ------------------------------------------------------------------- |
-| Resend              | Send transactional emails; capture provider status (webhooks later) |
+| Brevo or Resend     | Send transactional emails; capture provider status (webhooks later) |
 | Google Places (New) | Vendor discovery only (deferred — 0032 #3); map responses to DTOs   |
 | YouTube Live        | Store stream identifiers; expose embed information                  |
 | Amazon S3           | Binary storage; controlled upload and access URLs                   |

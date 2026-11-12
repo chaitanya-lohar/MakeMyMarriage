@@ -1,14 +1,14 @@
 # Deploying MakeMyMarriage (decision 0025)
 
 Everything runs on free plans: the web app and the API as two Vercel projects, MongoDB
-Atlas, Upstash Redis and Resend. All of it is in the Mumbai region. There is no worker and
+Atlas, Upstash Redis and Brevo. All of it is in the Mumbai region. There is no worker and
 no container. Do the steps in order; each one needs values from the one before.
 
 ```text
 Browser → Vercel "web" (apps/web) → /api/v1 → Vercel "api" (apps/api)
                                                  ├─ MongoDB Atlas (data)
                                                  ├─ Upstash Redis (rate limits)
-                                                 └─ Resend (email)
+                                                 └─ Brevo (email)
 ```
 
 Keep every secret below in a password manager. Never commit one or paste it into a chat.
@@ -32,14 +32,24 @@ Keep every secret below in a password manager. Never commit one or paste it into
    region **ap-south-1 (Mumbai)**, TLS on.
 2. Copy the **Redis URL** that starts with `rediss://` (two s's). This is `REDIS_URL`.
 
-## 3. Resend
+## 3. Brevo (decision 0041)
 
-1. In <https://resend.com> create an API key with "Sending access". This is
-   `RESEND_API_KEY`.
-2. Without a domain, use `EMAIL_FROM=MakeMyMarriage <onboarding@resend.dev>`. Resend then
-   delivers **only to the address you signed up with**: invitations to guests and password
-   resets for other accounts will fail. Organizers share invitations with Copy link or
-   WhatsApp until a domain is verified (0025).
+1. Create a free account at <https://www.brevo.com> and finish its sign-up checks. A new
+   account may stay "under validation" for a while; sending fails until Brevo approves it.
+2. **Senders, domains, IPs → Senders** → add a sender: name `MakeMyMarriage`, your own email
+   address (a Gmail address works). Confirm it with the message Brevo sends to that address.
+   No domain is needed.
+3. **Settings → SMTP & API → API keys** → generate a key. This is `BREVO_API_KEY`.
+4. **Security → Authorised IPs**: if API calls are limited to listed IP addresses, switch
+   that off. Vercel has no fixed addresses, so a restricted key is refused.
+5. `EMAIL_FROM` is `MakeMyMarriage <the sender address from step 2>`.
+
+What to expect without a domain: any address can receive the emails, but Brevo replaces the
+domain of a free sender address with one of its own, so the sender shown is a Brevo address
+named "MakeMyMarriage", and more mail may land in Spam or Promotions. The free plan allows
+about 300 emails a day. A domain verified in Brevo (or in Resend, with
+`EMAIL_TRANSPORT=resend` and `RESEND_API_KEY`) removes both limits without a code change.
+The menu names above are Brevo's at the time of writing and may differ.
 
 ## 4. Secrets
 
@@ -89,9 +99,9 @@ symbols) and rebuild the URI. The api project fails the same way on every reques
    | `REDIS_URL`             | from step 2                                       |
    | `JWT_ACCESS_SECRET`     | from step 4                                       |
    | `INVITATION_TOKEN_KEYS` | `v1:<key from step 4>`                            |
-   | `EMAIL_TRANSPORT`       | `resend`                                          |
-   | `RESEND_API_KEY`        | from step 3                                       |
-   | `EMAIL_FROM`            | `MakeMyMarriage <onboarding@resend.dev>`          |
+   | `EMAIL_TRANSPORT`       | `brevo`                                           |
+   | `BREVO_API_KEY`         | from step 3                                       |
+   | `EMAIL_FROM`            | `MakeMyMarriage <your sender address>` (step 3)   |
    | `WEB_APP_URL`           | `https://placeholder.vercel.app` for now (step 8) |
    | `LOG_LEVEL`             | `info`                                            |
 
@@ -118,10 +128,12 @@ symbols) and rebuild the URI. The api project fails the same way on every reques
 
 - [ ] `https://<api>/health/ready` shows `mongodb: up, redis: up`.
 - [ ] Sign up, sign out and sign in on the web address.
-- [ ] Create a wedding, an event and a guest whose email is your Resend sign-up address.
+- [ ] Create a wedding, an event and a guest with an email address you can read (not the
+      sender address).
 - [ ] Send the invitation: the panel says "Email sent." and the email arrives.
 - [ ] Open the invitation link on a phone and RSVP; refresh the guest page to see it.
-- [ ] Forgot password for your own address: the email arrives.
+- [ ] Forgot password for your own address: the email arrives (check Spam too).
+- [ ] In Brevo, the transactional email logs list both emails as delivered.
 - [ ] **Visitor IP (0025):** in Atlas, open the newest `auth_sessions` record and check that
       `ipAddress` is your own public IP, not a Vercel address. If it isn't, the per-IP rate
       limits count every visitor together; report it before inviting real guests.
