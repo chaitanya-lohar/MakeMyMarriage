@@ -76,9 +76,25 @@ describe('parseEnv', () => {
   });
 
   it('requires a Brevo API key and a usable sender only when Brevo is the transport', () => {
-    const brevo = { ...validEnv, EMAIL_TRANSPORT: 'brevo' };
+    const brevo = {
+      ...validEnv,
+      EMAIL_TRANSPORT: 'brevo',
+      EMAIL_FROM: 'MakeMyMarriage <sender@example.com>',
+    };
     expect(() => parseEnv(brevo)).toThrow(/BREVO_API_KEY/);
+    // No Resend key is needed, and the key never appears in an error.
     expect(parseEnv({ ...brevo, BREVO_API_KEY: 'xkeysib-x' }).BREVO_API_KEY).toBe('xkeysib-x');
+    const { EMAIL_FROM: _omitted, ...withoutSender } = brevo;
+    let error: unknown;
+    try {
+      parseEnv({ ...withoutSender, BREVO_API_KEY: 'xkeysib-secret' });
+    } catch (caught) {
+      error = caught;
+    }
+    expect((error as EnvValidationError).issues).toEqual([
+      'EMAIL_FROM: is required when EMAIL_TRANSPORT is brevo',
+    ]);
+    expect((error as Error).message).not.toContain('xkeysib-secret');
     expect(() =>
       parseEnv({ ...brevo, BREVO_API_KEY: 'xkeysib-x', EMAIL_FROM: 'MakeMyMarriage' }),
     ).toThrow(/EMAIL_FROM/);

@@ -148,6 +148,10 @@ export function parseEnv(source: NodeJS.ProcessEnv): Env {
     );
   }
   const issues = deployedIssues(result.data, source);
+  // The default sender is not an address verified in a Brevo account (decision 0041).
+  if (result.data.EMAIL_TRANSPORT === 'brevo' && !source.EMAIL_FROM) {
+    issues.push('EMAIL_FROM: is required when EMAIL_TRANSPORT is brevo');
+  }
   if (issues.length > 0) throw new EnvValidationError(issues);
   return result.data;
 }
