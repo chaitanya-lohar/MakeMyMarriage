@@ -29,12 +29,14 @@ export const envSchema = z
     // Public web origin used in links sent by email, e.g. password reset.
     WEB_APP_URL: z.url({ protocol: /^https?$/ }).default('http://localhost:3000'),
 
-    // Email. `smtp` targets the local Mailpit inbox; `resend` sends real email.
-    EMAIL_TRANSPORT: z.enum(['smtp', 'resend']).default('smtp'),
+    // Email. `smtp` targets the local Mailpit inbox; `brevo` and `resend` send real email
+    // (decision 0041).
+    EMAIL_TRANSPORT: z.enum(['smtp', 'resend', 'brevo']).default('smtp'),
     EMAIL_FROM: z.string().min(3).default('MakeMyMarriage <no-reply@makemymarriage.com>'),
     SMTP_HOST: z.string().min(1).default('localhost'),
     SMTP_PORT: z.coerce.number().int().min(1).max(65535).default(1025),
     RESEND_API_KEY: z.string().min(1).optional(),
+    BREVO_API_KEY: z.string().min(1).optional(),
 
     // Invitation-token encryption keys (decision 0018), current key first, older keys after
     // it for rotation: `v2:<base64 key>,v1:<base64 key>`. Each key is 32 random bytes:
@@ -51,9 +53,42 @@ export const envSchema = z
         message: 'is required when EMAIL_TRANSPORT is resend',
       });
     }
+    if (env.EMAIL_TRANSPORT === 'brevo') {
+      if (!env.BREVO_API_KEY) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['BREVO_API_KEY'],
+          message: 'is required when EMAIL_TRANSPORT is brevo',
+        });
+      }
+      // Brevo takes the sender as a name and an address, not as one header value.
+      if (parseEmailFrom(env.EMAIL_FROM) === null) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['EMAIL_FROM'],
+          message: 'must be "Name <address>" or an address when EMAIL_TRANSPORT is brevo',
+        });
+      }
+    }
   });
 
 export type Env = z.infer<typeof envSchema>;
+
+/** The sender of outgoing email, split into the parts some providers need separately. */
+export interface EmailFrom {
+  name: string | null;
+  address: string;
+}
+
+/** Parses `Name <address>` or a bare address; null when it is neither. */
+export function parseEmailFrom(value: string): EmailFrom | null {
+  const match = /^\s*(?:"?([^"<>]*?)"?\s*<([^<>\s]+)>|([^<>\s]+))\s*$/.exec(value);
+  if (!match) return null;
+  const address = match[2] ?? match[3] ?? '';
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(address)) return null;
+  const name = match[1]?.trim();
+  return { name: name ? name : null, address };
+}
 
 /** A versioned encryption key ring; the first entry is the current key. */
 export interface KeyRing {
@@ -113,6 +148,10 @@ export function parseEnv(source: NodeJS.ProcessEnv): Env {
     );
   }
   const issues = deployedIssues(result.data, source);
+  // The default sender is not an address verified in a Brevo account (decision 0041).
+  if (result.data.EMAIL_TRANSPORT === 'brevo' && !source.EMAIL_FROM) {
+    issues.push('EMAIL_FROM: is required when EMAIL_TRANSPORT is brevo');
+  }
   if (issues.length > 0) throw new EnvValidationError(issues);
   return result.data;
 }

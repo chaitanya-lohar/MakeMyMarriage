@@ -23,6 +23,7 @@ export class AppConfig {
     readonly from: string;
     readonly smtp: { readonly host: string; readonly port: number };
     readonly resendApiKey: string | undefined;
+    readonly brevoApiKey: string | undefined;
   };
   /** Encryption keys for the stored invitation-token copy (decision 0018). */
   readonly invitations: { readonly tokenKeys: KeyRing };
@@ -55,6 +56,7 @@ export class AppConfig {
       from: env.EMAIL_FROM,
       smtp: { host: env.SMTP_HOST, port: env.SMTP_PORT },
       resendApiKey: env.RESEND_API_KEY,
+      brevoApiKey: env.BREVO_API_KEY,
     };
     // Validated by the environment schema.
     this.invitations = { tokenKeys: parseKeyRing(env.INVITATION_TOKEN_KEYS) as KeyRing };
