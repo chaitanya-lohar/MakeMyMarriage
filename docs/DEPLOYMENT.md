@@ -53,18 +53,26 @@ openssl rand -base64 32   # the key in INVITATION_TOKEN_KEYS, written as v1:<key
 Losing `INVITATION_TOKEN_KEYS` makes every existing invitation link unsendable (the links
 still open, but emails can't be built), so store it safely.
 
-## 5. Create the database indexes (once)
+## 5. Migrate the database and create the indexes
 
-From the repository on your machine (Docker is not needed; this talks to Atlas):
+From the repository on your machine (Docker is not needed; this talks to Atlas). Run the
+migrations first, then the indexes, in that order (Database Design §30):
 
 ```sh
 pnpm install
 pnpm --filter @makemymarriage/api build
+MONGODB_URI="<Atlas URI from step 1>" pnpm --filter @makemymarriage/api db:migrate
 MONGODB_URI="<Atlas URI from step 1>" pnpm --filter @makemymarriage/api db:indexes
 ```
 
-It prints `indexes ready` for each collection. Run it again after any change to the
-indexes in the code. It never drops anything.
+The second command prints `indexes ready` for each collection. Run both again, before
+deploying, after any change to the migrations or the indexes in the code. Neither drops
+anything.
+
+If either fails with `bad auth : authentication failed`, the user or password in the URI is
+wrong: reset the database user's password in Atlas (letters and digits only, or URL-encode
+symbols) and rebuild the URI. The api project fails the same way on every request until
+`MONGODB_URI` is corrected there and the project is redeployed.
 
 ## 6. Vercel project "api"
 
