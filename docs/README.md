@@ -11,13 +11,13 @@ overrides a specification only for the scope it covers.
 | Document                                          | Defines                                                        |
 | ------------------------------------------------- | -------------------------------------------------------------- |
 | [PROJECT_STATUS.md](PROJECT_STATUS.md)            | Current phase, branches, open decisions, working rules         |
-| [Decision records 0001–0039](decisions/README.md) | Approved decisions and what they supersede                     |
+| [Decision records 0001–0040](decisions/README.md) | Approved decisions and what they supersede                     |
 | [PRD v1.2](specs/PRD_v1.2.md)                     | Master product scope and behaviour                             |
 | [Phase 4 PRD v1.2](specs/PHASE_4_PRD_v1.2.md)     | Phase 4 requirements and acceptance criteria (built)           |
 | [Phase 7 PRD v1.0](specs/PHASE_7_PRD_v1.0.md)     | Phase 7 tasks: requirements and acceptance criteria (built)    |
 | [Phase 8 PRD v1.0](specs/PHASE_8_PRD_v1.0.md)     | Phase 8 expenses: requirements and acceptance criteria (built) |
 | [Phase 9 PRD v1.0](specs/PHASE_9_PRD_v1.0.md)     | Phase 9 vendors: requirements and acceptance criteria (built)  |
-| [Phase 16 PRD v1.0](specs/PHASE_16_PRD_v1.0.md)   | Phase 16 partner connection: requirements (next; not built)    |
+| [Phase 16 PRD v1.0](specs/PHASE_16_PRD_v1.0.md)   | Phase 16 partner connection: requirements (built)              |
 | [System Design v1.3](specs/SYSTEM_DESIGN_v1.3.md) | Architecture, deployment, module boundaries                    |
 | [Database Design v1.1](specs/DB_DESIGN_v1.1.md)   | Collections, fields, indexes, lifecycle, transactions          |
 | [API Design v1.1](specs/API_DESIGN_v1.1.md)       | Routes (authoritative), payloads, errors, authorization        |

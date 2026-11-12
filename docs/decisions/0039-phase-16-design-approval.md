@@ -2,7 +2,8 @@
 
 **Status:** Accepted (approved by the product owner on 2026-11-03). Supplements
 [0038](0038-phase-16-partner-connection.md) and the [Phase 16 PRD v1.0](../specs/PHASE_16_PRD_v1.0.md)
-§9.
+§9. The draft wording of #4 was approved by [0040](0040-phase-16-wording-approval.md) on
+2026-11-12.
 
 ## Context
 

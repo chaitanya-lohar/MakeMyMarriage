@@ -2,7 +2,7 @@
 
 | Item         | Value                                                                                                                                                                    |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Status       | **Canonical** for Phase 16. Approved decisions D1–D10 (0038); screens approved (0039); not yet built.                                                                    |
+| Status       | **Canonical** for Phase 16. Approved decisions D1–D10 (0038); screens approved (0039); built (PR #40); wording approved (0040).                                          |
 | Date         | 2026-11-03                                                                                                                                                               |
 | Parent       | [PRD v1.2](PRD_v1.2.md) (sections 7, 23 and 24)                                                                                                                          |
 | Decisions    | [0038](../decisions/0038-phase-16-partner-connection.md), [0037](../decisions/0037-phase-16-before-phases-11-15.md), with 0009, 0012 and 0034                            |
@@ -13,6 +13,7 @@
 | ------- | ---------- | ----------------------------------------------------------- |
 | 1.0     | 2026-11-03 | First version, from the Phase 16 discovery (decision 0038). |
 | 1.0     | 2026-11-03 | §9: screens approved with corrections (decision 0039).      |
+| 1.0     | 2026-11-12 | §11: wording approved (decision 0040); status updated.      |
 
 ## 1. Purpose and outcomes
 
@@ -124,7 +125,7 @@ partner's view, reconnection, and the error states. Draft wording, as earlier ph
 
 ## 11. Deferred or open
 
-- Final wording (draft, as earlier phases).
+- Final wording: approved as built (decision 0040).
 - Partner-related features of Phases 11–15 (deferred — 0037).
 
 ## 12. Definition of done

@@ -2,7 +2,7 @@
 
 The single place to see where MakeMyMarriage stands. Read this first.
 
-- **Updated:** 2026-11-05, after the full automated and browser test run of `main` with Phase 16.
+- **Updated:** 2026-11-12, Phase 16 wording approved (decision 0040).
 - **Source of truth:** the canonical documents listed in the [documentation index](README.md)
   and the decision records in [`decisions/`](decisions/README.md). This page only summarises
   and links; where they differ, the decision record wins.
@@ -15,7 +15,7 @@ The single place to see where MakeMyMarriage stands. Read this first.
 | --------------- | ------------------------------------------------------------------------- |
 | Current phase   | Phase 16 (Partner connection) — done and merged (PR #40)                  |
 | Next phase      | Phases 11–15 (deferred by 0037) — not started; requires explicit approval |
-| `main`          | Scaffold and Phases 1–4, 7–10, 16 (PRs #1–41); decisions 0001–0039        |
+| `main`          | Scaffold and Phases 1–4, 7–10, 16 (PRs #1–41); decisions 0001–0040        |
 | Open PRs        | None                                                                      |
 | Live deployment | None yet                                                                  |
 
@@ -61,7 +61,7 @@ Every branch below except `feat/vercel-single-runtime` and `docs/status-after-te
 | `docs/phase-16-partner`           | Decisions 0037–0039, the Phase 16 PRD, spec updates, amendments to 0011, 0012 and 0026                                                        | Merged (PR #39) |
 | `feat/phase-16`                   | Phase 16: partner module, owner-change serialization, Members partner card, invitation page, leaving, reconnection                            | Merged (PR #40) |
 | `docs/phase-16-merged`            | This page after the Phase 16 merge                                                                                                            | Merged (PR #41) |
-| `docs/status-after-testing`       | This page after the test run of `main`                                                                                                        | Pull request    |
+| `docs/status-after-testing`       | This page after the test run of `main`; decision 0040                                                                                         | Pull request    |
 
 The merged branches can be deleted, on GitHub and locally.
 
@@ -90,7 +90,7 @@ questions for it are raised then (0004).
 | 13  | Live stream                          | Deferred after 16 (0037)    | —                                                                 |
 | 14  | Notifications                        | Deferred after 16 (0037)    | —                                                                 |
 | 15  | Reports                              | Deferred after 16 (0037)    | 0013                                                              |
-| 16  | Partner connection and sharing       | Done, merged (PR #40)       | 0011, 0012, 0037–0039; [Phase 16 PRD](specs/PHASE_16_PRD_v1.0.md) |
+| 16  | Partner connection and sharing       | Done, merged (PR #40)       | 0011, 0012, 0037–0040; [Phase 16 PRD](specs/PHASE_16_PRD_v1.0.md) |
 
 Deployment follows decision 0025: the web app and the API on Vercel, MongoDB Atlas, Upstash
 Redis and Resend, all on free plans. Steps are in [DEPLOYMENT.md](DEPLOYMENT.md); the
@@ -197,7 +197,7 @@ mobile navigation drawer, a states board and the copy-drafts board.
 
 | Item                                                                                                                     | Blocks            | Owner         |
 | ------------------------------------------------------------------------------------------------------------------------ | ----------------- | ------------- |
-| Delete the four unapproved Phase 16 boards in Stitch listed in 0039                                                      | Housekeeping      | Product       |
+| Delete the four unapproved Phase 16 boards in Stitch listed in 0039 (approved in 0040; done in Stitch by the owner)      | Housekeeping      | Product       |
 | Usage rights for the Stitch-generated photos                                                                             | Public launch     | Product       |
 | Privacy Policy and Terms of Service text                                                                                 | Public launch     | Legal         |
 | A domain verified in Resend (none owned yet; until then email reaches only the Resend account owner — 0025)              | Email to guests   | Product / Ops |
@@ -270,6 +270,7 @@ checked only for loading the saved values.
 
 | Date       | Change                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 2026-11-12 | Decision 0040: the product owner approved every pending Phase 16 item — the Phase 16 wording as built on `main` (`68c39cd`) and the deletion of the four unapproved Stitch boards (done in Stitch by the owner). Phase 16 PRD, 0039 and the indexes updated. Phase 16 has nothing open.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | 2026-11-04 | Full test run of `main` (`68c39cd`): all checks green (138 API unit, 203 integration, 342 web tests, build); browser smoke run of every module 41/41 and the Phase 16 partner run 40/40. No product bugs found. The status page after the merge merged as PR #41. The local development database was emptied afterwards (local only).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | 2026-11-04 | Phase 16 merged to `main` by PR #40 (`68c39cd`). Wording stays draft (0039). Next: Phases 11–15, each only after explicit approval.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | 2026-11-04 | Phase 16 implemented on `feat/phase-16` (local, not pushed): partner module (invite, resend at most 3 a day, cancel, public page, accept with matching email, decline, leave), owner changes serialized with `weddings.ownersVersion` (also in ownership transfer), organizer promoted with overrides cleared and pending offers cancelled, former partner reactivated; Members partner card, invite dialog, leave confirmation, `/partner-invite/[token]`, success screen, "You left" notice, former members; audit wording. Checks: 138 API unit, 203 integration (13 partner) and 342 web tests, lint, type-check, build; a browser run against the local stack (Chromium, desktop 1440px and mobile 390px) passed all 40 checks. Docs PR #39 merged. Wording draft (0039).                                                                                                       |
