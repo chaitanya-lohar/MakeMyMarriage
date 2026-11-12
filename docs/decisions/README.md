@@ -30,7 +30,7 @@ in a specification, the record names that statement.
 | [0022](0022-dashboard-api-contract.md)                    | Dashboard API contract (Phase 4)                                    | Accepted; amended by 0034                           |
 | [0023](0023-phase-4-engineering-decisions.md)             | Phase 4 engineering decisions (retries, rate limits, order, opens)  | Accepted; #1 superseded by 0025                     |
 | [0024](0024-live-updates.md)                              | Live updates on organizer screens (SSE)                             | Deferred (parked enhancement)                       |
-| [0025](0025-vercel-only-hosting.md)                       | Vercel-only hosting: no worker, email sent directly                 | Accepted                                            |
+| [0025](0025-vercel-only-hosting.md)                       | Vercel-only hosting: no worker, email sent directly                 | Accepted; amended by 0041                           |
 | [0026](0026-phase-7-tasks.md)                             | Phase 7: tasks (scope, rules, list, dashboard)                      | Accepted; #14 amended by 0034, 0038                 |
 | [0027](0027-phase-7-design-approval.md)                   | Phase 7 design approval: screens and corrections; wording draft     | Accepted                                            |
 | [0028](0028-phase-8-expenses.md)                          | Phase 8: expenses (scope, money rules, payments, list, dashboard)   | Accepted; #19 amended by 0034                       |
@@ -46,6 +46,7 @@ in a specification, the record names that statement.
 | [0038](0038-phase-16-partner-connection.md)               | Phase 16: partner connection and sharing (D1–D10)                   | Accepted; supplemented by 0039                      |
 | [0039](0039-phase-16-design-approval.md)                  | Phase 16 design approval: screens and corrections                   | Accepted; #4 answered by 0040                       |
 | [0040](0040-phase-16-wording-approval.md)                 | Wording approval for Phase 16                                       | Accepted                                            |
+| [0041](0041-brevo-email-provider.md)                      | Brevo as an email provider, without a domain                        | Accepted                                            |
 
 Conflicts between specifications or decision records are handled with the protocol in
 [0004](0004-specification-authority.md) — never resolved silently in code.

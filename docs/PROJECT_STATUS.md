@@ -2,7 +2,7 @@
 
 The single place to see where MakeMyMarriage stands. Read this first.
 
-- **Updated:** 2026-11-12, Phase 16 wording approved (decision 0040).
+- **Updated:** 2026-11-12, first deployment and Brevo as an email provider (decision 0041).
 - **Source of truth:** the canonical documents listed in the [documentation index](README.md)
   and the decision records in [`decisions/`](decisions/README.md). This page only summarises
   and links; where they differ, the decision record wins.
@@ -11,17 +11,17 @@ The single place to see where MakeMyMarriage stands. Read this first.
 
 ## Snapshot
 
-| Item            | State                                                                     |
-| --------------- | ------------------------------------------------------------------------- |
-| Current phase   | Phase 16 (Partner connection) — done and merged (PR #40)                  |
-| Next phase      | Phases 11–15 (deferred by 0037) — not started; requires explicit approval |
-| `main`          | Scaffold and Phases 1–4, 7–10, 16 (PRs #1–41); decisions 0001–0040        |
-| Open PRs        | None                                                                      |
-| Live deployment | None yet                                                                  |
+| Item            | State                                                                           |
+| --------------- | ------------------------------------------------------------------------------- |
+| Current phase   | Phase 16 (Partner connection) — done and merged (PR #40)                        |
+| Next phase      | Phases 11–15 (deferred by 0037) — not started; requires explicit approval       |
+| `main`          | Scaffold and Phases 1–4, 7–10, 16 (PRs #1–41); decisions 0001–0041              |
+| Open PRs        | None                                                                            |
+| Live deployment | Web and API live on Vercel (2026-11-12); sign-up and the §9 checks not yet done |
 
 ### Branches
 
-Every branch below except `feat/vercel-single-runtime` and `docs/status-after-testing` is merged into `main`; new work starts from `main`.
+Every branch below except `docs/status-after-testing` is merged into `main`; new work starts from `main`.
 
 | Branch                            | Contains                                                                                                                                      | State           |
 | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | --------------- |
@@ -40,7 +40,7 @@ Every branch below except `feat/vercel-single-runtime` and `docs/status-after-te
 | `feat/phase-4`                    | Phase 4: events, guests, RSVP, invitations and dashboard                                                                                      | Merged (PR #12) |
 | `fix/phase-4-review`              | Decision 0023 and the code-review fixes (includes `feat/phase-4-engineering-decisions`)                                                       | Merged (PR #14) |
 | `feat/event-date-picker`          | Date pickers, save returns to the dashboard, decision 0024 parked                                                                             | Merged (PR #15) |
-| `feat/vercel-single-runtime`      | Decision 0025: Vercel-only hosting, no worker, emails sent directly, deployment guide                                                         | Pull request    |
+| `feat/vercel-single-runtime`      | Decision 0025: Vercel-only hosting, no worker, emails sent directly, deployment guide (entry and output fixes in PRs #17, #18)                | Merged (PR #16) |
 | `docs/phase-7-tasks`              | Decisions 0026 and 0027, the Phase 7 PRD                                                                                                      | Merged (PR #19) |
 | `feat/phase-7`                    | Phase 7: tasks module, screens and dashboard card (0026, 0027)                                                                                | Merged (PR #20) |
 | `fix/phase-7-review`              | Phase 7 code-review fixes (4 medium, 9 low) and tests                                                                                         | Merged (PR #22) |
@@ -93,8 +93,11 @@ questions for it are raised then (0004).
 | 16  | Partner connection and sharing       | Done, merged (PR #40)       | 0011, 0012, 0037–0040; [Phase 16 PRD](specs/PHASE_16_PRD_v1.0.md) |
 
 Deployment follows decision 0025: the web app and the API on Vercel, MongoDB Atlas, Upstash
-Redis and Resend, all on free plans. Steps are in [DEPLOYMENT.md](DEPLOYMENT.md); the
-accounts are not created yet.
+Redis and Brevo (0041), all on free plans. Steps are in [DEPLOYMENT.md](DEPLOYMENT.md). The
+product owner created the accounts and deployed both projects; on 2026-11-12 the api project
+(`makemymarriage-api.vercel.app`) answered `/health/ready` with MongoDB and Redis up. The
+web project (`make-my-marriage-pink-two.vercel.app`) serves its pages and forwards `/api/v1` to
+the API. The checks in DEPLOYMENT.md §9 are not yet done.
 
 ## What exists today (on `main`)
 
@@ -162,7 +165,7 @@ payment in one transaction; deleting an event makes its expenses whole-wedding o
 writes the wedding and its owner membership in one transaction. Phase 9 adds `vendors`
 (`wedding_vendors`, `vendor_bookings`), vendor-linked expenses and vendor dashboard summaries.
 Shared infrastructure:
-config, logging, MongoDB, Redis (rate limiting), email (Mailpit locally, Resend when
+config, logging, MongoDB, Redis (rate limiting), email (Mailpit locally, Brevo or Resend when
 deployed; reset emails are sent after the response — 0025).
 
 ### Designs (Google Stitch project `11709379677369700007`)
@@ -195,20 +198,21 @@ mobile navigation drawer, a states board and the copy-drafts board.
 
 ## Open decisions and blockers
 
-| Item                                                                                                                     | Blocks            | Owner         |
-| ------------------------------------------------------------------------------------------------------------------------ | ----------------- | ------------- |
-| Delete the four unapproved Phase 16 boards in Stitch listed in 0039 (approved in 0040; done in Stitch by the owner)      | Housekeeping      | Product       |
-| Usage rights for the Stitch-generated photos                                                                             | Public launch     | Product       |
-| Privacy Policy and Terms of Service text                                                                                 | Public launch     | Legal         |
-| A domain verified in Resend (none owned yet; until then email reaches only the Resend account owner — 0025)              | Email to guests   | Product / Ops |
-| Delete the outdated first "Sign In (V1)" screen in Stitch                                                                | Housekeeping      | Product       |
-| Delete the 11 first-round "P9 ·" screens in Stitch that 0033 does not approve                                            | Housekeeping      | Product       |
-| Deployment accounts: Vercel (two projects), MongoDB Atlas, Upstash Redis (0025)                                          | First deployment  | Ops           |
-| Scheduled and background work (reminders, exports, media cleanup, webhooks) on Vercel-only hosting (0025)                | Later phases      | Product       |
-| Forgot-password response time hints whether an email is registered (code review, deferred)                               | Public launch     | Engineering   |
-| Reset email says "signs you out on all your devices", but access tokens live ≤15 min (0015) — reword or revoke instantly | Public launch     | Product       |
-| Delivery webhooks for DELIVERED/FAILED (Sent is the highest status until then)                                           | Delivery statuses | Product / Ops |
-| Live updates on organizer screens (0024, parked): until then, an open page shows a guest's RSVP only after a refresh     | Enhancement       | Product       |
+| Item                                                                                                                                         | Blocks                    | Owner         |
+| -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- | ------------- |
+| Delete the four unapproved Phase 16 boards in Stitch listed in 0039 (approved in 0040; done in Stitch by the owner)                          | Housekeeping              | Product       |
+| Usage rights for the Stitch-generated photos                                                                                                 | Public launch             | Product       |
+| Privacy Policy and Terms of Service text                                                                                                     | Public launch             | Legal         |
+| Brevo set up and checked on the live site (0041): account validated, sender verified, `EMAIL_TRANSPORT=brevo`, `BREVO_API_KEY`, `EMAIL_FROM` | Email to users and guests | Product / Ops |
+| A sending domain (none owned; until then the sender shown is a Brevo address and mail may land in Spam — 0041)                               | Public launch             | Product / Ops |
+| Delete the outdated first "Sign In (V1)" screen in Stitch                                                                                    | Housekeeping              | Product       |
+| Delete the 11 first-round "P9 ·" screens in Stitch that 0033 does not approve                                                                | Housekeeping              | Product       |
+| Deployment checks in DEPLOYMENT.md §9 (sign-up, invitation email, visitor IP), and `db:migrate`, `db:indexes` on Atlas                       | Using the live site       | Ops           |
+| Scheduled and background work (reminders, exports, media cleanup, webhooks) on Vercel-only hosting (0025)                                    | Later phases              | Product       |
+| Forgot-password response time hints whether an email is registered (code review, deferred)                                                   | Public launch             | Engineering   |
+| Reset email says "signs you out on all your devices", but access tokens live ≤15 min (0015) — reword or revoke instantly                     | Public launch             | Product       |
+| Delivery webhooks for DELIVERED/FAILED (Sent is the highest status until then)                                                               | Delivery statuses         | Product / Ops |
+| Live updates on organizer screens (0024, parked): until then, an open page shows a guest's RSVP only after a refresh                         | Enhancement               | Product       |
 
 ## Working rules
 
@@ -270,6 +274,8 @@ checked only for loading the saved values.
 
 | Date       | Change                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 2026-11-12 | Decision 0041: Brevo added as an email provider (`EMAIL_TRANSPORT=brevo`, `BREVO_API_KEY`), with one verified sender address and no domain, because Resend's test sender reaches only the account owner and the product owner wants zero cost. Accepted trade-offs: the sender shown is a Brevo address, more mail may land in Spam, about 300 emails a day. Amends 0025; System, Database and API Design, the Phase 4 PRD and DEPLOYMENT.md updated. Code on `feat/brevo-email` (local, not pushed).                                                                                                                                                                                                                                                                                                                                                                                |
+| 2026-11-12 | First deployment (0025), done by the product owner: two Vercel projects, Atlas, Upstash. The api project failed on every request with `bad auth : authentication failed` (wrong database user or password in `MONGODB_URI`); after the variable was corrected and the project redeployed, `/health/live` and `/health/ready` (MongoDB and Redis up) pass and `/api/v1/me` answers 401. No code change. DEPLOYMENT.md §5 now runs `db:migrate` before `db:indexes` and explains this error. The web project serves its pages and forwards `/api/v1` to the API (401 on `/me`, validation error on an empty sign-in). The §9 checks are not yet done.                                                                                                                                                                                                                                  |
 | 2026-11-12 | Decision 0040: the product owner approved every pending Phase 16 item — the Phase 16 wording as built on `main` (`68c39cd`) and the deletion of the four unapproved Stitch boards (done in Stitch by the owner). Phase 16 PRD, 0039 and the indexes updated. Phase 16 has nothing open.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | 2026-11-04 | Full test run of `main` (`68c39cd`): all checks green (138 API unit, 203 integration, 342 web tests, build); browser smoke run of every module 41/41 and the Phase 16 partner run 40/40. No product bugs found. The status page after the merge merged as PR #41. The local development database was emptied afterwards (local only).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | 2026-11-04 | Phase 16 merged to `main` by PR #40 (`68c39cd`). Wording stays draft (0039). Next: Phases 11–15, each only after explicit approval.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |

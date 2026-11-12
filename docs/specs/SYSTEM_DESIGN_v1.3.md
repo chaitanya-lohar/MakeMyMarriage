@@ -11,7 +11,7 @@
 | Database         | MongoDB Atlas                                               |
 | Object storage   | Amazon S3                                                   |
 | Background jobs  | None in V1 hosting; future jobs need a decision (0025)      |
-| Email            | Resend                                                      |
+| Email            | Brevo or Resend, chosen by configuration (0041)             |
 | Vendor discovery | Google Places API (New) — deferred (0032 #3)                |
 | Live streaming   | YouTube Live (external)                                     |
 | Supersedes       | System Design v1.0–v1.2 (archived in `docs/archive/specs/`) |
@@ -50,7 +50,7 @@ reporting, sharing, security, observability and deployment.
 | Web hosting        | Vercel (web app and its `/api/v1` proxy only)                                                  |
 | API hosting        | Vercel function in its own Vercel project (0025; amends 0002, 0005)                            |
 | Background jobs    | None; Redis is used for rate limiting only (0025)                                              |
-| Email              | Resend (local development uses a Mailpit inbox)                                                |
+| Email              | Brevo or Resend, chosen by configuration (0041); local development uses a Mailpit inbox        |
 | Authentication V1  | Email + password; no mandatory email verification (0015)                                       |
 | Social login       | Google login is future-ready, not V1                                                           |
 | Sessions           | Multiple devices supported                                                                     |
@@ -95,7 +95,7 @@ NestJS API (Vercel function — 0025) ─ modular monolith
    ↓              ↓               ↓
 MongoDB Atlas   Amazon S3     Redis (rate limits)
    ↓
-Resend · Google Places · YouTube Live
+Email provider (Brevo or Resend) · Google Places · YouTube Live
 ```
 
 ## 5. Deployment architecture
@@ -489,13 +489,14 @@ Decisions 0008, 0017 and 0018.
   are written to the audit log (0018, 0019).
 - One invitation per guest contains the guest's applicable events.
 - WhatsApp uses the user's own sharing flow; no WhatsApp API in V1.
-- Email invitations are sent through Resend by the API during the send request (0025).
+- Email invitations are sent through the email provider (Brevo or Resend, 0041) by the API
+  during the send request (0025).
 
 ## 11. Notifications and background jobs
 
 ```text
 Domain action (API) → channel adapter
-                       ├─ Resend (email)
+                       ├─ email provider (Brevo or Resend)
                        └─ in-app notification store
 ```
 
@@ -730,7 +731,7 @@ decision records in `docs/decisions/`, which are the authoritative history.
 | 005 | Amazon S3                                        | Accepted                                               |
 | 006 | Vercel                                           | Accepted for the web app and the API; no worker (0025) |
 | 007 | Redis + BullMQ                                   | Redis kept for rate limiting; BullMQ removed (0025)    |
-| 008 | Resend                                           | Accepted                                               |
+| 008 | Resend                                           | Accepted; Brevo added as a provider (0041)             |
 | 009 | Email/password without mandatory verification    | Accepted                                               |
 | 010 | Secure tokenized guest/QR access                 | Accepted                                               |
 | 011 | Google Places API (New) via provider abstraction | Accepted; deferred from Phase 9 (0032 #3)              |
@@ -767,7 +768,7 @@ Phases are approved one at a time; the current state and the built phases are in
 
 A modular monolith designed for secure public deployment: Next.js on Vercel for the web
 experience, the NestJS API as a Vercel function (0025), MongoDB Atlas for domain data, S3 for
-media, Redis for rate limiting, and Resend for email. It
+media, Redis for rate limiting, and Brevo or Resend for email. It
 preserves the product principles: one owned wedding per account, accounts never merged,
 one wedding shared by connected partners, account-free guests, event-level RSVP, secure
 tokenized guest and QR access, deliberate website publication and granular server-side

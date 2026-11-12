@@ -39,7 +39,7 @@ invitations (answer Q3).
   (0018).
 - Invitation delivery state, activity history and RSVP state are independent.
 - WhatsApp sharing opens the user's own WhatsApp; no WhatsApp API. Copy Link is supported.
-  The platform sends invitation emails through the email provider adapter (Resend).
+  The platform sends invitation emails through the email provider adapter (Brevo or Resend, 0041).
 - Every organizer endpoint checks the user's membership of the wedding; every query is
   scoped to the wedding. A client-supplied `weddingId` is never trusted on its own.
 - No user-facing limit on the number of guests or on attendee counts.

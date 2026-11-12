@@ -70,7 +70,7 @@ metadata, transaction boundaries and operational rules.
 | Invitation, QR, reset access | Secure random token, never stored in plain form: QR and reset tokens as a hash; invitation tokens as a hash plus an encrypted copy (0018) |
 | Binary storage               | Amazon S3                                                                                                                                 |
 | Background jobs              | None; Redis holds rate-limit counters only (0025)                                                                                         |
-| Email provider               | Resend                                                                                                                                    |
+| Email provider               | Brevo or Resend (0041)                                                                                                                    |
 | Vendor discovery             | Google Places API (New), through a provider abstraction — deferred (0032 #3)                                                              |
 | Live streaming               | YouTube Live                                                                                                                              |
 | Reports                      | Excel, generated on demand                                                                                                                |
@@ -740,7 +740,7 @@ The limits here and in §9 are approved (0019 #6).
   channel: string,             // EMAIL
   attemptNumber: number,
   kind: string,                // SEND, RESEND
-  provider: string,            // RESEND
+  provider: string,            // BREVO, RESEND or SMTP: the sender that made the attempt (0041)
   providerMessageId?: string,
   status: string,              // SENT, DELIVERED, FAILED
   idempotencyKey: string,      // unique; a repeated request never sends twice
