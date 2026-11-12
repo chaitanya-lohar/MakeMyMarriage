@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { AppConfig } from './app-config.js';
-import { EnvValidationError, parseEnv } from './env.schema.js';
+import { EnvValidationError, parseEmailFrom, parseEnv } from './env.schema.js';
 
 const validEnv = {
   APP_ENV: 'local',
@@ -75,6 +75,19 @@ describe('parseEnv', () => {
     ).toBe('re_x');
   });
 
+  it('requires a Brevo API key and a usable sender only when Brevo is the transport', () => {
+    const brevo = { ...validEnv, EMAIL_TRANSPORT: 'brevo' };
+    expect(() => parseEnv(brevo)).toThrow(/BREVO_API_KEY/);
+    expect(parseEnv({ ...brevo, BREVO_API_KEY: 'xkeysib-x' }).BREVO_API_KEY).toBe('xkeysib-x');
+    expect(() =>
+      parseEnv({ ...brevo, BREVO_API_KEY: 'xkeysib-x', EMAIL_FROM: 'MakeMyMarriage' }),
+    ).toThrow(/EMAIL_FROM/);
+    // Other transports keep accepting any sender text.
+    expect(parseEnv({ ...validEnv, EMAIL_FROM: 'MakeMyMarriage' }).EMAIL_FROM).toBe(
+      'MakeMyMarriage',
+    );
+  });
+
   it('requires the web origin and email transport to be set explicitly when deployed', () => {
     for (const APP_ENV of ['staging', 'production']) {
       let error: unknown;
@@ -124,6 +137,33 @@ describe('parseEnv', () => {
     expect(error).toBeInstanceOf(EnvValidationError);
     expect((error as EnvValidationError).issues.join(' ')).toContain('MONGODB_URI');
     expect((error as Error).message).not.toContain('hunter2');
+  });
+});
+
+describe('parseEmailFrom', () => {
+  it('reads a name and an address, or a bare address', () => {
+    expect(parseEmailFrom('MakeMyMarriage <hello@example.com>')).toEqual({
+      name: 'MakeMyMarriage',
+      address: 'hello@example.com',
+    });
+    expect(parseEmailFrom('"Make My Marriage" <hello@example.com>')).toEqual({
+      name: 'Make My Marriage',
+      address: 'hello@example.com',
+    });
+    expect(parseEmailFrom(' hello@example.com ')).toEqual({
+      name: null,
+      address: 'hello@example.com',
+    });
+    expect(parseEmailFrom('<hello@example.com>')).toEqual({
+      name: null,
+      address: 'hello@example.com',
+    });
+  });
+
+  it('rejects text without a usable address', () => {
+    for (const value of ['', 'MakeMyMarriage', 'Name <not-an-address>', 'a@b', 'Name <a@b.c> x']) {
+      expect(parseEmailFrom(value)).toBeNull();
+    }
   });
 });
 
